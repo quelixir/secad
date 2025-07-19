@@ -16,35 +16,28 @@ It is designed to help manage the following across multiple entities:
 
 ## Getting Started
 
-### Environment Setup
-
-Create a `.env` file in the root directory and populate it with the following variables:
-
 ```bash
+$ git clone git@github.com:quelixir/secad # or https://github.com/quelixir/secad
+$ cd secad
+$ yarn install
+```
+
+Next, create a `.env` file in the root directory and populate it with the following variable:
+
+```
 DATABASE_URL="postgresql://username:password@localhost:5432/secad"
 ```
 
 Replace the connection string with your actual PostgreSQL database credentials.
 
-### Running the Application
-
-First, run the development server:
+Now, you run the development server:
 
 ```bash
-npm run dev
-# or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to start using secad.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## License
 
