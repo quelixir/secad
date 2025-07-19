@@ -33,7 +33,7 @@ Replace the connection string with your actual PostgreSQL database credentials.
 Now, you run the development server:
 
 ```bash
-yarn dev
+$ yarn dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to start using secad.
@@ -43,14 +43,11 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to start u
 This project uses Jest and React Testing Library for testing. To run tests:
 
 ```bash
-# Run all tests
-yarn test
-
-# Run tests in watch mode
-yarn test:watch
-
-# Run tests with coverage
-yarn test:coverage
+$ yarn test
+# or
+$ yarn test:watch
+# or
+$ yarn test:coverage
 ```
 
 Tests are automatically run on pull requests and pushes to main/develop branches via GitHub Actions, with coverage reports uploaded to Codecov.
