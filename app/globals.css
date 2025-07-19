@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -118,5 +118,20 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Custom override for dialog width constraints */
+@layer components {
+  .dialog-wide {
+    max-width: 80vw !important;
+    width: 80vw !important;
+  }
+
+  @media (min-width: 40rem) {
+    .dialog-wide {
+      max-width: 80vw !important;
+      width: 80vw !important;
+    }
   }
 }

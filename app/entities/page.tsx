@@ -7,11 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Plus, Search, Edit, Trash2, Building2, Users, Shield } from 'lucide-react'
 import Link from 'next/link'
-import { EntityForm } from './entity-form'
 
 interface Entity {
   id: string
@@ -36,15 +34,13 @@ export default function EntitiesPage() {
   const [entities, setEntities] = useState<Entity[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [editingEntity, setEditingEntity] = useState<Entity | null>(null)
-  const [showAddDialog, setShowAddDialog] = useState(false)
 
   const fetchEntities = async () => {
     try {
       setLoading(true)
       const response = await fetch('/api/entities?include=details')
       const result = await response.json()
-      
+
       if (result.success) {
         setEntities(result.data)
       } else {
@@ -66,9 +62,9 @@ export default function EntitiesPage() {
       const response = await fetch(`/api/entities/${entity.id}`, {
         method: 'DELETE'
       })
-      
+
       const result = await response.json()
-      
+
       if (result.success) {
         await fetchEntities() // Refresh the list
       }
@@ -77,11 +73,7 @@ export default function EntitiesPage() {
     }
   }
 
-  const handleEntitySaved = () => {
-    setEditingEntity(null)
-    setShowAddDialog(false)
-    fetchEntities()
-  }
+
 
   const filteredEntities = entities.filter(entity =>
     entity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -110,23 +102,12 @@ export default function EntitiesPage() {
               Manage your corporate entities and their details
             </p>
           </div>
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Entity
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Add New Entity</DialogTitle>
-                <DialogDescription>
-                  Create a new entity in the system
-                </DialogDescription>
-              </DialogHeader>
-              <EntityForm onSaved={handleEntitySaved} />
-            </DialogContent>
-          </Dialog>
+          <Button asChild>
+            <Link href="/entities/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Entity
+            </Link>
+          </Button>
         </div>
 
         {/* Search and Filters */}
@@ -233,31 +214,15 @@ export default function EntitiesPage() {
                                 View
                               </Link>
                             </Button>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setEditingEntity(entity)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-2xl">
-                                <DialogHeader>
-                                  <DialogTitle>Edit Entity</DialogTitle>
-                                  <DialogDescription>
-                                    Update entity information
-                                  </DialogDescription>
-                                </DialogHeader>
-                                {editingEntity && (
-                                  <EntityForm 
-                                    entity={editingEntity} 
-                                    onSaved={handleEntitySaved} 
-                                  />
-                                )}
-                              </DialogContent>
-                            </Dialog>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              asChild
+                            >
+                              <Link href={`/entities/${entity.id}/edit`}>
+                                <Edit className="h-4 w-4" />
+                              </Link>
+                            </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button
@@ -272,7 +237,7 @@ export default function EntitiesPage() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Entity</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete "{entity.name}"? This action cannot be undone.
+                                    Are you sure you want to delete &quot;{entity.name}&quot;? This action cannot be undone.
                                     You can only delete entities with no members, securities, or transactions.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>

@@ -9,7 +9,9 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { EntityType, AustralianStates } from '@/lib/types'
+import { EntityType } from '@/lib/types'
+import { CountrySelect } from '@/components/ui/country-select'
+import { StateSelect } from '@/components/ui/state-select'
 
 const entityFormSchema = z.object({
   name: z.string().min(1, 'Entity name is required').max(100, 'Entity name must be less than 100 characters'),
@@ -29,14 +31,33 @@ const entityFormSchema = z.object({
 
 type EntityFormValues = z.infer<typeof entityFormSchema>
 
+interface Entity {
+  id: string
+  name: string
+  abn?: string
+  acn?: string
+  entityType: string
+  status: string
+  email?: string
+  phone?: string
+  city?: string
+  state?: string
+  address?: string
+  postcode?: string
+  country?: string
+  website?: string
+  incorporationDate?: string
+  createdAt: string
+}
+
 interface EntityFormProps {
-  entity?: any
+  entity?: Entity
   onSaved: () => void
 }
 
 export function EntityForm({ entity, onSaved }: EntityFormProps) {
   const [loading, setLoading] = useState(false)
-  
+
   const form = useForm<EntityFormValues>({
     resolver: zodResolver(entityFormSchema),
     defaultValues: {
@@ -56,10 +77,13 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
     }
   })
 
+  // Watch the country field to pass to StateSelect
+  const selectedCountry = form.watch('country')
+
   const onSubmit = async (values: EntityFormValues) => {
     try {
       setLoading(true)
-      
+
       const requestData = {
         ...values,
         incorporationDate: values.incorporationDate ? new Date(values.incorporationDate).toISOString() : undefined
@@ -67,7 +91,7 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
 
       const url = entity ? `/api/entities/${entity.id}` : '/api/entities'
       const method = entity ? 'PUT' : 'POST'
-      
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -75,9 +99,9 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
         },
         body: JSON.stringify(requestData)
       })
-      
+
       const result = await response.json()
-      
+
       if (result.success) {
         onSaved()
       } else {
@@ -97,7 +121,7 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
         {/* Entity Information */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Entity Information</h3>
-          
+
           <FormField
             control={form.control}
             name="name"
@@ -189,7 +213,7 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
         {/* Address Information */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Address Information</h3>
-          
+
           <FormField
             control={form.control}
             name="address"
@@ -197,11 +221,11 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
               <FormItem>
                 <FormLabel>Street Address</FormLabel>
                 <FormControl>
-                  <Textarea 
+                  <Textarea
                     placeholder="Enter street address"
-                    className="resize-none" 
+                    className="resize-none"
                     rows={2}
-                    {...field} 
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
@@ -230,20 +254,14 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>State</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(AustralianStates).map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <StateSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select state..."
+                      selectedCountry={selectedCountry}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -271,7 +289,11 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
               <FormItem>
                 <FormLabel>Country</FormLabel>
                 <FormControl>
-                  <Input placeholder="Australia" {...field} />
+                  <CountrySelect
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    placeholder="Select country..."
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -282,7 +304,7 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
         {/* Contact Information */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Contact Information</h3>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -319,9 +341,9 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Website</FormLabel>
-                                  <FormControl>
-                    <Input placeholder="https://www.entity.com.au" {...field} />
-                  </FormControl>
+                <FormControl>
+                  <Input placeholder="https://www.entity.com.au" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

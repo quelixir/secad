@@ -43,8 +43,7 @@ export default function AssociatesPage() {
   const [hideResigned, setHideResigned] = useState(false)
   const [editingAssociate, setEditingAssociate] = useState<Associate | null>(null)
   const [showAddDialog, setShowAddDialog] = useState(false)
-  const [resigningAssociate, setResigningAssociate] = useState<Associate | null>(null)
-  const [resignationDate, setResignationDate] = useState(new Date().toISOString().split('T')[0])
+
 
   const fetchAssociates = async () => {
     if (!selectedEntity) {
@@ -60,10 +59,10 @@ export default function AssociatesPage() {
         includeHistorical: 'true', // Always include historical data
         type: 'officeholder_director,officeholder_secretary'
       })
-      
+
       const response = await fetch(`/api/associates?${params}`)
       const result = await response.json()
-      
+
       if (result.success) {
         setAssociates(result.data)
       } else {
@@ -87,9 +86,9 @@ export default function AssociatesPage() {
       const response = await fetch(`/api/associates/${associate.id}`, {
         method: 'DELETE'
       })
-      
+
       const result = await response.json()
-      
+
       if (result.success) {
         await fetchAssociates() // Refresh the list
       }
@@ -104,36 +103,7 @@ export default function AssociatesPage() {
     fetchAssociates()
   }
 
-  const handleResignation = (associate: Associate) => {
-    setResigningAssociate(associate)
-    setResignationDate(new Date().toISOString().split('T')[0])
-  }
 
-  const processResignation = async () => {
-    if (!resigningAssociate) return
-    
-    try {
-      const response = await fetch(`/api/associates/${resigningAssociate.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          status: 'Resigned',
-          resignationDate: new Date(resignationDate).toISOString()
-        })
-      })
-      
-      const result = await response.json()
-      
-      if (result.success) {
-        await fetchAssociates()
-        setResigningAssociate(null)
-      }
-    } catch (error) {
-      console.error('Error updating associate:', error)
-    }
-  }
 
   const formatAssociateName = (associate: Associate) => {
     if (associate.isIndividual) {
@@ -226,7 +196,7 @@ export default function AssociatesPage() {
                     Add Officeholder
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden">
+                <DialogContent className="dialog-wide max-h-[95vh] overflow-hidden">
                   <DialogHeader>
                     <DialogTitle>Add New Officeholder</DialogTitle>
                     <DialogDescription>
@@ -336,7 +306,7 @@ export default function AssociatesPage() {
                           {new Date(associate.appointmentDate).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          {associate.resignationDate 
+                          {associate.resignationDate
                             ? new Date(associate.resignationDate).toLocaleDateString()
                             : '—'
                           }
@@ -351,38 +321,30 @@ export default function AssociatesPage() {
                           <div className="flex justify-end space-x-2">
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
+                                <Button
+                                  variant="ghost"
                                   size="sm"
                                   onClick={() => setEditingAssociate(associate)}
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden">
+                              <DialogContent className="dialog-wide max-h-[95vh] overflow-hidden">
                                 <DialogHeader>
-                                  <DialogTitle>Edit Associate</DialogTitle>
+                                  <DialogTitle>Edit Officeholder</DialogTitle>
                                   <DialogDescription>
                                     Update information for {formatAssociateName(associate)}
                                   </DialogDescription>
                                 </DialogHeader>
-                                <AssociateForm 
+                                <AssociateForm
                                   entityId={selectedEntity.id}
-                                  associate={editingAssociate} 
-                                  onSaved={handleAssociateSaved} 
+                                  associate={editingAssociate}
+                                  onSaved={handleAssociateSaved}
                                 />
                               </DialogContent>
                             </Dialog>
 
-                            {associate.status === 'Active' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleResignation(associate)}
-                              >
-                                Mark Resigned
-                              </Button>
-                            )}
+
 
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -419,42 +381,7 @@ export default function AssociatesPage() {
           </CardContent>
         </Card>
 
-        {/* Resignation Confirmation Dialog */}
-        <AlertDialog open={!!resigningAssociate} onOpenChange={() => setResigningAssociate(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Mark Officeholder as Resigned</AlertDialogTitle>
-              <AlertDialogDescription>
-                Please select the resignation date for "{resigningAssociate ? formatAssociateName(resigningAssociate) : ''}".
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="py-4">
-              <div className="space-y-2">
-                <label htmlFor="resignationDate" className="text-sm font-medium">
-                  Resignation Date
-                </label>
-                <Input
-                  id="resignationDate"
-                  type="date"
-                  value={resignationDate}
-                  onChange={(e) => setResignationDate(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setResigningAssociate(null)}>
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={processResignation}
-                className="bg-yellow-600 text-white hover:bg-yellow-700"
-              >
-                Mark as Resigned
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+
       </div>
     </MainLayout>
   )

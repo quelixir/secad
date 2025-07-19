@@ -11,7 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Plus, Trash2 } from 'lucide-react'
 
-import { AssociateType, AustralianStates } from '@/lib/types'
+import { AssociateType } from '@/lib/types'
+import { CountrySelect } from '@/components/ui/country-select'
+import { StateSelect } from '@/components/ui/state-select'
 
 const associateFormSchema = z.object({
   type: z.string().min(1, 'Associate type is required'),
@@ -29,6 +31,7 @@ const associateFormSchema = z.object({
   postcode: z.string().optional().refine((val) => !val || /^\d{4}$/.test(val), 'Postcode must be 4 digits'),
   country: z.string().optional(),
   appointmentDate: z.string().optional(),
+  resignationDate: z.string().optional(),
   notes: z.string().optional()
 }).refine((data) => {
   if (data.isIndividual) {
@@ -52,7 +55,7 @@ interface AssociateFormProps {
 export function AssociateForm({ entityId, associate, onSaved }: AssociateFormProps) {
   const [loading, setLoading] = useState(false)
   const [newPreviousName, setNewPreviousName] = useState('')
-  
+
   const form = useForm<AssociateFormValues>({
     resolver: zodResolver(associateFormSchema),
     defaultValues: {
@@ -71,12 +74,14 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
       postcode: associate?.postcode || '',
       country: associate?.country || 'Australia',
       appointmentDate: associate?.appointmentDate ? associate.appointmentDate.split('T')[0] : '',
+      resignationDate: associate?.resignationDate ? associate.resignationDate.split('T')[0] : '',
       notes: associate?.notes || ''
     }
   })
 
   const isIndividual = form.watch('isIndividual')
   const previousNames = form.watch('previousNames') || []
+  const selectedCountry = form.watch('country')
 
   const addPreviousName = () => {
     if (newPreviousName.trim()) {
@@ -102,12 +107,13 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
   const onSubmit = async (values: AssociateFormValues) => {
     try {
       setLoading(true)
-      
+
       const requestData = {
         entityId,
         ...values,
         dateOfBirth: values.dateOfBirth ? new Date(values.dateOfBirth).toISOString() : undefined,
         appointmentDate: values.appointmentDate ? new Date(values.appointmentDate).toISOString() : undefined,
+        resignationDate: values.resignationDate ? new Date(values.resignationDate).toISOString() : undefined,
         previousNames: values.previousNames?.filter(name => name.length > 0) || []
       }
 
@@ -143,57 +149,58 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
     <div className="max-h-[80vh] overflow-y-auto px-1">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {/* Associate Type */}
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select associate type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value={AssociateType.OFFICEHOLDER_DIRECTOR}>Director</SelectItem>
-                    <SelectItem value={AssociateType.OFFICEHOLDER_SECRETARY}>Secretary</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Type and Associate Type - side by side */}
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select associate type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={AssociateType.OFFICEHOLDER_DIRECTOR}>Director</SelectItem>
+                      <SelectItem value={AssociateType.OFFICEHOLDER_SECRETARY}>Secretary</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Individual vs Corporate */}
-          <FormField
-            control={form.control}
-            name="isIndividual"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Associate Type</FormLabel>
-                <Select onValueChange={(value: string) => field.onChange(value === 'true')} defaultValue={field.value ? 'true' : 'false'}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select associate type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="true">Individual Person</SelectItem>
-                    <SelectItem value="false">Corporate Entity</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="isIndividual"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Associate Type</FormLabel>
+                  <Select onValueChange={(value: string) => field.onChange(value === 'true')} defaultValue={field.value ? 'true' : 'false'}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select associate type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="true">Individual Person</SelectItem>
+                      <SelectItem value="false">Corporate Entity</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           {/* Individual Details */}
           {isIndividual && (
             <div className="space-y-3 border rounded-lg p-3 bg-muted/20">
               <h3 className="text-sm font-medium">Individual Details</h3>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
@@ -257,11 +264,11 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                             onKeyPress={handleKeyPress}
                             className="flex-1"
                           />
-                          <Button 
-                            type="button" 
-                            variant="outline" 
+                          <Button
+                            type="button"
+                            variant="outline"
                             size="sm"
-                            onClick={addPreviousName} 
+                            onClick={addPreviousName}
                             disabled={!newPreviousName.trim()}
                           >
                             <Plus className="h-4 w-4" />
@@ -299,7 +306,7 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
           {!isIndividual && (
             <div className="space-y-3 border rounded-lg p-3 bg-muted/20">
               <h3 className="text-sm font-medium">Corporate Details</h3>
-              
+
               <FormField
                 control={form.control}
                 name="entityName"
@@ -320,7 +327,7 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
           {/* Contact Information */}
           <div className="space-y-3 border rounded-lg p-3 bg-muted/20">
             <h3 className="text-sm font-medium">Contact Information</h3>
-            
+
             <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
@@ -358,11 +365,11 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                 <FormItem>
                   <FormLabel>Street Address</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Enter street address"
-                      className="resize-none" 
+                      className="resize-none"
                       rows={2}
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -391,20 +398,14 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>State</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select state" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.values(AustralianStates).map((state) => (
-                          <SelectItem key={state} value={state}>
-                            {state}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <StateSelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Select state..."
+                        selectedCountry={selectedCountry}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -432,7 +433,11 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                 <FormItem>
                   <FormLabel>Country</FormLabel>
                   <FormControl>
-                    <Input placeholder="Australia" {...field} />
+                    <CountrySelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select country..."
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -443,21 +448,75 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
           {/* Appointment Details */}
           <div className="space-y-3 border rounded-lg p-3 bg-muted/20">
             <h3 className="text-sm font-medium">Appointment Details</h3>
-            
-            <FormField
-              control={form.control}
-              name="appointmentDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Appointment Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormDescription>Date when the person was appointed to this role</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="appointmentDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Appointment Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <div className="space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const today = new Date().toISOString().split('T')[0]
+                          form.setValue('appointmentDate', today)
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                      >
+                        Today
+                      </button>
+                      <FormDescription>Date when the person was appointed to this role</FormDescription>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="resignationDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Resignation Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <div className="space-y-1">
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const today = new Date().toISOString().split('T')[0]
+                            form.setValue('resignationDate', today)
+                          }}
+                          className="text-xs text-blue-600 hover:text-blue-800 underline"
+                        >
+                          Today
+                        </button>
+                        {field.value && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              form.setValue('resignationDate', '')
+                            }}
+                            className="text-xs text-red-600 hover:text-red-800 underline"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                      <FormDescription>Date when the person resigned from this role. Setting this date will automatically mark the associate as "Resigned". Clearing this field will mark them as "Active".</FormDescription>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -466,11 +525,11 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                 <FormItem>
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Additional notes or comments"
-                      className="resize-none" 
+                      className="resize-none"
                       rows={3}
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />

@@ -50,12 +50,12 @@ export default function Dashboard() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true)
-        
+
         // Fetch entity-specific data in parallel
         const [membersRes, securitiesRes, transactionsRes] = await Promise.all([
-          fetch(`/api/members?entityId=${selectedEntity.id}&include=holdings`),
-          fetch(`/api/securities?entityId=${selectedEntity.id}`),
-          fetch(`/api/transactions?entityId=${selectedEntity.id}`)
+          fetch(`/api/registry/members?entityId=${selectedEntity.id}&include=holdings`),
+          fetch(`/api/registry/securities?entityId=${selectedEntity.id}`),
+          fetch(`/api/registry/transactions?entityId=${selectedEntity.id}`)
         ])
 
         const [members, securities, transactions] = await Promise.all([
@@ -66,8 +66,8 @@ export default function Dashboard() {
 
         // Calculate total holdings
         const totalHoldings = members.data?.reduce((total: number, member: any) => {
-          return total + (member.holdings?.reduce((memberTotal: number, holding: any) => {
-            return memberTotal + holding.quantity
+          return total + (member.allocations?.reduce((memberTotal: number, allocation: any) => {
+            return memberTotal + allocation.quantity
           }, 0) || 0)
         }, 0) || 0
 
@@ -153,7 +153,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-                  {/* Entity Info */}
+        {/* Entity Info */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export default function Dashboard() {
               {selectedEntity.name}
             </CardTitle>
             <CardDescription>
-              {selectedEntity.entityType} 
+              {selectedEntity.entityType}
               {selectedEntity.abn && ` • ABN: ${selectedEntity.abn}`}
               {selectedEntity.acn && ` • ACN: ${selectedEntity.acn}`}
             </CardDescription>
