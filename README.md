@@ -1,6 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# secad
+
+secad (a corporate **sec**reterial and **ad**ministrative helper) is designed to be a comprehensive web application for managing backend corporate compliance.
+
+It is designed to help manage the following across multiple entities:
+
+- **Securities**: Manage different classes of securities (shares, units, etc.)
+- **Transactions**: Handle various transaction types including:
+  - Issue of new securities
+  - Transfers between members
+  - Redemptions and cancellations
+  - Capital calls and returns
+- **Resolutions**: Record and track corporate resolutions and decisions
+- **Associates**: Manage relationships between entities and their associates
+
 
 ## Getting Started
+
+### Environment Setup
+
+Create a `.env` file in the root directory and populate it with the following variables:
+
+```bash
+DATABASE_URL="postgresql://username:password@localhost:5432/secad"
+```
+
+Replace the connection string with your actual PostgreSQL database credentials.
+
+### Running the Application
 
 First, run the development server:
 
@@ -20,17 +46,6 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## License
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See the [LICENSE](LICENSE) file in this repository.
