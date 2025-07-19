@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { MainLayout } from '@/components/layout/main-layout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,18 +10,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Plus, Search, Edit, Trash2, Building2, Users, Shield } from 'lucide-react'
 import Link from 'next/link'
+import { useEntities, useDeleteEntity } from '@/lib/hooks/use-trpc'
 
 interface Entity {
   id: string
   name: string
-  abn?: string
-  acn?: string
+  abn?: string | null
+  acn?: string | null
   entityType: string
   status: string
-  email?: string
-  phone?: string
-  city?: string
-  state?: string
+  email?: string | null
+  phone?: string | null
+  city?: string | null
+  state?: string | null
   createdAt: string
   _count?: {
     members: number
@@ -31,43 +32,25 @@ interface Entity {
 }
 
 export default function EntitiesPage() {
-  const [entities, setEntities] = useState<Entity[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const { data: entitiesData, isLoading, refetch, error } = useEntities()
+  const deleteEntityMutation = useDeleteEntity()
 
-  const fetchEntities = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch('/api/entities?include=details')
-      const result = await response.json()
+  const entities = entitiesData?.data || []
 
-      if (result.success) {
-        setEntities(result.data)
-      } else {
-        console.error('Failed to fetch entities:', result.error)
-      }
-    } catch (error) {
-      console.error('Error fetching entities:', error)
-    } finally {
-      setLoading(false)
-    }
+  if (error) {
+    console.error('Error fetching entities:', error)
   }
 
-  useEffect(() => {
-    fetchEntities()
-  }, [])
+  // Log API errors (when data.success === false)
+  if (entitiesData && !entitiesData.success) {
+    console.error('Error fetching entities:', entitiesData.error || 'Unknown API error')
+  }
 
   const handleDelete = async (entity: Entity) => {
     try {
-      const response = await fetch(`/api/entities/${entity.id}`, {
-        method: 'DELETE'
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        await fetchEntities() // Refresh the list
-      }
+      await deleteEntityMutation.mutateAsync({ id: entity.id })
+      await refetch() // Refresh the list
     } catch (error) {
       console.error('Error deleting entity:', error)
     }
@@ -75,7 +58,7 @@ export default function EntitiesPage() {
 
 
 
-  const filteredEntities = entities.filter(entity =>
+  const filteredEntities = entities.filter((entity: Entity) =>
     entity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     entity.abn?.includes(searchTerm) ||
     entity.acn?.includes(searchTerm) ||
@@ -140,7 +123,7 @@ export default function EntitiesPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {isLoading ? (
               <div className="text-center py-8 text-muted-foreground">Loading entities...</div>
             ) : filteredEntities.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
@@ -161,7 +144,7 @@ export default function EntitiesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredEntities.map((entity) => (
+                    {filteredEntities.map((entity: Entity) => (
                       <TableRow key={entity.id}>
                         <TableCell>
                           <div className="flex items-center gap-3">

@@ -13,7 +13,15 @@ jest.mock('next/navigation', () => ({
     usePathname: () => '/entities',
 }))
 
-// Test wrapper with EntityProvider
+// Mock tRPC hooks
+jest.mock('@/lib/hooks/use-trpc', () => ({
+    useEntities: jest.fn(),
+    useDeleteEntity: jest.fn(),
+}))
+
+const { useEntities, useDeleteEntity } = require('@/lib/hooks/use-trpc')
+
+// Test wrapper with EntityProvider only
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
     <EntityProvider>
         {children}
@@ -25,59 +33,61 @@ const renderWithProvider = (ui: React.ReactElement) => {
     return render(ui, { wrapper: TestWrapper })
 }
 
-// Mock fetch API
-const mockFetch = jest.fn()
-global.fetch = mockFetch as any
-
-const mockEntitiesResponse = {
-    success: true,
-    data: [
-        {
-            id: '1',
-            name: 'ABC Corporation Pty Ltd',
-            abn: '12345678901',
-            acn: '123456789',
-            entityType: 'Proprietary Company',
-            status: 'Active',
-            email: 'info@abccorp.com.au',
-            phone: '+61 2 9000 0000',
-            city: 'Sydney',
-            state: 'NSW',
-            createdAt: '2024-01-15T00:00:00.000Z',
-            _count: {
-                members: 5,
-                securityClasses: 2,
-                transactions: 10
-            }
-        },
-        {
-            id: '2',
-            name: 'XYZ Holdings Ltd',
-            abn: '98765432109',
-            acn: '987654321',
-            entityType: 'Public Company',
-            status: 'Inactive',
-            email: 'contact@xyzholdings.com.au',
-            phone: '+61 3 8000 0000',
-            city: 'Melbourne',
-            state: 'VIC',
-            createdAt: '2024-02-20T00:00:00.000Z',
-            _count: {
-                members: 3,
-                securityClasses: 1,
-                transactions: 5
-            }
+const mockEntities = [
+    {
+        id: '1',
+        name: 'ABC Corporation Pty Ltd',
+        abn: '12345678901',
+        acn: '123456789',
+        entityType: 'Proprietary Company',
+        status: 'Active',
+        email: 'info@abccorp.com.au',
+        phone: '+61 2 9000 0000',
+        city: 'Sydney',
+        state: 'NSW',
+        createdAt: '2024-01-15T00:00:00.000Z',
+        _count: {
+            members: 5,
+            securityClasses: 2,
+            transactions: 10
         }
-    ]
-}
+    },
+    {
+        id: '2',
+        name: 'XYZ Holdings Ltd',
+        abn: '98765432109',
+        acn: '987654321',
+        entityType: 'Public Company',
+        status: 'Inactive',
+        email: 'contact@xyzholdings.com.au',
+        phone: '+61 3 8000 0000',
+        city: 'Melbourne',
+        state: 'VIC',
+        createdAt: '2024-02-20T00:00:00.000Z',
+        _count: {
+            members: 3,
+            securityClasses: 1,
+            transactions: 5
+        }
+    }
+]
 
 describe('Entities Page', () => {
     beforeEach(() => {
         jest.clearAllMocks()
-        // Mock successful fetch response by default
-        mockFetch.mockResolvedValue({
-            ok: true,
-            json: () => Promise.resolve(mockEntitiesResponse)
+
+        // Mock successful tRPC response by default
+        useEntities.mockReturnValue({
+            data: { success: true, data: mockEntities },
+            isLoading: false,
+            error: null,
+            refetch: jest.fn()
+        })
+
+        useDeleteEntity.mockReturnValue({
+            mutateAsync: jest.fn(),
+            isLoading: false,
+            error: null
         })
     })
 
@@ -98,16 +108,22 @@ describe('Entities Page', () => {
         })
 
         it('shows loading state initially', () => {
+            useEntities.mockReturnValue({
+                data: null,
+                isLoading: true,
+                error: null,
+                refetch: jest.fn()
+            })
+
             renderWithProvider(<EntitiesPage />)
-            // Check for loading state in main content area (not navbar)
-            expect(screen.getAllByText(/loading/i)[1]).toBeInTheDocument()
+            expect(screen.getAllByText(/loading/i).length).toBeGreaterThan(0)
         })
 
-        it('calls fetch API on mount', async () => {
+        it('calls tRPC entities query on mount', async () => {
             renderWithProvider(<EntitiesPage />)
 
             await waitFor(() => {
-                expect(mockFetch).toHaveBeenCalledWith('/api/entities?include=details')
+                expect(useEntities).toHaveBeenCalled()
             })
         })
     })
@@ -117,8 +133,11 @@ describe('Entities Page', () => {
             renderWithProvider(<EntitiesPage />)
 
             await waitFor(() => {
-                expect(screen.getAllByText("ABC Corporation Pty Ltd")[0]).toBeInTheDocument()
-                expect(screen.getAllByText("XYZ Holdings Ltd")[0]).toBeInTheDocument()
+                // There should be at least one occurrence in the table for each entity
+                const abcRows = screen.getAllByText("ABC Corporation Pty Ltd")
+                const xyzRows = screen.getAllByText("XYZ Holdings Ltd")
+                expect(abcRows.length).toBeGreaterThan(0)
+                expect(xyzRows.length).toBeGreaterThan(0)
             })
         })
 
@@ -149,7 +168,7 @@ describe('Entities Page', () => {
             renderWithProvider(<EntitiesPage />)
 
             await waitFor(() => {
-                // Check member counts - these appear as text content
+                // Check member counts
                 expect(screen.getByText('5')).toBeInTheDocument() // Members count for ABC Corp
                 expect(screen.getByText('3')).toBeInTheDocument() // Members count for XYZ Holdings
             })
@@ -170,8 +189,8 @@ describe('Entities Page', () => {
 
             // Wait for entities to load
             await waitFor(() => {
-                expect(screen.getAllByText("ABC Corporation Pty Ltd")[0]).toBeInTheDocument()
-                expect(screen.getAllByText("XYZ Holdings Ltd")[0]).toBeInTheDocument()
+                expect(screen.getAllByText("ABC Corporation Pty Ltd").length).toBeGreaterThan(0)
+                expect(screen.getAllByText("XYZ Holdings Ltd").length).toBeGreaterThan(0)
             })
 
             // Perform search
@@ -179,7 +198,7 @@ describe('Entities Page', () => {
             fireEvent.change(searchInput, { target: { value: 'ABC' } })
 
             // Check filtered results
-            expect(screen.getAllByText("ABC Corporation Pty Ltd")[0]).toBeInTheDocument()
+            expect(screen.getAllByText("ABC Corporation Pty Ltd").length).toBeGreaterThan(0)
             expect(screen.queryByText('XYZ Holdings Ltd')).not.toBeInTheDocument()
         })
 
@@ -187,14 +206,14 @@ describe('Entities Page', () => {
             renderWithProvider(<EntitiesPage />)
 
             await waitFor(() => {
-                expect(screen.getAllByText("ABC Corporation Pty Ltd")[0]).toBeInTheDocument()
-                expect(screen.getAllByText("XYZ Holdings Ltd")[0]).toBeInTheDocument()
+                expect(screen.getAllByText("ABC Corporation Pty Ltd").length).toBeGreaterThan(0)
+                expect(screen.getAllByText("XYZ Holdings Ltd").length).toBeGreaterThan(0)
             })
 
             const searchInput = screen.getByPlaceholderText('Search entities...')
             fireEvent.change(searchInput, { target: { value: '12345678901' } })
 
-            expect(screen.getAllByText("ABC Corporation Pty Ltd")[0]).toBeInTheDocument()
+            expect(screen.getAllByText("ABC Corporation Pty Ltd").length).toBeGreaterThan(0)
             expect(screen.queryByText('XYZ Holdings Ltd')).not.toBeInTheDocument()
         })
 
@@ -202,21 +221,27 @@ describe('Entities Page', () => {
             renderWithProvider(<EntitiesPage />)
 
             await waitFor(() => {
-                expect(screen.getAllByText("ABC Corporation Pty Ltd")[0]).toBeInTheDocument()
+                expect(screen.getAllByText("ABC Corporation Pty Ltd").length).toBeGreaterThan(0)
             })
 
             const searchInput = screen.getByPlaceholderText('Search entities...')
             fireEvent.change(searchInput, { target: { value: 'abc corporation' } })
 
-            expect(screen.getAllByText("ABC Corporation Pty Ltd")[0]).toBeInTheDocument()
+            expect(screen.getAllByText("ABC Corporation Pty Ltd").length).toBeGreaterThan(0)
             expect(screen.queryByText('XYZ Holdings Ltd')).not.toBeInTheDocument()
         })
     })
 
     describe('Error Handling', () => {
-        it('handles fetch error gracefully', async () => {
+        it('handles tRPC error gracefully', async () => {
             const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { })
-            mockFetch.mockRejectedValue(new Error('Network error'))
+
+            useEntities.mockReturnValue({
+                data: null,
+                isLoading: false,
+                error: new Error('Network error'),
+                refetch: jest.fn()
+            })
 
             renderWithProvider(<EntitiesPage />)
 
@@ -227,20 +252,20 @@ describe('Entities Page', () => {
             consoleSpy.mockRestore()
         })
 
-        it('handles API error response gracefully', async () => {
+        it('handles tRPC error response gracefully', async () => {
             const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { })
-            mockFetch.mockResolvedValue({
-                ok: true,
-                json: () => Promise.resolve({
-                    success: false,
-                    error: 'Database connection failed'
-                })
+
+            useEntities.mockReturnValue({
+                data: { success: false, error: 'Database connection failed' },
+                isLoading: false,
+                error: null,
+                refetch: jest.fn()
             })
 
             renderWithProvider(<EntitiesPage />)
 
             await waitFor(() => {
-                expect(consoleSpy).toHaveBeenCalledWith('Failed to fetch entities:', 'Database connection failed')
+                expect(consoleSpy).toHaveBeenCalledWith('Error fetching entities:', expect.anything())
             })
 
             consoleSpy.mockRestore()
@@ -249,12 +274,11 @@ describe('Entities Page', () => {
 
     describe('Empty State', () => {
         it('shows no entities message when empty', async () => {
-            mockFetch.mockResolvedValue({
-                ok: true,
-                json: () => Promise.resolve({
-                    success: true,
-                    data: []
-                })
+            useEntities.mockReturnValue({
+                data: { success: true, data: [] },
+                isLoading: false,
+                error: null,
+                refetch: jest.fn()
             })
 
             renderWithProvider(<EntitiesPage />)

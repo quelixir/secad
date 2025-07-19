@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { useEntities } from '@/lib/hooks/use-trpc'
 
 interface Entity {
   id: string
@@ -22,8 +23,8 @@ const EntityContext = createContext<EntityContextType | undefined>(undefined)
 
 export function EntityProvider({ children }: { children: React.ReactNode }) {
   const [selectedEntity, setSelectedEntityState] = useState<Entity | null>(null)
-  const [entities, setEntities] = useState<Entity[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: entitiesData, isLoading, refetch } = useEntities()
+  const entities = entitiesData?.data || []
 
   const setSelectedEntity = (entity: Entity | null) => {
     setSelectedEntityState(entity)
@@ -35,56 +36,34 @@ export function EntityProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const fetchEntities = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch('/api/entities')
-      const result = await response.json()
-      
-      if (result.success) {
-        setEntities(result.data)
-        
-        // If no entity is selected, try to restore from localStorage or select first entity
-        if (!selectedEntity) {
-          const saved = localStorage.getItem('selectedEntity')
-          if (saved) {
-            try {
-              const savedEntity = JSON.parse(saved)
-              // Verify the saved entity still exists
-              const exists = result.data.find((e: Entity) => e.id === savedEntity.id)
-              if (exists) {
-                setSelectedEntityState(exists)
-              } else {
-                // Remove invalid saved entity and select first available
-                localStorage.removeItem('selectedEntity')
-                if (result.data.length > 0) {
-                  setSelectedEntity(result.data[0])
-                }
-              }
-            } catch {
-              localStorage.removeItem('selectedEntity')
-              if (result.data.length > 0) {
-                setSelectedEntity(result.data[0])
-              }
-            }
-          } else if (result.data.length > 0) {
-            setSelectedEntity(result.data[0])
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching entities:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
-    fetchEntities()
-  }, [])
+    // If no entity is selected, try to restore from localStorage or select first entity
+    if (!selectedEntity && entities.length > 0) {
+      const saved = localStorage.getItem('selectedEntity')
+      if (saved) {
+        try {
+          const savedEntity = JSON.parse(saved)
+          // Verify the saved entity still exists
+          const exists = entities.find((e: Entity) => e.id === savedEntity.id)
+          if (exists) {
+            setSelectedEntityState(exists)
+          } else {
+            // Remove invalid saved entity and select first available
+            localStorage.removeItem('selectedEntity')
+            setSelectedEntity(entities[0])
+          }
+        } catch {
+          localStorage.removeItem('selectedEntity')
+          setSelectedEntity(entities[0])
+        }
+      } else {
+        setSelectedEntity(entities[0])
+      }
+    }
+  }, [entities, selectedEntity])
 
   const refreshEntities = async () => {
-    await fetchEntities()
+    await refetch()
   }
 
   return (
@@ -93,7 +72,7 @@ export function EntityProvider({ children }: { children: React.ReactNode }) {
         selectedEntity,
         setSelectedEntity,
         entities,
-        loading,
+        loading: isLoading,
         refreshEntities
       }}
     >

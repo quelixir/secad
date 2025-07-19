@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { EntityProvider } from '@/lib/entity-context'
 import { ThemeProvider } from '@/lib/theme-provider'
+import { TRPCProvider } from '@/lib/trpc/provider'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -25,9 +26,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <EntityProvider>
-            {children}
-          </EntityProvider>
+          <TRPCProvider>
+            <EntityProvider>
+              {children}
+            </EntityProvider>
+          </TRPCProvider>
         </ThemeProvider>
       </body>
     </html>
