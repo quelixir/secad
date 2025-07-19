@@ -55,6 +55,10 @@ yarn test:coverage
 
 Tests are automatically run on pull requests and pushes to main/develop branches via GitHub Actions, with coverage reports uploaded to Codecov.
 
+## Conventional Commits
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) to ensure consistent commit messages and enable automatic changelog generation.
+
 ## License
 
 This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See the [LICENSE](LICENSE) file in this repository.
