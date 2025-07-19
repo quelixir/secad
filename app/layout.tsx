@@ -7,8 +7,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SECAD - Corporate Administration',
-  description: 'Corporate administration and securities management platform',
+  title: 'secad',
+  description: 'A web application for managing backend corporate compliance',
 }
 
 export default function RootLayout({

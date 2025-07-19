@@ -91,7 +91,7 @@ export function Navbar() {
               <BriefcaseBusiness className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="font-semibold text-lg">
-              SECAD
+              sec<span className="italic">ad</span>
             </span>
             {/* <Badge variant="secondary" className="text-xs">
               Beta
