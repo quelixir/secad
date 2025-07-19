@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Menu, BriefcaseBusiness, Building2, GitBranch, Users, FileText } from 'lucide-react'
+import { Menu, BriefcaseBusiness, Building2, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 import { EntitySelector } from './entity-selector'
@@ -17,30 +17,30 @@ const navigation = [
     name: 'Entities',
     href: '/entities',
     icon: Building2,
-    description: 'Manage corporate entities'
+    description: 'Manage secad entities'
   },
   {
     name: 'Associates',
     href: '/associates',
-    icon: Users,
-    description: 'Manage directors and secretaries'
+    icon: Network,
+    description: 'Manage entity associates'
   },
   {
     name: 'Resolutions',
     href: '/resolutions',
-    icon: FileText,
-    description: 'Directors and members resolutions'
+    icon: ScrollText,
+    description: 'Resolutions for the current entity'
   },
   {
     name: 'Registry',
     href: '/registry/issuer',
-    icon: GitBranch,
+    icon: Database,
     description: 'Entity registry view',
     subNav: [
-      { name: 'Issuer', href: '/registry/issuer' },
-      { name: 'Securities', href: '/registry/securities' },
-      { name: 'Members', href: '/registry/members' },
-      { name: 'Transactions', href: '/registry/transactions' }
+      { name: 'Issuer', href: '/registry/issuer', icon: Building2 },
+      { name: 'Securities', href: '/registry/securities', icon: Layers },
+      { name: 'Members', href: '/registry/members', icon: BookUser },
+      { name: 'Transactions', href: '/registry/transactions', icon: ArrowRightLeft }
     ]
   }
 ]
@@ -154,18 +154,20 @@ export function Navbar() {
             {navigation.find(item => item.name === 'Registry')?.subNav?.map((subItem) => {
               const isActive = pathname === subItem.href ||
                 (subItem.name === 'Transactions' && pathname.startsWith('/registry/transactions'))
+              const SubIcon = subItem.icon
 
               return (
                 <Link
                   key={subItem.name}
                   href={subItem.href}
                   className={cn(
-                    'px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                    'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   )}
                 >
+                  <SubIcon className="h-4 w-4" />
                   {subItem.name}
                 </Link>
               )
