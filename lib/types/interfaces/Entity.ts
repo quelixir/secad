@@ -65,3 +65,38 @@ export interface EntityInput {
   phone?: string;
   website?: string;
 }
+
+// Interface for API response (dates come as strings from the API)
+export interface EntityApiResponse
+  extends Omit<
+    EntityWithRelations,
+    | 'incorporationDate'
+    | 'createdAt'
+    | 'updatedAt'
+    | 'members'
+    | 'securityClasses'
+  > {
+  incorporationDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  members?: Array<
+    Omit<Member, 'joinDate' | 'createdAt' | 'updatedAt'> & {
+      joinDate: string;
+      createdAt: string;
+      updatedAt: string;
+    }
+  >;
+  securityClasses?: Array<
+    Omit<SecurityClass, 'createdAt' | 'updatedAt'> & {
+      createdAt: string;
+      updatedAt: string;
+      isActive: boolean;
+      transactions?: Array<{
+        id: string;
+        totalAmountPaid: string | null;
+        totalAmountUnpaid: string | null;
+        quantity: number;
+      }>;
+    }
+  >;
+}

@@ -24,7 +24,18 @@ export async function GET(
       include: {
         identifiers: true,
         members: true,
-        securityClasses: true,
+        securityClasses: {
+          include: {
+            transactions: {
+              select: {
+                id: true,
+                totalAmountPaid: true,
+                totalAmountUnpaid: true,
+                quantity: true,
+              },
+            },
+          },
+        },
         transactions: true,
         associates: true,
         _count: {

@@ -8,46 +8,15 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { ArrowLeft, Building2, Users, Shield, FileText, Calendar, MapPin, Phone, Mail, Globe, Edit, Copy } from 'lucide-react'
+import { ArrowLeft, Building2, Users, Shield, FileText, MapPin, Phone, Mail, Globe, Edit, Copy } from 'lucide-react'
 import Link from 'next/link'
 import { compliancePackRegistration } from '@/lib/compliance'
-
-interface EntityIdentifier {
-    id: string
-    type: string
-    value: string
-    country: string
-    isActive: boolean
-}
-
-interface Entity {
-    id: string
-    name: string
-    entityType: string
-    status: string
-    incorporationDate?: string
-    address?: string
-    city?: string
-    state?: string
-    postcode?: string
-    country?: string
-    email?: string
-    phone?: string
-    website?: string
-    createdAt: string
-    updatedAt: string
-    identifiers?: EntityIdentifier[]
-    _count?: {
-        members: number
-        securityClasses: number
-        transactions: number
-        associates: number
-    }
-}
+import { EntityApiResponse } from '@/lib/types/interfaces/Entity'
+import { EntityIdentifier } from '@/lib/types/interfaces/EntityIdentifier'
 
 export default function ViewEntityPage() {
     const params = useParams()
-    const [entity, setEntity] = useState<Entity | null>(null)
+    const [entity, setEntity] = useState<EntityApiResponse | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
@@ -88,6 +57,14 @@ export default function ViewEntityPage() {
     const getCountryName = (country: string) => {
         const pack = compliancePackRegistration.getByCountry(country)
         return pack?.country || country
+    }
+
+    const getEntityType = (entityTypeId: string, country?: string) => {
+        const entityType = compliancePackRegistration.getEntityType(
+            country || 'Australia',
+            entityTypeId
+        )
+        return entityType
     }
 
     const getStatusColor = (status: string) => {
@@ -168,7 +145,6 @@ export default function ViewEntityPage() {
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">{entity.name}</h1>
                     <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="outline">{entity.entityType}</Badge>
                         <Badge className={getStatusColor(entity.status)}>{entity.status}</Badge>
                     </div>
                 </div>
@@ -179,10 +155,10 @@ export default function ViewEntityPage() {
                         <TabsTrigger value="identifiers">Identifiers</TabsTrigger>
                         <TabsTrigger value="members">Members ({entity._count?.members || 0})</TabsTrigger>
                         <TabsTrigger value="securities">Securities ({entity._count?.securityClasses || 0})</TabsTrigger>
-                        <TabsTrigger value="transactions">Transactions ({entity._count?.transactions || 0})</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="overview" className="space-y-4">
+                        {/* First Row: Basic Information and Statistics */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Basic Information */}
                             <Card>
@@ -195,7 +171,7 @@ export default function ViewEntityPage() {
                                 <CardContent className="space-y-3">
                                     <div className="flex justify-between">
                                         <span className="text-sm font-medium text-muted-foreground">Entity Type</span>
-                                        <Badge variant="outline">{entity.entityType}</Badge>
+                                        <Badge variant="outline">{getEntityType(entity.entityTypeId, entity.incorporationCountry || undefined)?.name || entity.entityTypeId}</Badge>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-sm font-medium text-muted-foreground">Status</span>
@@ -224,61 +200,6 @@ export default function ViewEntityPage() {
                                 </CardContent>
                             </Card>
 
-                            {/* Contact Information */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Users className="h-5 w-5" />
-                                        Contact Information
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-3">
-                                    {entity.email && (
-                                        <div className="flex items-center gap-2">
-                                            <Mail className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-sm">{entity.email}</span>
-                                        </div>
-                                    )}
-                                    {entity.phone && (
-                                        <div className="flex items-center gap-2">
-                                            <Phone className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-sm">{entity.phone}</span>
-                                        </div>
-                                    )}
-                                    {entity.website && (
-                                        <div className="flex items-center gap-2">
-                                            <Globe className="h-4 w-4 text-muted-foreground" />
-                                            <a href={entity.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
-                                                {entity.website}
-                                            </a>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-
-                            {/* Address Information */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <MapPin className="h-5 w-5" />
-                                        Address
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-3">
-                                    {entity.address && (
-                                        <div className="text-sm">{entity.address}</div>
-                                    )}
-                                    {(entity.city || entity.state || entity.postcode) && (
-                                        <div className="text-sm text-muted-foreground">
-                                            {[entity.city, entity.state, entity.postcode].filter(Boolean).join(', ')}
-                                        </div>
-                                    )}
-                                    {entity.country && (
-                                        <div className="text-sm text-muted-foreground">{entity.country}</div>
-                                    )}
-                                </CardContent>
-                            </Card>
-
                             {/* Statistics */}
                             <Card>
                                 <CardHeader>
@@ -302,16 +223,73 @@ export default function ViewEntityPage() {
                                             <span>{entity._count?.securityClasses || 0}</span>
                                         </div>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-sm font-medium text-muted-foreground">Transactions</span>
-                                        <div className="flex items-center gap-1">
-                                            <FileText className="h-3 w-3 text-muted-foreground" />
-                                            <span>{entity._count?.transactions || 0}</span>
-                                        </div>
-                                    </div>
+
                                 </CardContent>
                             </Card>
                         </div>
+
+                        {/* Second Row: Contact Information (Full Width) */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Users className="h-5 w-5" />
+                                    Contact Information
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Address Information */}
+                                    <div className="space-y-3">
+                                        <h4 className="text-sm font-medium text-muted-foreground mb-3">Address</h4>
+                                        {entity.address && (
+                                            <div className="flex items-start gap-2">
+                                                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                                                <div className="text-sm">{entity.address}</div>
+                                            </div>
+                                        )}
+                                        {(entity.city || entity.state || entity.postcode) && (
+                                            <div className="text-sm text-muted-foreground ml-6">
+                                                {[entity.city, entity.state, entity.postcode].filter(Boolean).join(', ')}
+                                            </div>
+                                        )}
+                                        {entity.country && (
+                                            <div className="text-sm text-muted-foreground ml-6">{entity.country}</div>
+                                        )}
+                                        {!entity.address && !entity.city && !entity.state && !entity.postcode && !entity.country && (
+                                            <div className="text-sm text-muted-foreground italic">No address information recorded yet</div>
+                                        )}
+                                    </div>
+
+                                    {/* Contact Details */}
+                                    <div className="space-y-3">
+                                        <h4 className="text-sm font-medium text-muted-foreground mb-3">Contact Details</h4>
+                                        {entity.email && (
+                                            <div className="flex items-center gap-2">
+                                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                                <span className="text-sm">{entity.email}</span>
+                                            </div>
+                                        )}
+                                        {entity.phone && (
+                                            <div className="flex items-center gap-2">
+                                                <Phone className="h-4 w-4 text-muted-foreground" />
+                                                <span className="text-sm">{entity.phone}</span>
+                                            </div>
+                                        )}
+                                        {entity.website && (
+                                            <div className="flex items-center gap-2">
+                                                <Globe className="h-4 w-4 text-muted-foreground" />
+                                                <a href={entity.website} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+                                                    {entity.website}
+                                                </a>
+                                            </div>
+                                        )}
+                                        {!entity.email && !entity.phone && !entity.website && (
+                                            <div className="text-sm text-muted-foreground italic">No contact information recorded yet</div>
+                                        )}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </TabsContent>
 
                     <TabsContent value="identifiers" className="space-y-4">
@@ -338,7 +316,7 @@ export default function ViewEntityPage() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {entity.identifiers.map((identifier) => (
+                                            {entity.identifiers.map((identifier: EntityIdentifier) => (
                                                 <TableRow key={identifier.id}>
                                                     <TableCell>{getCountryName(identifier.country)}</TableCell>
                                                     <TableCell>{getIdentifierTypeName(identifier.country, identifier.type)}</TableCell>
@@ -366,9 +344,47 @@ export default function ViewEntityPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-center py-8 text-muted-foreground">
-                                    Member management coming soon.
-                                </div>
+                                {!entity.members || entity.members.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        No members registered for this entity.
+                                    </div>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Member Name</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {entity.members.map((member) => {
+                                                // Determine member name based on type
+                                                const memberName = member.memberType === 'Individual'
+                                                    ? `${member.firstName || ''} ${member.lastName || ''}`.trim()
+                                                    : member.entityName || 'Unnamed Entity';
+
+                                                return (
+                                                    <TableRow key={member.id}>
+                                                        <TableCell className="font-medium">
+                                                            {memberName || 'Unnamed Member'}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                asChild
+                                                            >
+                                                                <Link href={`/registry/members/${member.id}`}>
+                                                                    View
+                                                                </Link>
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                )}
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -382,25 +398,66 @@ export default function ViewEntityPage() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-center py-8 text-muted-foreground">
-                                    Securities management coming soon.
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                                {!entity.securityClasses || entity.securityClasses.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        No securities issued by this entity.
+                                    </div>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Security Class</TableHead>
+                                                <TableHead className="text-right">Total Quantity</TableHead>
+                                                <TableHead className="text-right">Total Amount Paid</TableHead>
+                                                <TableHead className="text-right">Total Amount Unpaid</TableHead>
+                                                <TableHead>Status</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {entity.securityClasses.map((securityClass: any) => {
+                                                // Calculate totals from transactions
+                                                const totalQuantity = securityClass.transactions?.reduce((sum: number, t: any) => sum + t.quantity, 0) || 0;
+                                                const totalAmountPaid = securityClass.transactions?.reduce((sum: number, t: any) => {
+                                                    const amount = parseFloat(t.totalAmountPaid || '0');
+                                                    return sum + (isNaN(amount) ? 0 : amount);
+                                                }, 0) || 0;
+                                                const totalAmountUnpaid = securityClass.transactions?.reduce((sum: number, t: any) => {
+                                                    const amount = parseFloat(t.totalAmountUnpaid || '0');
+                                                    return sum + (isNaN(amount) ? 0 : amount);
+                                                }, 0) || 0;
 
-                    <TabsContent value="transactions" className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Transactions</CardTitle>
-                                <CardDescription>
-                                    Transactions involving this entity
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-center py-8 text-muted-foreground">
-                                    Transaction history coming soon.
-                                </div>
+                                                return (
+                                                    <TableRow key={securityClass.id}>
+                                                        <TableCell>
+                                                            <div>
+                                                                <div className="font-medium">{securityClass.name}</div>
+                                                                {securityClass.description && (
+                                                                    <div className="text-sm text-muted-foreground">
+                                                                        {securityClass.description}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            {totalQuantity.toLocaleString()}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            {totalAmountPaid > 0 ? `$${totalAmountPaid.toLocaleString()}` : '-'}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            {totalAmountUnpaid > 0 ? `$${totalAmountUnpaid.toLocaleString()}` : '-'}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge variant={securityClass.isActive ? "default" : "secondary"}>
+                                                                {securityClass.isActive ? "Active" : "Inactive"}
+                                                            </Badge>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                )}
                             </CardContent>
                         </Card>
                     </TabsContent>
