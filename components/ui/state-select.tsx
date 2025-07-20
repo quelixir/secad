@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { getStatesForCountry } from '@/lib/countries-states-data'
+import { getStatesForCountry } from '@/lib/Countries'
 import { cn } from '@/lib/utils'
 
 interface StateSelectProps {

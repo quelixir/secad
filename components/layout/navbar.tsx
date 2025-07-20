@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Menu, BriefcaseBusiness, Building2, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-import { EntitySelector } from './entity-selector'
+import EntitySelector from './entity-selector'
 import { ThemeToggle } from '@/components/theme-toggle'
 
 const navigation = [

@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const response: ApiResponse<MemberWithRelations> = {
+    const response: ApiResponse<any> = {
       success: true,
       data: member,
       message: 'Member created successfully',

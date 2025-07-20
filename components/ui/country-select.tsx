@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { getAllCountries, getCountryByName } from '@/lib/countries-states-data'
+import { getAllCountries, getCountryByName } from '@/lib/Countries'
 import { cn } from '@/lib/utils'
 import 'flag-icons/css/flag-icons.min.css'
 

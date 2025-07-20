@@ -12,6 +12,7 @@ import { Plus, Search, Edit, Trash2, Shield, TrendingUp, Package } from 'lucide-
 import { SecurityForm } from './security-form'
 import { useEntity } from '@/lib/entity-context'
 import Link from 'next/link'
+import type { Entity } from '@/lib/types/interfaces/Entity'
 
 interface SecuritySummary {
   id: string
@@ -44,7 +45,7 @@ interface SecuritySummary {
 }
 
 export function SecuritiesTab() {
-  const { selectedEntity, entities } = useEntity()
+  const { selectedEntity, entities } = useEntity();
   const [securities, setSecurities] = useState<SecuritySummary[]>([])
   const [members, setMembers] = useState<any[]>([])
   const [securityClasses, setSecurityClasses] = useState<any[]>([])
@@ -85,7 +86,8 @@ export function SecuritiesTab() {
       const result = await response.json()
 
       if (result.success) {
-        setMembers(result.data)
+        setMembers(result.data || [])
+        setSecurityClasses(result.data || [])
       } else {
         console.error('Failed to fetch members:', result.error)
       }
@@ -102,7 +104,7 @@ export function SecuritiesTab() {
       const result = await response.json()
 
       if (result.success) {
-        setSecurityClasses(result.data)
+        setSecurityClasses(result.data || [])
       } else {
         console.error('Failed to fetch security classes:', result.error)
       }
@@ -217,7 +219,7 @@ export function SecuritiesTab() {
                     </DialogDescription>
                   </DialogHeader>
                   <SecurityForm
-                    entities={entities.filter(e => e.id === selectedEntity.id)}
+                    entities={entities.filter((e: Entity) => e.id === selectedEntity.id)}
                     selectedEntity={selectedEntity}
                     onSaved={handleFormSuccess}
                   />
@@ -388,7 +390,7 @@ export function SecuritiesTab() {
                           </DialogHeader>
                           {editingSecurity && (
                             <SecurityForm
-                              entities={entities.filter(e => e.id === selectedEntity.id)}
+                              entities={entities.filter((e: Entity) => e.id === selectedEntity.id)}
                               selectedEntity={selectedEntity}
                               security={editingSecurity}
                               onSaved={handleFormSuccess}

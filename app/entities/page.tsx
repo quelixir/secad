@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MainLayout } from '@/components/layout/main-layout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,41 +11,48 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Search, Edit, Trash2, Building2, Users, Shield } from 'lucide-react'
 import Link from 'next/link'
 import { useEntities, useDeleteEntity } from '@/lib/hooks/use-trpc'
-import { formatACN, formatABN } from '@/lib/utils'
-
-interface Entity {
-  id: string
-  name: string
-  abn?: string | null
-  acn?: string | null
-  entityType: string
-  status: string
-  email?: string | null
-  phone?: string | null
-  city?: string | null
-  state?: string | null
-  createdAt: string
-  _count?: {
-    members: number
-    securityClasses: number
-    transactions: number
-  }
-}
+import { Entity } from '@/lib/types/interfaces/Entity'
+import { compliancePackRegistration } from '@/lib/compliance';
+// Remove incorrect import
 
 export default function EntitiesPage() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [transformedEntities, setTransformedEntities] = useState<Entity[]>([])
   const { data: entitiesData, isLoading, refetch, error } = useEntities()
   const deleteEntityMutation = useDeleteEntity()
 
-  const entities = entitiesData?.data || []
+  // Transform entities to match our Entity interface
+  useEffect(() => {
+    async function transformEntities() {
+      const entities = entitiesData?.data || []
+
+      if (entities.length === 0) {
+        setTransformedEntities([])
+        return
+      }
+
+      const transformed = await Promise.all(
+        entities.map(async (entity: Entity) => ({
+          ...entity,
+          entityType: compliancePackRegistration.getEntityType(
+            entity.incorporationCountry || 'Australia',
+            entity.entityTypeId
+          )
+        }))
+      )
+      setTransformedEntities(transformed)
+    }
+
+    transformEntities()
+  }, [entitiesData?.data])
 
   if (error) {
     console.error('Error fetching entities:', error)
   }
 
   // Log API errors (when data.success === false)
-  if (entitiesData && !entitiesData.success) {
-    console.error('Error fetching entities:', entitiesData.error || 'Unknown API error')
+  if (entitiesData && 'success' in entitiesData && !entitiesData.success) {
+    console.error('Error fetching entities:', (entitiesData as { error?: string }).error || 'Unknown API error')
   }
 
   const handleDelete = async (entity: Entity) => {
@@ -57,14 +64,25 @@ export default function EntitiesPage() {
     }
   }
 
+  const filteredEntities = transformedEntities.filter((entity: Entity) => {
+    const searchTermLower = searchTerm.toLowerCase();
+    const nameMatch = entity.name?.toLowerCase().includes(searchTermLower);
+    const identifierMatch = entity.identifiers?.some((identifier: any) =>
+      identifier.value?.toLowerCase().includes(searchTermLower)
+    );
+    const entityType = compliancePackRegistration.getEntityType(
+      entity.incorporationCountry || 'Australia',
+      entity.entityTypeId
+    );
+    console.log('Entity type lookup:', {
+      country: entity.incorporationCountry || 'Australia',
+      entityTypeId: entity.entityTypeId,
+      found: entityType?.name || 'Not found'
+    });
+    const typeMatch = entityType?.name?.toLowerCase().includes(searchTermLower);
 
-
-  const filteredEntities = entities.filter((entity: Entity) =>
-    entity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entity.abn?.includes(searchTerm) ||
-    entity.acn?.includes(searchTerm) ||
-    entity.entityType.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+    return nameMatch || identifierMatch || typeMatch;
+  })
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -74,6 +92,10 @@ export default function EntitiesPage() {
       default: return 'bg-gray-100 text-gray-800'
     }
   }
+
+  // Add debugging for available entity types
+  const availableTypes = compliancePackRegistration.getEntityTypes('Australia');
+  console.log('Available Australia entity types:', availableTypes.map(t => ({ id: t.id, name: t.name })));
 
   return (
     <MainLayout>
@@ -99,7 +121,7 @@ export default function EntitiesPage() {
           <CardHeader>
             <CardTitle>Search Entities</CardTitle>
             <CardDescription>
-              Find entities by name, ABN, ACN, or entity type
+              Find entities by name, identifiers, or entity type
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -135,13 +157,12 @@ export default function EntitiesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Entity</TableHead>
-                      <TableHead>Entity Type</TableHead>
-                      <TableHead>ABN/ACN</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Members</TableHead>
-                      <TableHead>Securities</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead className="w-[30%]">Entity</TableHead>
+                      <TableHead className="w-[25%]">Entity Type</TableHead>
+                      <TableHead className="w-[12%]">Status</TableHead>
+                      <TableHead className="w-[10%]">Members</TableHead>
+                      <TableHead className="w-[10%]">Securities</TableHead>
+                      <TableHead className="w-[13%] text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -161,14 +182,12 @@ export default function EntitiesPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{entity.entityType}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {entity.abn && <div>ABN: {formatABN(entity.abn)}</div>}
-                            {entity.acn && <div>ACN: {formatACN(entity.acn)}</div>}
-                            {!entity.abn && !entity.acn && <span className="text-muted-foreground">Not set</span>}
-                          </div>
+                          <Badge variant="outline">
+                            {compliancePackRegistration.getEntityType(
+                              entity.incorporationCountry || 'Australia',
+                              entity.entityTypeId
+                            )?.name || 'Unknown Type'}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(entity.status)}>
@@ -187,8 +206,8 @@ export default function EntitiesPage() {
                             <span className="text-sm">{entity._count?.securityClasses || 0}</span>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
+                        <TableCell className="text-center">
+                          <div className="flex items-center gap-2 justify-center">
                             <Button
                               variant="ghost"
                               size="sm"

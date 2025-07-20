@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, Building2 } from 'lucide-react'
 import { TransactionForm } from '../../transaction-form'
 import { useEntity } from '@/lib/entity-context'
+import type { Entity } from '@/lib/types/interfaces/Entity'
 
 interface Transaction {
     id: string
@@ -181,7 +182,7 @@ export default function EditTransactionPage() {
                     </CardHeader>
                     <CardContent>
                         <TransactionForm
-                            entities={entities.filter(e => e.id === selectedEntity.id)}
+                            entities={entities.filter((e: Entity) => e.id === selectedEntity.id)}
                             selectedEntity={selectedEntity}
                             transaction={transaction}
                             onSaved={handleTransactionSaved}

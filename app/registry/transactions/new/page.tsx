@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { useEntity } from '@/lib/entity-context'
 import { TransactionForm } from '../transaction-form'
+import type { Entity } from '@/lib/types/interfaces/Entity'
 
 export default function NewTransactionPage() {
     const router = useRouter()
@@ -85,7 +86,7 @@ export default function NewTransactionPage() {
                     </CardHeader>
                     <CardContent>
                         <TransactionForm
-                            entities={entities.filter(e => e.id === selectedEntity.id)}
+                            entities={entities.filter((e: Entity) => e.id === selectedEntity.id)}
                             selectedEntity={selectedEntity}
                             onSaved={handleTransactionSaved}
                         />

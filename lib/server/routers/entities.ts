@@ -2,41 +2,63 @@ import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '@/lib/trpc';
 import { prisma } from '@/lib/db';
 import { TRPCError } from '@trpc/server';
-import { validateACN, validateABN } from '@/lib/utils';
+import { compliancePackRegistration } from '@/lib/compliance';
+import type { inferAsyncReturnType } from '@trpc/server';
+import type { createTRPCContext } from '@/lib/trpc';
 
-const entityInputSchema = z.object({
+type Context = inferAsyncReturnType<typeof createTRPCContext>;
+
+const entityIdentifierSchema = z.object({
+  type: z.string().min(1, 'Identifier type is required'),
+  value: z.string().min(1, 'Identifier value is required'),
+  country: z.string().min(1, 'Country is required'),
+});
+
+const createEntitySchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  abn: z
-    .string()
-    .optional()
-    .refine(
-      (val) => !val || validateABN(val),
-      'ABN must be a valid 11-digit number with correct check digits'
-    ),
-  acn: z
-    .string()
-    .optional()
-    .refine(
-      (val) => !val || validateACN(val),
-      'ACN must be a valid 9-digit number with correct check digit'
-    ),
-  entityType: z.string().min(1, 'Entity type is required'),
-  incorporationDate: z.date().optional(),
+  entityTypeId: z.string().min(1, 'Entity type is required'),
+  incorporationDate: z.string().optional(),
+  incorporationCountry: z.string().default('Australia'),
+  incorporationState: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
   postcode: z.string().optional(),
-  country: z.string().default('Australia'),
   email: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional(),
   website: z.string().url().optional().or(z.literal('')),
+  identifiers: z.array(entityIdentifierSchema).optional().default([]),
 });
 
-const entityUpdateSchema = entityInputSchema.partial().extend({
+const updateEntitySchema = z.object({
   id: z.string(),
+  name: z.string().optional(),
+  entityTypeId: z.string().optional(),
+  incorporationDate: z.string().optional(),
+  incorporationCountry: z.string().optional(),
+  incorporationState: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  postcode: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().optional(),
+  website: z.string().url().optional().or(z.literal('')),
+  identifiers: z.array(entityIdentifierSchema).optional().default([]),
 });
+
+type CreateEntityInput = z.infer<typeof createEntitySchema>;
+type UpdateEntityInput = z.infer<typeof updateEntitySchema>;
 
 export const entitiesRouter = createTRPCRouter({
+  list: publicProcedure.query(async () => {
+    return await prisma.entity.findMany({
+      include: {
+        identifiers: true,
+      },
+    });
+  }),
+
   // Get all entities
   getAll: publicProcedure
     .input(
@@ -52,6 +74,7 @@ export const entitiesRouter = createTRPCRouter({
           include:
             input?.include === 'details'
               ? {
+                  identifiers: true,
                   _count: {
                     select: {
                       members: true,
@@ -61,7 +84,9 @@ export const entitiesRouter = createTRPCRouter({
                     },
                   },
                 }
-              : undefined,
+              : {
+                  identifiers: true,
+                },
           orderBy: {
             name: 'asc',
           },
@@ -88,6 +113,7 @@ export const entitiesRouter = createTRPCRouter({
         const entity = await prisma.entity.findUnique({
           where: { id: input.id },
           include: {
+            identifiers: true,
             members: true,
             securityClasses: true,
             transactions: true,
@@ -126,116 +152,101 @@ export const entitiesRouter = createTRPCRouter({
 
   // Create entity
   create: publicProcedure
-    .input(entityInputSchema)
-    .mutation(async ({ input }) => {
-      try {
-        // Check for duplicate ABN/ACN if provided
-        if (input.abn || input.acn) {
-          const existing = await prisma.entity.findFirst({
-            where: {
-              OR: [
-                input.abn ? { abn: input.abn } : {},
-                input.acn ? { acn: input.acn } : {},
-              ].filter((condition) => Object.keys(condition).length > 0),
-            },
-          });
+    .input(createEntitySchema)
+    .mutation(
+      async ({
+        ctx,
+        input: entityData,
+      }: {
+        ctx: Context;
+        input: CreateEntityInput;
+      }) => {
+        const entityType = compliancePackRegistration.getEntityType(
+          entityData.incorporationCountry || 'Australia',
+          entityData.entityTypeId
+        );
 
-          if (existing) {
-            throw new TRPCError({
-              code: 'CONFLICT',
-              message: 'Entity with this ABN or ACN already exists',
-            });
-          }
+        if (!entityType) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Invalid entity type',
+          });
         }
 
-        const entity = await prisma.entity.create({
+        const { identifiers = [], ...entityDataWithoutIdentifiers } =
+          entityData;
+
+        return await prisma.entity.create({
           data: {
-            name: input.name,
-            abn: input.abn || null,
-            acn: input.acn || null,
-            entityType: input.entityType,
-            incorporationDate: input.incorporationDate || null,
-            address: input.address || null,
-            city: input.city || null,
-            state: input.state || null,
-            postcode: input.postcode || null,
-            country: input.country,
-            email: input.email || null,
-            phone: input.phone || null,
-            website: input.website || null,
+            ...entityDataWithoutIdentifiers,
+            status: 'Active',
+            identifiers: {
+              create: identifiers.map((identifier) => ({
+                type: identifier.type,
+                value: identifier.value,
+                country: identifier.country,
+                isActive: true,
+              })),
+            },
+          },
+          include: {
+            identifiers: true,
           },
         });
-
-        return {
-          success: true,
-          data: entity,
-          message: 'Entity created successfully',
-        };
-      } catch (error) {
-        if (error instanceof TRPCError) throw error;
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create entity',
-          cause: error,
-        });
       }
-    }),
+    ),
 
   // Update entity
   update: publicProcedure
-    .input(entityUpdateSchema)
-    .mutation(async ({ input }) => {
-      try {
-        const { id, ...updateData } = input;
+    .input(updateEntitySchema)
+    .mutation(
+      async ({
+        ctx,
+        input: updateData,
+      }: {
+        ctx: Context;
+        input: UpdateEntityInput;
+      }) => {
+        if (updateData.entityTypeId !== undefined) {
+          const entityType = compliancePackRegistration.getEntityType(
+            updateData.incorporationCountry || 'Australia',
+            updateData.entityTypeId
+          );
 
-        // Check for duplicate ABN/ACN if provided
-        if (updateData.abn || updateData.acn) {
-          const existing = await prisma.entity.findFirst({
-            where: {
-              id: { not: id },
-              OR: [
-                updateData.abn ? { abn: updateData.abn } : {},
-                updateData.acn ? { acn: updateData.acn } : {},
-              ].filter((condition) => Object.keys(condition).length > 0),
-            },
-          });
-
-          if (existing) {
+          if (!entityType) {
             throw new TRPCError({
-              code: 'CONFLICT',
-              message: 'Entity with this ABN or ACN already exists',
+              code: 'BAD_REQUEST',
+              message: 'Invalid entity type',
             });
           }
         }
 
-        const entity = await prisma.entity.update({
-          where: { id },
-          data: updateData,
-        });
+        const {
+          id,
+          identifiers = [],
+          ...updateDataWithoutIdentifiers
+        } = updateData;
 
-        return {
-          success: true,
-          data: entity,
-          message: 'Entity updated successfully',
-        };
-      } catch (error) {
-        if (error instanceof TRPCError) throw error;
-        if (
-          error instanceof Error &&
-          error.message.includes('Record to update not found')
-        ) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Entity not found',
-          });
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update entity',
-          cause: error,
+        return await prisma.entity.update({
+          where: { id },
+          data: {
+            ...updateDataWithoutIdentifiers,
+            identifiers: {
+              deleteMany: {},
+              create: identifiers.map((identifier) => ({
+                type: identifier.type,
+                value: identifier.value,
+                country: identifier.country,
+                isActive: true,
+              })),
+            },
+          },
+          include: {
+            identifiers: true,
+          },
         });
       }
-    }),
+    ),
 
   // Delete entity
   delete: publicProcedure

@@ -7,12 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { EntityForm } from '../../entity-form'
+import type { EntityIdentifier } from '@/components/ui/entity-identifiers'
 
 interface Entity {
     id: string
     name: string
-    abn?: string
-    acn?: string
     entityType: string
     status: string
     email?: string
@@ -25,6 +24,22 @@ interface Entity {
     website?: string
     incorporationDate?: string
     createdAt: string
+    identifiers?: EntityIdentifier[]
+}
+
+interface EntityFormData {
+    name: string;
+    entityTypeId: string;
+    incorporationDate?: string;
+    incorporationCountry?: string;
+    incorporationState?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    postcode?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
 }
 
 export default function EditEntityPage({ params }: { params: Promise<{ id: string }> }) {
@@ -57,9 +72,31 @@ export default function EditEntityPage({ params }: { params: Promise<{ id: strin
         fetchEntity()
     }, [id])
 
-    const handleEntitySaved = () => {
-        // Navigate back to the entities page
-        router.push('/entities')
+    const handleEntitySubmit = async (data: EntityFormData) => {
+        try {
+            setLoading(true)
+
+            const response = await fetch(`/api/entities/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+
+            const result = await response.json()
+
+            if (result.success) {
+                router.push('/entities')
+            } else {
+                throw new Error(result.error || 'Failed to update entity')
+            }
+        } catch (error) {
+            console.error('Error updating entity:', error)
+            throw error
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleCancel = () => {
@@ -166,7 +203,7 @@ export default function EditEntityPage({ params }: { params: Promise<{ id: strin
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <EntityForm entity={entity} onSaved={handleEntitySaved} />
+                        <EntityForm entity={entity} onSubmit={handleEntitySubmit} loading={loading} />
                     </CardContent>
                 </Card>
             </div>

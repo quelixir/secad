@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, User, Building, Mail, Phone, MapPin, Calendar, Shield, TrendingUp, Eye, HelpCircle } from 'lucide-react'
 import Link from 'next/link'
-import { formatABN } from '@/lib/utils'
 
 interface Member {
     id: string
@@ -391,7 +390,7 @@ export default function MemberViewPage() {
                                         {member.abn && (
                                             <div className="flex justify-between">
                                                 <span className="text-muted-foreground">ABN:</span>
-                                                <span>{formatABN(member.abn)}</span>
+                                                <span>{member.abn}</span>
                                             </div>
                                         )}
                                     </div>

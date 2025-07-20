@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Building2, Users, Shield, ArrowRightLeft, Plus, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { useEntity } from '@/lib/entity-context'
-import { formatACN, formatABN } from '@/lib/utils'
+import { compliancePackRegistration } from '@/lib/compliance'
+import { Member } from '@/lib/types/interfaces/Member'
 
 interface DashboardStats {
   members: number
@@ -66,8 +67,8 @@ export default function Dashboard() {
         ])
 
         // Calculate total holdings
-        const totalHoldings = members.data?.reduce((total: number, member: any) => {
-          return total + (member.allocations?.reduce((memberTotal: number, allocation: any) => {
+        const totalHoldings = members.data?.reduce((total: number, member: Member) => {
+          return total + (member.allocations?.reduce((memberTotal: number, allocation: { quantity: number }) => {
             return memberTotal + allocation.quantity
           }, 0) || 0)
         }, 0) || 0
@@ -162,9 +163,18 @@ export default function Dashboard() {
               {selectedEntity.name}
             </CardTitle>
             <CardDescription>
-              {selectedEntity.entityType}
-              {selectedEntity.abn && ` • ABN: ${formatABN(selectedEntity.abn)}`}
-              {selectedEntity.acn && ` • ACN: ${formatACN(selectedEntity.acn)}`}
+              {compliancePackRegistration.getEntityType(
+                selectedEntity.incorporationCountry || 'Australia',
+                selectedEntity.entityTypeId
+              )?.name || 'Unknown Type'}
+              {selectedEntity.identifiers?.map((identifier: any) => {
+                const formatted = compliancePackRegistration.formatIdentifier(
+                  identifier.country,
+                  identifier.type,
+                  identifier.value
+                )
+                return ` • ${identifier.type}: ${formatted}`
+              }).join('')}
             </CardDescription>
           </CardHeader>
         </Card>

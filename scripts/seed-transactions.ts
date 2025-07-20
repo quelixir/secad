@@ -12,16 +12,39 @@ async function seedTransactions() {
     if (!entity) {
       entity = await prisma.entity.create({
         data: {
-          name: 'ABC Ltd',
-          abn: '51824753556',
-          acn: '123456780',
-          entityType: 'PROPRIETARY',
-          incorporationDate: new Date('2020-01-01'),
-          address: '123 Business St',
+          name: 'Test Company Pty Ltd',
+          entityTypeId: 'rptlh9fl9ncd3rd5pwa4cwbt', // LMSH_PROP
+          incorporationDate: new Date('2024-01-01'),
+          incorporationCountry: 'Australia',
+          incorporationState: 'NSW',
+          address: '123 Test Street',
           city: 'Sydney',
           state: 'NSW',
           postcode: '2000',
+          country: 'Australia',
           status: 'Active',
+          email: 'test@example.com',
+          phone: '+61 2 1234 5678',
+          website: 'https://example.com',
+          identifiers: {
+            create: [
+              {
+                type: 'ABN',
+                value: '43154618498',
+                country: 'Australia',
+                isActive: true,
+              },
+              {
+                type: 'ACN',
+                value: '154618498',
+                country: 'Australia',
+                isActive: true,
+              },
+            ],
+          },
+        },
+        include: {
+          identifiers: true,
         },
       });
       console.log('Created sample entity:', entity.name);

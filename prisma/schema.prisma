@@ -16,12 +16,12 @@ datasource db {
 
 // Entity - represents Australian corporations and business entities
 model Entity {
-  id                String     @id @default(cuid())
+  id                String     @id @default(cuid(2))
   name              String
-  abn               String?    @unique // Australian Business Number
-  acn               String?    @unique // Australian Company Number
-  entityType        String     // "PROPRIETARY", "PUBLIC", etc.
+  entityTypeId      String     // ID of the entity type from the compliance pack
   incorporationDate DateTime?
+  incorporationCountry String?  // Country where the entity was incorporated/formed
+  incorporationState String?    // State/Province where the entity was incorporated/formed
   address           String?
   city              String?
   state             String?
@@ -44,13 +44,34 @@ model Entity {
   transactions      Transaction[]
   associates        Associate[]
   resolutions       Resolution[]
+  identifiers       EntityIdentifier[]
   
   @@map("entities")
 }
 
+// EntityIdentifier - flexible identifier system for different jurisdictions
+model EntityIdentifier {
+  id          String   @id @default(cuid(2))
+  entityId    String
+  type        String   // "ACN", "ABN", "EIN", "CRN", etc.
+  value       String   // The actual identifier value
+  country     String   // "Australia", "United States", "United Kingdom", etc.
+  isActive    Boolean  @default(true)
+  
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  entity      Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  
+  @@unique([entityId, type, country])
+  @@map("entity_identifiers")
+}
+
 // Member/Shareholder entity
 model Member {
-  id              String      @id @default(cuid())
+  id              String      @id @default(cuid(2))
   entityId        String
   
   // Personal details
@@ -93,7 +114,7 @@ model Member {
 
 // Security Class entity - different types of shares/securities
 model SecurityClass {
-  id              String      @id @default(cuid())
+  id              String      @id @default(cuid(2))
   entityId        String
   name            String      // "Ordinary Shares", "Preference Shares", "Options", etc.
   symbol          String?     // "ORD", "PREF", "OPT"
@@ -120,7 +141,7 @@ model SecurityClass {
 
 // Transaction entity - unified system for all securities transactions
 model Transaction {
-  id              String        @id @default(cuid())
+  id              String        @id @default(cuid(2))
   entityId        String
   securityClassId String
   
@@ -176,7 +197,7 @@ model Transaction {
 
 // Associate entity - handles directors, secretaries, trustees, appointors, etc.
 model Associate {
-  id              String        @id @default(cuid())
+  id              String        @id @default(cuid(2))
   entityId        String
   
   // Associate type (officeholder_director, officeholder_secretary, trustee, appointor, etc.)
@@ -223,7 +244,7 @@ model Associate {
 
 // Resolution entity - handles directors' and members' resolutions
 model Resolution {
-  id              String        @id @default(cuid())
+  id              String        @id @default(cuid(2))
   entityId        String
   
   // Resolution details

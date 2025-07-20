@@ -5,21 +5,21 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { EntityType } from '@/lib/types'
+import { compliancePackRegistration } from '@/lib/compliance'
 import { CountrySelect } from '@/components/ui/country-select'
 import { StateSelect } from '@/components/ui/state-select'
-import { validateACN, validateABN } from '@/lib/utils'
+import { EntityTypeSelect } from '@/components/ui/entity-type-select'
+import { EntityIdentifiers, type EntityIdentifier } from '@/components/ui/entity-identifiers'
 
 const entityFormSchema = z.object({
-  name: z.string().min(1, 'Entity name is required').max(100, 'Entity name must be less than 100 characters'),
-  abn: z.string().optional().refine((val) => !val || validateABN(val), 'ABN must be a valid 11-digit number with correct check digits'),
-  acn: z.string().optional().refine((val) => !val || validateACN(val), 'ACN must be a valid 9-digit number with correct check digit'),
-  entityType: z.string().min(1, 'Entity type is required'),
+  name: z.string().min(1, 'Name is required'),
+  entityTypeId: z.string().min(1, 'Entity type is required'),
   incorporationDate: z.string().optional(),
+  incorporationCountry: z.string().optional(),
+  incorporationState: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
@@ -35,8 +35,6 @@ type EntityFormValues = z.infer<typeof entityFormSchema>
 interface Entity {
   id: string
   name: string
-  abn?: string
-  acn?: string
   entityType: string
   status: string
   email?: string
@@ -48,25 +46,31 @@ interface Entity {
   country?: string
   website?: string
   incorporationDate?: string
+  incorporationCountry?: string
+  incorporationState?: string
   createdAt: string
+  identifiers?: EntityIdentifier[]
 }
 
 interface EntityFormProps {
   entity?: Entity
-  onSaved: () => void
+  onSubmit: (data: EntityFormValues & { identifiers: EntityIdentifier[] }) => Promise<void>
+  loading?: boolean
 }
 
-export function EntityForm({ entity, onSaved }: EntityFormProps) {
-  const [loading, setLoading] = useState(false)
+export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProps) {
+  const [selectedCountry, setSelectedCountry] = useState(entity?.country || 'Australia')
+  const [selectedIncorporationCountry, setSelectedIncorporationCountry] = useState(entity?.incorporationCountry || 'Australia')
+  const [identifiers, setIdentifiers] = useState<EntityIdentifier[]>(entity?.identifiers || [])
 
   const form = useForm<EntityFormValues>({
     resolver: zodResolver(entityFormSchema),
     defaultValues: {
       name: entity?.name || '',
-      abn: entity?.abn || '',
-      acn: entity?.acn || '',
-      entityType: entity?.entityType || '',
+      entityTypeId: entity?.entityType || '',
       incorporationDate: entity?.incorporationDate ? entity.incorporationDate.split('T')[0] : '',
+      incorporationCountry: entity?.incorporationCountry || 'Australia',
+      incorporationState: entity?.incorporationState || '',
       address: entity?.address || '',
       city: entity?.city || '',
       state: entity?.state || '',
@@ -74,61 +78,43 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
       country: entity?.country || 'Australia',
       email: entity?.email || '',
       phone: entity?.phone || '',
-      website: entity?.website || ''
-    }
+      website: entity?.website || '',
+    },
   })
 
-  // Watch the country field to pass to StateSelect
-  const selectedCountry = form.watch('country')
-
-  const onSubmit = async (values: EntityFormValues) => {
+  const handleSubmit = async (values: EntityFormValues) => {
     try {
-      setLoading(true)
-
-      const requestData = {
-        ...values,
-        incorporationDate: values.incorporationDate ? new Date(values.incorporationDate).toISOString() : undefined
-      }
-
-      const url = entity ? `/api/entities/${entity.id}` : '/api/entities'
-      const method = entity ? 'PUT' : 'POST'
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestData)
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        onSaved()
-      } else {
-        form.setError('root', { message: result.error || 'Failed to save entity' })
-      }
+      await onSubmit({ ...values, identifiers })
     } catch (error) {
-      console.error('Error saving entity:', error)
-      form.setError('root', { message: 'An unexpected error occurred' })
-    } finally {
-      setLoading(false)
+      console.error('Error submitting form:', error)
+      form.setError('root', { message: 'Failed to save entity' })
     }
+  }
+
+  const watchedCountry = form.watch('country')
+  if (watchedCountry !== selectedCountry) {
+    setSelectedCountry(watchedCountry || 'Australia')
+  }
+
+  const watchedIncorporationCountry = form.watch('incorporationCountry')
+  if (watchedIncorporationCountry !== selectedIncorporationCountry) {
+    setSelectedIncorporationCountry(watchedIncorporationCountry || 'Australia')
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Entity Information */}
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        {/* Basic Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Entity Information</h3>
+          <h3 className="text-lg font-medium">Basic Information</h3>
 
+          {/* Entity Name - Full Width */}
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Entity Name *</FormLabel>
+                <FormLabel>Entity Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter entity name" {...field} />
                 </FormControl>
@@ -137,27 +123,52 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
             )}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Incorporation Details - Three Columns */}
+          <div className="grid grid-cols-3 gap-4">
             <FormField
               control={form.control}
-              name="entityType"
+              name="incorporationCountry"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Entity Type *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select entity type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(EntityType).map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Incorporation/Formation Country</FormLabel>
+                  <FormControl>
+                    <CountrySelect
+                      value={field.value}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        setSelectedIncorporationCountry(value || 'Australia');
+                        // Reset entity type when country changes
+                        const entityTypeField = form.getValues('entityTypeId');
+                        if (entityTypeField) {
+                          const newCountryEntityTypes = compliancePackRegistration.getEntityTypes(value || 'Australia');
+                          const typeStillValid = newCountryEntityTypes.some(type => type.id === entityTypeField);
+                          if (!typeStillValid) {
+                            form.setValue('entityTypeId', '');
+                          }
+                        }
+                      }}
+                      placeholder="Select incorporation country..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="incorporationState"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Incorporation/Formation State</FormLabel>
+                  <FormControl>
+                    <StateSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select incorporation state..."
+                      selectedCountry={selectedIncorporationCountry}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -168,7 +179,7 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
               name="incorporationDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Incorporation Date</FormLabel>
+                  <FormLabel>Incorporation/Formation Date</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -178,122 +189,17 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="abn"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ABN</FormLabel>
-                  <FormControl>
-                    <Input placeholder="12345678901" maxLength={11} {...field} />
-                  </FormControl>
-                  <FormDescription>11-digit Australian Business Number</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="acn"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ACN</FormLabel>
-                  <FormControl>
-                    <Input placeholder="123456789" maxLength={9} {...field} />
-                  </FormControl>
-                  <FormDescription>9-digit Australian Company Number</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        {/* Address Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Address Information</h3>
-
+          {/* Entity Type - Full Width */}
           <FormField
             control={form.control}
-            name="address"
+            name="entityTypeId"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Street Address</FormLabel>
+              <FormItem className="w-full">
+                <FormLabel>Entity Type</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Enter street address"
-                    className="resize-none"
-                    rows={2}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>City</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Sydney" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="state"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>State</FormLabel>
-                  <FormControl>
-                    <StateSelect
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder="Select state..."
-                      selectedCountry={selectedCountry}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="postcode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Postcode</FormLabel>
-                  <FormControl>
-                    <Input placeholder="2000" maxLength={4} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <FormField
-            control={form.control}
-            name="country"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Country</FormLabel>
-                <FormControl>
-                  <CountrySelect
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    placeholder="Select country..."
+                  <EntityTypeSelect
+                    field={field}
+                    selectedCountry={selectedIncorporationCountry}
                   />
                 </FormControl>
                 <FormMessage />
@@ -301,6 +207,13 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
             )}
           />
         </div>
+
+        {/* Entity Identifiers */}
+        <EntityIdentifiers
+          identifiers={identifiers}
+          onChange={setIdentifiers}
+          disabled={loading}
+        />
 
         {/* Contact Information */}
         <div className="space-y-4">
@@ -349,6 +262,97 @@ export function EntityForm({ entity, onSaved }: EntityFormProps) {
               </FormItem>
             )}
           />
+
+          {/* Address Information */}
+          <div className="space-y-4 pt-4">
+            <h4 className="text-base font-medium">Address Information</h4>
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Street Address</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter street address"
+                      className="resize-none"
+                      rows={2}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>City</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Sydney" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State</FormLabel>
+                    <FormControl>
+                      <StateSelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Select state..."
+                        selectedCountry={selectedCountry}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="postcode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Postcode</FormLabel>
+                    <FormControl>
+                      <Input placeholder="2000" maxLength={4} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country</FormLabel>
+                  <FormControl>
+                    <CountrySelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select country..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
         {/* Error Display */}

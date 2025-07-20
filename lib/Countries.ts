@@ -1,19 +1,10 @@
+import { Country } from './types/interfaces/Country';
+
 // Countries and states data with ISO codes for flag-icons
 // Based on https://github.com/dr5hn/countries-states-cities-database
 
-export interface Country {
-  name: string;
-  iso2: string; // ISO 3166-1 alpha-2 code for flag-icons
-  states: State[];
-}
-
-export interface State {
-  name: string;
-  state_code: string;
-}
-
 // Major countries with their states/provinces
-export const COUNTRIES_WITH_STATES: Country[] = [
+export const COUNTRIES: Country[] = [
   {
     name: 'Australia',
     iso2: 'AU',
@@ -519,9 +510,7 @@ export const ALL_COUNTRIES = [
 
 // Helper function to get country by name
 export function getCountryByName(name: string) {
-  const countryWithStates = COUNTRIES_WITH_STATES.find(
-    (country) => country.name === name
-  );
+  const countryWithStates = COUNTRIES.find((country) => country.name === name);
   if (countryWithStates) return countryWithStates;
 
   const simpleCountry = ALL_COUNTRIES.find((country) => country.name === name);
@@ -535,18 +524,15 @@ export function getCountryByName(name: string) {
 // Helper function to get all countries (for backward compatibility)
 export function getAllCountries() {
   return [
-    ...COUNTRIES_WITH_STATES,
+    ...COUNTRIES,
     ...ALL_COUNTRIES.filter(
-      (country) =>
-        !COUNTRIES_WITH_STATES.some((cws) => cws.name === country.name)
+      (country) => !COUNTRIES.some((cws) => cws.name === country.name)
     ),
   ];
 }
 
 // Helper function to get states for a country
 export function getStatesForCountry(countryName: string) {
-  const country = COUNTRIES_WITH_STATES.find(
-    (country) => country.name === countryName
-  );
+  const country = COUNTRIES.find((country) => country.name === countryName);
   return country ? country.states : [];
 }

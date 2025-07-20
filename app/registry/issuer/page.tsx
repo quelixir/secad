@@ -4,7 +4,7 @@ import { MainLayout } from '@/components/layout/main-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Building2, Calendar, User, Copy } from 'lucide-react'
 import { useEntity } from '@/lib/entity-context'
-import { formatACN, formatABN } from '@/lib/utils'
+import { compliancePackRegistration } from '@/lib/compliance'
 
 export default function IssuerPage() {
     const { selectedEntity } = useEntity()
@@ -57,18 +57,35 @@ export default function IssuerPage() {
 
                             <div>
                                 <label className="text-sm font-medium text-muted-foreground">Entity Type</label>
-                                <p className="text-sm">{selectedEntity.entityType || 'Not specified'}</p>
+                                <p className="text-sm">
+                                    {compliancePackRegistration.getEntityType(
+                                        selectedEntity.incorporationCountry || 'Australia',
+                                        selectedEntity.entityTypeId
+                                    )?.name || 'Not specified'}
+                                </p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">ACN</label>
-                                    <p className="text-sm font-mono">{formatACN(selectedEntity.acn)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">ABN</label>
-                                    <p className="text-sm font-mono">{formatABN(selectedEntity.abn)}</p>
-                                </div>
+                            <div className="space-y-3">
+                                <label className="text-sm font-medium text-muted-foreground">Identifiers</label>
+                                {selectedEntity.identifiers && selectedEntity.identifiers.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {selectedEntity.identifiers.map((identifier: any, index: number) => {
+                                            const formatted = compliancePackRegistration.formatIdentifier(
+                                                identifier.country,
+                                                identifier.type,
+                                                identifier.value
+                                            )
+                                            return (
+                                                <div key={index} className="flex justify-between">
+                                                    <span className="text-sm text-muted-foreground">{identifier.type}:</span>
+                                                    <span className="text-sm font-mono">{formatted}</span>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">No identifiers registered</p>
+                                )}
                             </div>
 
                             <div>
