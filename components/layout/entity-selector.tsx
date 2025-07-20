@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Check, ChevronsUpDown, Search, Building2, Plus } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, formatACN, formatABN } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -70,7 +70,7 @@ export function EntitySelector() {
                 <div className="font-medium truncate">{selectedEntity.name}</div>
                 <div className="text-xs text-muted-foreground">
                   {selectedEntity.entityType}
-                  {selectedEntity.abn && ` • ABN: ${selectedEntity.abn}`}
+                  {selectedEntity.abn && ` • ABN: ${formatABN(selectedEntity.abn)}`}
                 </div>
               </div>
             ) : (
@@ -130,8 +130,8 @@ export function EntitySelector() {
                     <div className="font-medium truncate">{entity.name}</div>
                     <div className="text-xs text-muted-foreground">
                       {entity.entityType}
-                      {entity.abn && ` • ABN: ${entity.abn}`}
-                      {entity.acn && ` • ACN: ${entity.acn}`}
+                      {entity.abn && ` • ABN: ${formatABN(entity.abn)}`}
+                      {entity.acn && ` • ACN: ${formatACN(entity.acn)}`}
                     </div>
                   </div>
                 </CommandItem>

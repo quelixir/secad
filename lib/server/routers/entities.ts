@@ -2,11 +2,24 @@ import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '@/lib/trpc';
 import { prisma } from '@/lib/db';
 import { TRPCError } from '@trpc/server';
+import { validateACN, validateABN } from '@/lib/utils';
 
 const entityInputSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  abn: z.string().optional(),
-  acn: z.string().optional(),
+  abn: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || validateABN(val),
+      'ABN must be a valid 11-digit number with correct check digits'
+    ),
+  acn: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || validateACN(val),
+      'ACN must be a valid 9-digit number with correct check digit'
+    ),
   entityType: z.string().min(1, 'Entity type is required'),
   incorporationDate: z.date().optional(),
   address: z.string().optional(),

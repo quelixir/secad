@@ -2,9 +2,9 @@
 
 import { MainLayout } from '@/components/layout/main-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Building2, Calendar, User } from 'lucide-react'
+import { Building2, Calendar, User, Copy } from 'lucide-react'
 import { useEntity } from '@/lib/entity-context'
+import { formatACN, formatABN } from '@/lib/utils'
 
 export default function IssuerPage() {
     const { selectedEntity } = useEntity()
@@ -55,25 +55,19 @@ export default function IssuerPage() {
                                 <p className="text-lg font-semibold">{selectedEntity.name}</p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">Entity Type</label>
-                                    <p className="text-sm">{selectedEntity.entityType || 'Not specified'}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">Status</label>
-                                    <Badge variant="default" className="text-xs">Active</Badge>
-                                </div>
+                            <div>
+                                <label className="text-sm font-medium text-muted-foreground">Entity Type</label>
+                                <p className="text-sm">{selectedEntity.entityType || 'Not specified'}</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm font-medium text-muted-foreground">ACN</label>
-                                    <p className="text-sm font-mono">{selectedEntity.acn || 'Not specified'}</p>
+                                    <p className="text-sm font-mono">{formatACN(selectedEntity.acn)}</p>
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-muted-foreground">ABN</label>
-                                    <p className="text-sm font-mono">{selectedEntity.abn || 'Not specified'}</p>
+                                    <p className="text-sm font-mono">{formatABN(selectedEntity.abn)}</p>
                                 </div>
                             </div>
 
@@ -82,7 +76,16 @@ export default function IssuerPage() {
                                     <Calendar className="h-3 w-3" />
                                     Entity ID
                                 </label>
-                                <p className="text-sm font-mono">{selectedEntity.id}</p>
+                                <div className="flex items-center gap-2">
+                                    <code className="text-sm bg-muted px-2 py-1 rounded">{selectedEntity.id}</code>
+                                    <button
+                                        onClick={() => navigator.clipboard.writeText(selectedEntity.id)}
+                                        className="p-1 hover:bg-muted rounded transition-colors"
+                                        title="Copy Entity ID"
+                                    >
+                                        <Copy className="h-4 w-4 text-muted-foreground" />
+                                    </button>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>

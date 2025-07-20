@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Building2, Users, Shield, ArrowRightLeft, Plus, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { useEntity } from '@/lib/entity-context'
+import { formatACN, formatABN } from '@/lib/utils'
 
 interface DashboardStats {
   members: number
@@ -162,8 +163,8 @@ export default function Dashboard() {
             </CardTitle>
             <CardDescription>
               {selectedEntity.entityType}
-              {selectedEntity.abn && ` • ABN: ${selectedEntity.abn}`}
-              {selectedEntity.acn && ` • ACN: ${selectedEntity.acn}`}
+              {selectedEntity.abn && ` • ABN: ${formatABN(selectedEntity.abn)}`}
+              {selectedEntity.acn && ` • ACN: ${formatACN(selectedEntity.acn)}`}
             </CardDescription>
           </CardHeader>
         </Card>

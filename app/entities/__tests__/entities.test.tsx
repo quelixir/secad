@@ -37,8 +37,8 @@ const mockEntities = [
     {
         id: '1',
         name: 'ABC Corporation Pty Ltd',
-        abn: '12345678901',
-        acn: '123456789',
+        abn: '51824753556',
+        acn: '123456780',
         entityType: 'Proprietary Company',
         status: 'Active',
         email: 'info@abccorp.com.au',
@@ -55,8 +55,8 @@ const mockEntities = [
     {
         id: '2',
         name: 'XYZ Holdings Ltd',
-        abn: '98765432109',
-        acn: '987654321',
+        abn: '98765432108',
+        acn: '987654320',
         entityType: 'Public Company',
         status: 'Inactive',
         email: 'contact@xyzholdings.com.au',
@@ -146,8 +146,8 @@ describe('Entities Page', () => {
 
             await waitFor(() => {
                 // Check ABN/ACN display
-                expect(screen.getByText('ABN: 12345678901')).toBeInTheDocument()
-                expect(screen.getByText('ACN: 123456789')).toBeInTheDocument()
+                expect(screen.getByText('ABN: 51 824 753 556')).toBeInTheDocument()
+                expect(screen.getByText('ACN: 123 456 780')).toBeInTheDocument()
 
                 // Check entity types
                 expect(screen.getByText('Proprietary Company')).toBeInTheDocument()
@@ -211,7 +211,7 @@ describe('Entities Page', () => {
             })
 
             const searchInput = screen.getByPlaceholderText('Search entities...')
-            fireEvent.change(searchInput, { target: { value: '12345678901' } })
+            fireEvent.change(searchInput, { target: { value: '51824753556' } })
 
             expect(screen.getAllByText("ABC Corporation Pty Ltd").length).toBeGreaterThan(0)
             expect(screen.queryByText('XYZ Holdings Ltd')).not.toBeInTheDocument()

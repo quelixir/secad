@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Search, Edit, Trash2, Building2, Users, Shield } from 'lucide-react'
 import Link from 'next/link'
 import { useEntities, useDeleteEntity } from '@/lib/hooks/use-trpc'
+import { formatACN, formatABN } from '@/lib/utils'
 
 interface Entity {
   id: string
@@ -164,8 +165,8 @@ export default function EntitiesPage() {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
-                            {entity.abn && <div>ABN: {entity.abn}</div>}
-                            {entity.acn && <div>ACN: {entity.acn}</div>}
+                            {entity.abn && <div>ABN: {formatABN(entity.abn)}</div>}
+                            {entity.acn && <div>ACN: {formatACN(entity.acn)}</div>}
                             {!entity.abn && !entity.acn && <span className="text-muted-foreground">Not set</span>}
                           </div>
                         </TableCell>

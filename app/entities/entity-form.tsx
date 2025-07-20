@@ -12,11 +12,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { EntityType } from '@/lib/types'
 import { CountrySelect } from '@/components/ui/country-select'
 import { StateSelect } from '@/components/ui/state-select'
+import { validateACN, validateABN } from '@/lib/utils'
 
 const entityFormSchema = z.object({
   name: z.string().min(1, 'Entity name is required').max(100, 'Entity name must be less than 100 characters'),
-  abn: z.string().optional().refine((val) => !val || /^\d{11}$/.test(val), 'ABN must be 11 digits'),
-  acn: z.string().optional().refine((val) => !val || /^\d{9}$/.test(val), 'ACN must be 9 digits'),
+  abn: z.string().optional().refine((val) => !val || validateABN(val), 'ABN must be a valid 11-digit number with correct check digits'),
+  acn: z.string().optional().refine((val) => !val || validateACN(val), 'ACN must be a valid 9-digit number with correct check digit'),
   entityType: z.string().min(1, 'Entity type is required'),
   incorporationDate: z.string().optional(),
   address: z.string().optional(),

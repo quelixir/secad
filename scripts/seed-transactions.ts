@@ -13,8 +13,8 @@ async function seedTransactions() {
       entity = await prisma.entity.create({
         data: {
           name: 'ABC Ltd',
-          abn: '12345678901',
-          acn: '123456789',
+          abn: '51824753556',
+          acn: '123456780',
           entityType: 'PROPRIETARY',
           incorporationDate: new Date('2020-01-01'),
           address: '123 Business St',
