@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, User, Building, Mail, Phone, MapPin, Shield, TrendingUp, Eye, HelpCircle } from 'lucide-react'
+import { ArrowLeft, User, Building, Mail, Phone, MapPin, Shield, TrendingUp, Eye, HelpCircle, ExternalLink, Copy } from 'lucide-react'
 import Link from 'next/link'
 
 interface Member {
@@ -275,7 +275,11 @@ export default function MemberViewPage() {
                             {member.designation && ` ${member.designation}`}
                         </h1>
                         <p className="text-muted-foreground">
-                            Member of {member.entity.name}
+                            Member of{' '}
+                            <Link href={`/entities/${member.entity.id}`} className="text-primary underline inline-flex items-center gap-1">
+                                {member.entity.name}
+                                <ExternalLink className="h-4 w-4" />
+                            </Link>
                         </p>
                     </div>
                     <Link href="/registry?tab=members">
@@ -309,18 +313,46 @@ export default function MemberViewPage() {
                                             <span className="text-muted-foreground">Name:</span>
                                             <span className="font-medium">{getMemberDisplayName(member)}</span>
                                         </div>
-                                        {member.memberNumber && (
-                                            <div className="flex justify-between">
-                                                <span className="text-muted-foreground">Member Number:</span>
-                                                <span>{member.memberNumber}</span>
-                                            </div>
-                                        )}
                                         {member.designation && (
                                             <div className="flex justify-between">
                                                 <span className="text-muted-foreground">Designation:</span>
                                                 <span>{member.designation}</span>
                                             </div>
                                         )}
+                                        {member.memberNumber && (
+                                            <div className="flex justify-between">
+                                                <span className="text-muted-foreground">Member Number:</span>
+                                                <span>
+                                                    <div className="flex items-center gap-2">
+                                                        <code className="text-sm bg-muted px-2 rounded">{member.memberNumber}</code>
+                                                        <button
+                                                            onClick={() => navigator.clipboard.writeText(member.memberNumber || 'Error copying Member Number')}
+                                                            className="p-1 hover:bg-muted rounded transition-colors"
+                                                            title="Copy Member Number"
+                                                        >
+                                                            <Copy className="h-3 w-3 text-muted-foreground" />
+                                                        </button>
+                                                    </div>
+
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">secad ID:</span>
+                                            <span>
+                                                <div className="flex items-center gap-2">
+                                                    <code className="text-sm bg-muted px-2 rounded">{member.id}</code>
+                                                    <button
+                                                        onClick={() => navigator.clipboard.writeText(member.id)}
+                                                        className="p-1 hover:bg-muted rounded transition-colors"
+                                                        title="Copy secad ID"
+                                                    >
+                                                        <Copy className="h-3 w-3 text-muted-foreground" />
+                                                    </button>
+                                                </div>
+
+                                            </span>
+                                        </div>
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Status:</span>
                                             <Badge variant={member.status === 'Active' ? 'default' : 'secondary'}>
