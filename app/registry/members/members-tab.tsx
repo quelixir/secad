@@ -262,7 +262,7 @@ export function MembersTab() {
                     <div>
                       <div className="font-medium">
                         {member.memberType === 'INDIVIDUAL'
-                          ? `${member.firstName} ${member.lastName}`
+                          ? `${member.firstName} ${member.lastName}`.trim()
                           : member.entityName
                         }
                       </div>

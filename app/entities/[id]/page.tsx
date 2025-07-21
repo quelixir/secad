@@ -360,14 +360,14 @@ export default function ViewEntityPage() {
                                         <TableBody>
                                             {entity.members.map((member) => {
                                                 // Determine member name based on type
-                                                const memberName = member.memberType === 'Individual'
+                                                const memberName = member.memberType === 'INDIVIDUAL'
                                                     ? `${member.firstName || ''} ${member.lastName || ''}`.trim()
-                                                    : member.entityName || 'Unnamed Entity';
+                                                    : member.entityName;
 
                                                 return (
                                                     <TableRow key={member.id}>
                                                         <TableCell className="font-medium">
-                                                            {memberName || 'Unnamed Member'}
+                                                            {memberName}
                                                         </TableCell>
                                                         <TableCell className="text-right">
                                                             <Button
