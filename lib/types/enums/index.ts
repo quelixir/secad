@@ -5,9 +5,9 @@ export const EntityStatus = {
 } as const;
 
 export const MemberType = {
-  INDIVIDUAL: 'Individual',
-  COMPANY: 'Company',
-  OTHER_NON_INDIVIDUAL: 'Other Non-Individual',
+  INDIVIDUAL: 'INDIVIDUAL',
+  COMPANY: 'COMPANY',
+  OTHER_NON_INDIVIDUAL: 'OTHER_NON_INDIVIDUAL',
 } as const;
 
 export const MemberStatus = {
