@@ -1,7 +1,5 @@
 import { PrismaClient } from '../lib/generated/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
-import bcrypt from 'bcrypt';
-import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -412,7 +410,9 @@ async function createDemoUser() {
   const email = 'admin@example.org';
   const username = 'admin';
   const name = 'Administrator';
-  const password = 'password';
+
+  const userRecordId = 'Wll2qFUkDD9976Aiuhw93YArPiqODq4o';
+  const accountRecordId = 'TziFBKMIsEVUxL9Lq4RwbZ1651OUkF0L';
 
   // Check if user already exists
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -421,15 +421,15 @@ async function createDemoUser() {
     return;
   }
 
-  const userId = randomUUID();
   const now = new Date();
-  const hashed = await bcrypt.hash(password, 10);
+  const hashedPassword =
+    '7c283c7910dac0aec0ca0edbc28ddbd2:01c7e38775e7433fc69c9ba292055194aae99da4d3d7c2860ca7f6a895ece467943752b55a94e1e33d50e465c8a4efb622b6df8cf3103f27ad74289c1c3d9e88'; // 'password'
 
   // Create user and account in a transaction
   await prisma.$transaction([
     prisma.user.create({
       data: {
-        id: userId,
+        id: userRecordId,
         name,
         email,
         emailVerified: true,
@@ -441,11 +441,11 @@ async function createDemoUser() {
     }),
     prisma.account.create({
       data: {
-        id: randomUUID(),
+        id: accountRecordId,
         accountId: email,
-        providerId: 'email',
-        userId,
-        password: hashed,
+        providerId: 'credential',
+        userId: userRecordId,
+        password: hashedPassword,
         createdAt: now,
         updatedAt: now,
       },
