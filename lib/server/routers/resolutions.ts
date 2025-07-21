@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '@/lib/trpc';
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from '@/lib/trpc';
 import { prisma } from '@/lib/db';
 import { TRPCError } from '@trpc/server';
 
@@ -28,7 +32,7 @@ const resolutionUpdateSchema = resolutionInputSchema.partial().extend({
 
 export const resolutionsRouter = createTRPCRouter({
   // Get all resolutions for an entity
-  getByEntityId: publicProcedure
+  getByEntityId: protectedProcedure
     .input(z.object({ entityId: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -56,7 +60,7 @@ export const resolutionsRouter = createTRPCRouter({
     }),
 
   // Get resolution by ID
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -89,7 +93,7 @@ export const resolutionsRouter = createTRPCRouter({
     }),
 
   // Create resolution
-  create: publicProcedure
+  create: protectedProcedure
     .input(resolutionInputSchema)
     .mutation(async ({ input }) => {
       try {
@@ -129,7 +133,7 @@ export const resolutionsRouter = createTRPCRouter({
     }),
 
   // Update resolution
-  update: publicProcedure
+  update: protectedProcedure
     .input(resolutionUpdateSchema)
     .mutation(async ({ input }) => {
       try {
@@ -164,7 +168,7 @@ export const resolutionsRouter = createTRPCRouter({
     }),
 
   // Delete resolution
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       try {

@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '@/lib/trpc';
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from '@/lib/trpc';
 import { prisma } from '@/lib/db';
 import { TRPCError } from '@trpc/server';
 import { getDefaultCountry } from '@/lib/config';
@@ -31,7 +35,7 @@ const associateUpdateSchema = associateInputSchema.partial().extend({
 
 export const associatesRouter = createTRPCRouter({
   // Get all associates for an entity
-  getByEntityId: publicProcedure
+  getByEntityId: protectedProcedure
     .input(z.object({ entityId: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -61,7 +65,7 @@ export const associatesRouter = createTRPCRouter({
     }),
 
   // Get associate by ID
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -94,7 +98,7 @@ export const associatesRouter = createTRPCRouter({
     }),
 
   // Create associate
-  create: publicProcedure
+  create: protectedProcedure
     .input(associateInputSchema)
     .mutation(async ({ input }) => {
       try {
@@ -136,7 +140,7 @@ export const associatesRouter = createTRPCRouter({
     }),
 
   // Update associate
-  update: publicProcedure
+  update: protectedProcedure
     .input(associateUpdateSchema)
     .mutation(async ({ input }) => {
       try {
@@ -171,7 +175,7 @@ export const associatesRouter = createTRPCRouter({
     }),
 
   // Delete associate
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       try {

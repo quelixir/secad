@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '@/lib/trpc';
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from '@/lib/trpc';
 import { prisma } from '@/lib/db';
 import { TRPCError } from '@trpc/server';
 
@@ -18,7 +22,7 @@ const securityClassUpdateSchema = securityClassInputSchema.partial().extend({
 
 export const securitiesRouter = createTRPCRouter({
   // Get all securities for an entity
-  getByEntityId: publicProcedure
+  getByEntityId: protectedProcedure
     .input(z.object({ entityId: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -52,7 +56,7 @@ export const securitiesRouter = createTRPCRouter({
     }),
 
   // Get security by ID
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -96,7 +100,7 @@ export const securitiesRouter = createTRPCRouter({
     }),
 
   // Create security class
-  create: publicProcedure
+  create: protectedProcedure
     .input(securityClassInputSchema)
     .mutation(async ({ input }) => {
       try {
@@ -126,7 +130,7 @@ export const securitiesRouter = createTRPCRouter({
     }),
 
   // Update security class
-  update: publicProcedure
+  update: protectedProcedure
     .input(securityClassUpdateSchema)
     .mutation(async ({ input }) => {
       try {
@@ -161,7 +165,7 @@ export const securitiesRouter = createTRPCRouter({
     }),
 
   // Delete security class
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       try {

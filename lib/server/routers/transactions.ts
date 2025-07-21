@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '@/lib/trpc';
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from '@/lib/trpc';
 import { prisma } from '@/lib/db';
 import { TRPCError } from '@trpc/server';
 import { getDefaultCurrency } from '@/lib/config';
@@ -33,7 +37,7 @@ const transactionUpdateSchema = transactionInputSchema.partial().extend({
 
 export const transactionsRouter = createTRPCRouter({
   // Get all transactions for an entity
-  getByEntityId: publicProcedure
+  getByEntityId: protectedProcedure
     .input(z.object({ entityId: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -64,7 +68,7 @@ export const transactionsRouter = createTRPCRouter({
     }),
 
   // Get transaction by ID
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -100,7 +104,7 @@ export const transactionsRouter = createTRPCRouter({
     }),
 
   // Create transaction
-  create: publicProcedure
+  create: protectedProcedure
     .input(transactionInputSchema)
     .mutation(async ({ input }) => {
       try {
@@ -144,7 +148,7 @@ export const transactionsRouter = createTRPCRouter({
     }),
 
   // Update transaction
-  update: publicProcedure
+  update: protectedProcedure
     .input(transactionUpdateSchema)
     .mutation(async ({ input }) => {
       try {
@@ -179,7 +183,7 @@ export const transactionsRouter = createTRPCRouter({
     }),
 
   // Delete transaction
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       try {

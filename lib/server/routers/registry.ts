@@ -1,11 +1,15 @@
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '@/lib/trpc';
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from '@/lib/trpc';
 import { prisma } from '@/lib/db';
 import { TRPCError } from '@trpc/server';
 
 export const registryRouter = createTRPCRouter({
   // Get registry summary for an entity
-  getSummary: publicProcedure
+  getSummary: protectedProcedure
     .input(z.object({ entityId: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -99,7 +103,7 @@ export const registryRouter = createTRPCRouter({
     }),
 
   // Get registry securities with transaction history
-  getSecurities: publicProcedure
+  getSecurities: protectedProcedure
     .input(z.object({ entityId: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -140,7 +144,7 @@ export const registryRouter = createTRPCRouter({
     }),
 
   // Get registry members with holdings
-  getMembers: publicProcedure
+  getMembers: protectedProcedure
     .input(z.object({ entityId: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -219,7 +223,7 @@ export const registryRouter = createTRPCRouter({
     }),
 
   // Get registry transactions
-  getTransactions: publicProcedure
+  getTransactions: protectedProcedure
     .input(
       z.object({
         entityId: z.string(),

@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '@/lib/trpc';
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from '@/lib/trpc';
 import { prisma } from '@/lib/db';
 import { TRPCError } from '@trpc/server';
 import { compliancePackRegistration } from '@/lib/compliance';
@@ -52,7 +56,7 @@ type CreateEntityInput = z.infer<typeof createEntitySchema>;
 type UpdateEntityInput = z.infer<typeof updateEntitySchema>;
 
 export const entitiesRouter = createTRPCRouter({
-  list: publicProcedure.query(async () => {
+  list: protectedProcedure.query(async () => {
     return await prisma.entity.findMany({
       include: {
         identifiers: true,
@@ -61,7 +65,7 @@ export const entitiesRouter = createTRPCRouter({
   }),
 
   // Get all entities
-  getAll: publicProcedure
+  getAll: protectedProcedure
     .input(
       z
         .object({
@@ -107,7 +111,7 @@ export const entitiesRouter = createTRPCRouter({
     }),
 
   // Get entity by ID
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -152,7 +156,7 @@ export const entitiesRouter = createTRPCRouter({
     }),
 
   // Create entity
-  create: publicProcedure
+  create: protectedProcedure
     .input(createEntitySchema)
     .mutation(
       async ({
@@ -198,7 +202,7 @@ export const entitiesRouter = createTRPCRouter({
     ),
 
   // Update entity
-  update: publicProcedure
+  update: protectedProcedure
     .input(updateEntitySchema)
     .mutation(
       async ({
@@ -250,7 +254,7 @@ export const entitiesRouter = createTRPCRouter({
     ),
 
   // Delete entity
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       try {

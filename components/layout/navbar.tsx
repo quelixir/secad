@@ -6,11 +6,12 @@ import { usePathname } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Menu, BriefcaseBusiness, Building2, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft } from 'lucide-react'
+import { Menu, BriefcaseBusiness, Building2, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft, LogOut, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 import EntitySelector from './entity-selector'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { useAuth } from '@/lib/auth-context'
 
 const navigation = [
   {
@@ -48,6 +49,7 @@ const navigation = [
 export function Navbar() {
   const pathname = usePathname()
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
+  const { user, signOut } = useAuth()
 
   const NavItems = () => (
     <>
@@ -107,6 +109,17 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-2">
             <EntitySelector />
             <ThemeToggle />
+            {user && (
+              <div className="flex items-center gap-2 ml-4 pl-4 border-l">
+                <div className="flex items-center gap-2 text-sm">
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">{user.name || user.username || user.email}</span>
+                </div>
+                <Button variant="ghost" size="icon" onClick={signOut}>
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Mobile Navigation */}
@@ -128,6 +141,17 @@ export function Navbar() {
                 <div className="mb-4 flex justify-center">
                   <ThemeToggle />
                 </div>
+
+                {/* User Info - Mobile */}
+                {user && (
+                  <div className="mb-4 flex items-center justify-center gap-2 text-sm border-b pb-4">
+                    <User className="h-4 w-4" />
+                    <span>{user.name || user.username || user.email}</span>
+                    <Button variant="ghost" size="icon" onClick={signOut}>
+                      <LogOut className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
 
                 <div className="flex flex-col gap-2">
                   <NavItems />

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '@/lib/trpc';
+import { createTRPCRouter, protectedProcedure } from '@/lib/trpc';
 import { prisma } from '@/lib/db';
 import { TRPCError } from '@trpc/server';
 import { getDefaultCountry } from '@/lib/config';
@@ -29,7 +29,7 @@ const memberUpdateSchema = memberInputSchema.partial().extend({
 
 export const membersRouter = createTRPCRouter({
   // Get all members for an entity
-  getByEntityId: publicProcedure
+  getByEntityId: protectedProcedure
     .input(z.object({ entityId: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -71,7 +71,7 @@ export const membersRouter = createTRPCRouter({
     }),
 
   // Get member by ID
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       try {
@@ -116,7 +116,7 @@ export const membersRouter = createTRPCRouter({
     }),
 
   // Create member
-  create: publicProcedure
+  create: protectedProcedure
     .input(memberInputSchema)
     .mutation(async ({ input }) => {
       try {
@@ -156,7 +156,7 @@ export const membersRouter = createTRPCRouter({
     }),
 
   // Update member
-  update: publicProcedure
+  update: protectedProcedure
     .input(memberUpdateSchema)
     .mutation(async ({ input }) => {
       try {
@@ -191,7 +191,7 @@ export const membersRouter = createTRPCRouter({
     }),
 
   // Delete member
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       try {
