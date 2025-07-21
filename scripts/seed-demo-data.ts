@@ -4,7 +4,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 const prisma = new PrismaClient();
 
 async function seedDemoData() {
-  console.log('🌱 Starting GoldenEye 007 demo data seed...');
+  console.log('Starting demo data seed...');
 
   try {
     // Create demo entities
@@ -25,7 +25,7 @@ async function seedDemoData() {
       await createDemoTransactions(entity.id);
     }
 
-    console.log('✅ GoldenEye 007 demo data seeding completed successfully!');
+    console.log('Demo data seeding completed successfully!');
   } catch (error) {
     console.error('❌ Error seeding demo data:', error);
     throw error;
@@ -143,10 +143,15 @@ async function createDemoMembers(entityId: string) {
     {
       firstName: 'James',
       lastName: 'Bond',
-      memberType: 'Individual',
+      memberType: 'INDIVIDUAL',
       email: 'james.bond@mi6.gov.uk',
       phone: '+61 412 007 007',
       memberNumber: 'M001',
+      address: '007 Secret Service Lane',
+      city: 'Sydney',
+      state: 'NSW',
+      postcode: '2000',
+      country: 'Australia',
       joinDate: new Date('1997-08-25'),
       status: 'Active',
       tfn: '007007007',
@@ -154,22 +159,31 @@ async function createDemoMembers(entityId: string) {
     {
       firstName: 'Alec',
       lastName: 'Trevelyan',
-      memberType: 'Individual',
+      memberType: 'INDIVIDUAL',
       email: 'alec.trevelyan@janus.com',
       phone: '+61 423 006 006',
       memberNumber: 'M002',
       designation: '<Former Agent Investment A/C>',
+      address: '456 Former Agent Street',
+      city: 'Melbourne',
+      state: 'VIC',
+      postcode: '3000',
+      country: 'Australia',
       joinDate: new Date('1997-08-25'),
       status: 'Active',
       tfn: '006006006',
     },
     {
       entityName: 'MI6 Holdings Pty Ltd',
-      memberType: 'Company',
+      memberType: 'COMPANY',
       email: 'admin@mi6holdings.com.au',
       phone: '+61 2 0070 0070',
       memberNumber: 'M003',
-      designation: 'Intelligence Agency',
+      address: '789 Intelligence Avenue',
+      city: 'Canberra',
+      state: 'ACT',
+      postcode: '2600',
+      country: 'Australia',
       joinDate: new Date('1997-08-25'),
       status: 'Active',
       abn: '00700700704',
@@ -177,22 +191,31 @@ async function createDemoMembers(entityId: string) {
     {
       firstName: 'Natalya',
       lastName: 'Simonova',
-      memberType: 'Individual',
+      memberType: 'INDIVIDUAL',
       email: 'natalya.simonova@severnaya.com',
       phone: '+61 434 005 005',
       memberNumber: 'M004',
-      designation: 'Programmer',
+      address: '123 Siberian Street',
+      city: 'Brisbane',
+      state: 'QLD',
+      postcode: '4000',
+      country: 'Australia',
       joinDate: new Date('1997-06-15'),
       status: 'Active',
       tfn: '005005005',
     },
     {
       entityName: 'GoldenEye Holdings Pty Ltd',
-      memberType: 'Trust',
+      memberType: 'COMPANY',
       email: 'trustee@goldeneye.com.au',
       phone: '+61 445 004 004',
       memberNumber: 'M005',
       designation: '<Ourumov Family A/C>',
+      address: '555 GoldenEye Boulevard',
+      city: 'Perth',
+      state: 'WA',
+      postcode: '6000',
+      country: 'Australia',
       joinDate: new Date('1997-03-10'),
       status: 'Active',
     },
