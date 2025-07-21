@@ -27,11 +27,15 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run tests with coverage
-        run: yarn test:coverage
+      - name: Run tests with coverage and JUnit output
+        run: yarn test:coverage-and-junit
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: quelixir/secad
+
+      - name: Upload JUnit reports to Codecov
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
