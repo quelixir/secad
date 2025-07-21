@@ -30,10 +30,10 @@ $ cp .env.example .env
 
 Then edit the `.env` file and replace the placeholder values with your actual configuration.
 
-Now, you run the development server:
-
 ```bash
-$ yarn dev
+$ npx prisma migrate dev # migrate schema to database
+$ yarn seed:demo # populate database with sample data
+$ yarn dev # run the development server
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to start using secad.

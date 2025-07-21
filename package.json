@@ -15,7 +15,8 @@
     "test:coverage-and-junit": "jest --coverage --reporters=jest-junit",
     "prepare": "husky",
     "commit:check": "commitlint --from HEAD~1 --to HEAD --verbose",
-    "commit": "cz"
+    "commit": "cz",
+    "seed:demo": "tsx scripts/seed-demo-data.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -72,6 +73,7 @@
     "jest-environment-jsdom": "^30.0.4",
     "jest-junit": "^16.0.0",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5"
   },
