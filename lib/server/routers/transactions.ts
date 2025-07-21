@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '@/lib/trpc';
 import { prisma } from '@/lib/db';
 import { TRPCError } from '@trpc/server';
+import { getDefaultCurrency } from '@/lib/config';
 
 const transactionInputSchema = z.object({
   entityId: z.string(),
@@ -12,7 +13,7 @@ const transactionInputSchema = z.object({
   amountPaidPerSecurity: z.number().optional(),
   amountUnpaidPerSecurity: z.number().optional(),
   transferPricePerSecurity: z.number().optional(),
-  currency: z.string().default('AUD'),
+  currency: z.string().default(getDefaultCurrency()),
   fromMemberId: z.string().optional(),
   toMemberId: z.string().optional(),
   trancheNumber: z.string().optional(),

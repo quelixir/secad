@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { compliancePackRegistration } from '@/lib/compliance';
+import { getDefaultCountry } from '@/lib/config';
 
 export async function GET() {
   try {
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
 
     // Get entity type from compliance registry
     const entityType = compliancePackRegistration.getEntityType(
-      body.incorporationCountry || 'Australia',
+      body.incorporationCountry || getDefaultCountry(),
       body.entityTypeId
     );
 

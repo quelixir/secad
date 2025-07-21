@@ -13,6 +13,7 @@ import { CountrySelect } from '@/components/ui/country-select'
 import { StateSelect } from '@/components/ui/state-select'
 import { EntityTypeSelect } from '@/components/ui/entity-type-select'
 import { EntityIdentifiers, type EntityIdentifier } from '@/components/ui/entity-identifiers'
+import { getDefaultCountry } from '@/lib/config'
 
 const entityFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -59,8 +60,8 @@ interface EntityFormProps {
 }
 
 export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProps) {
-  const [selectedCountry, setSelectedCountry] = useState(entity?.country || 'Australia')
-  const [selectedIncorporationCountry, setSelectedIncorporationCountry] = useState(entity?.incorporationCountry || 'Australia')
+  const [selectedCountry, setSelectedCountry] = useState(entity?.country || getDefaultCountry())
+  const [selectedIncorporationCountry, setSelectedIncorporationCountry] = useState(entity?.incorporationCountry || getDefaultCountry())
   const [identifiers, setIdentifiers] = useState<EntityIdentifier[]>(entity?.identifiers || [])
 
   const form = useForm<EntityFormValues>({
@@ -69,13 +70,13 @@ export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProp
       name: entity?.name || '',
       entityTypeId: entity?.entityType || '',
       incorporationDate: entity?.incorporationDate ? entity.incorporationDate.split('T')[0] : '',
-      incorporationCountry: entity?.incorporationCountry || 'Australia',
+      incorporationCountry: entity?.incorporationCountry || getDefaultCountry(),
       incorporationState: entity?.incorporationState || '',
       address: entity?.address || '',
       city: entity?.city || '',
       state: entity?.state || '',
       postcode: entity?.postcode || '',
-      country: entity?.country || 'Australia',
+      country: entity?.country || getDefaultCountry(),
       email: entity?.email || '',
       phone: entity?.phone || '',
       website: entity?.website || '',
@@ -93,12 +94,12 @@ export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProp
 
   const watchedCountry = form.watch('country')
   if (watchedCountry !== selectedCountry) {
-    setSelectedCountry(watchedCountry || 'Australia')
+    setSelectedCountry(watchedCountry || getDefaultCountry())
   }
 
   const watchedIncorporationCountry = form.watch('incorporationCountry')
   if (watchedIncorporationCountry !== selectedIncorporationCountry) {
-    setSelectedIncorporationCountry(watchedIncorporationCountry || 'Australia')
+    setSelectedIncorporationCountry(watchedIncorporationCountry || getDefaultCountry())
   }
 
   return (
@@ -136,11 +137,11 @@ export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProp
                       value={field.value}
                       onValueChange={(value) => {
                         field.onChange(value);
-                        setSelectedIncorporationCountry(value || 'Australia');
+                        setSelectedIncorporationCountry(value || getDefaultCountry());
                         // Reset entity type when country changes
                         const entityTypeField = form.getValues('entityTypeId');
                         if (entityTypeField) {
-                          const newCountryEntityTypes = compliancePackRegistration.getEntityTypes(value || 'Australia');
+                          const newCountryEntityTypes = compliancePackRegistration.getEntityTypes(value || getDefaultCountry());
                           const typeStillValid = newCountryEntityTypes.some(type => type.id === entityTypeField);
                           if (!typeStillValid) {
                             form.setValue('entityTypeId', '');

@@ -5,6 +5,7 @@ import { TRPCError } from '@trpc/server';
 import { compliancePackRegistration } from '@/lib/compliance';
 import type { inferAsyncReturnType } from '@trpc/server';
 import type { createTRPCContext } from '@/lib/trpc';
+import { getDefaultCountry } from '@/lib/config';
 
 type Context = inferAsyncReturnType<typeof createTRPCContext>;
 
@@ -18,7 +19,7 @@ const createEntitySchema = z.object({
   name: z.string().min(1, 'Name is required'),
   entityTypeId: z.string().min(1, 'Entity type is required'),
   incorporationDate: z.string().optional(),
-  incorporationCountry: z.string().default('Australia'),
+  incorporationCountry: z.string().default(getDefaultCountry()),
   incorporationState: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
@@ -162,7 +163,7 @@ export const entitiesRouter = createTRPCRouter({
         input: CreateEntityInput;
       }) => {
         const entityType = compliancePackRegistration.getEntityType(
-          entityData.incorporationCountry || 'Australia',
+          entityData.incorporationCountry || getDefaultCountry(),
           entityData.entityTypeId
         );
 
@@ -209,7 +210,7 @@ export const entitiesRouter = createTRPCRouter({
       }) => {
         if (updateData.entityTypeId !== undefined) {
           const entityType = compliancePackRegistration.getEntityType(
-            updateData.incorporationCountry || 'Australia',
+            updateData.incorporationCountry || getDefaultCountry(),
             updateData.entityTypeId
           );
 

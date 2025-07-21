@@ -16,6 +16,7 @@ import { TransactionType } from '@/lib/types'
 import { TRANSACTION_REASONS } from '@/lib/transaction-reasons'
 import { CURRENCIES } from '@/lib/currencies'
 import { cn } from '@/lib/utils'
+import { getDefaultCurrency } from '@/lib/config'
 
 const transactionFormSchema = z.object({
     entityId: z.string().min(1, 'Entity is required'),
@@ -139,7 +140,7 @@ export function TransactionForm({ entities, selectedEntity, transaction, onSaved
             quantity: transaction?.quantity?.toString() || '',
             paidPerSecurity: transaction?.amountPaidPerSecurity || transaction?.transferPricePerSecurity || '',
             unpaidPerSecurity: transaction?.amountUnpaidPerSecurity || '',
-            currency: 'AUD',
+            currency: getDefaultCurrency(),
             fromMemberId: transaction?.fromMember?.id || '',
             toMemberId: transaction?.toMember?.id || '',
             transactionDate: transaction?.transactionDate ? new Date(transaction.transactionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -235,7 +236,7 @@ export function TransactionForm({ entities, selectedEntity, transaction, onSaved
                 return 'nil'
             }
 
-            const currencyCode = currency || 'AUD'
+            const currencyCode = currency || getDefaultCurrency()
 
             if (Number.isInteger(total)) {
                 return `${total.toFixed(2)} ${currencyCode}`
@@ -251,7 +252,7 @@ export function TransactionForm({ entities, selectedEntity, transaction, onSaved
             }
 
             const total = qty * price
-            const currencyCode = currency || 'AUD'
+            const currencyCode = currency || getDefaultCurrency()
 
             if (Number.isInteger(total)) {
                 return `${total.toFixed(2)} ${currencyCode}`
@@ -601,7 +602,7 @@ export function TransactionForm({ entities, selectedEntity, transaction, onSaved
                                                     const paid = parseFloat(paidPerSecurity || '0') || 0
                                                     if (qty === 0 || paid === 0) return 'nil'
                                                     const total = qty * paid
-                                                    const currencyCode = currency || 'AUD'
+                                                    const currencyCode = currency || getDefaultCurrency()
                                                     if (Number.isInteger(total)) {
                                                         return `${total.toFixed(2)} ${currencyCode}`
                                                     } else if (total.toString().split('.')[1]?.length <= 2) {
@@ -692,7 +693,7 @@ export function TransactionForm({ entities, selectedEntity, transaction, onSaved
                                                     const unpaid = parseFloat(unpaidPerSecurity || '0') || 0
                                                     if (qty === 0 || unpaid === 0) return 'nil'
                                                     const total = qty * unpaid
-                                                    const currencyCode = currency || 'AUD'
+                                                    const currencyCode = currency || getDefaultCurrency()
                                                     if (Number.isInteger(total)) {
                                                         return `${total.toFixed(2)} ${currencyCode}`
                                                     } else if (total.toString().split('.')[1]?.length <= 2) {

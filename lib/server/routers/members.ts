@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '@/lib/trpc';
 import { prisma } from '@/lib/db';
 import { TRPCError } from '@trpc/server';
+import { getDefaultCountry } from '@/lib/config';
 
 const memberInputSchema = z.object({
   entityId: z.string(),
@@ -16,7 +17,7 @@ const memberInputSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   postcode: z.string().optional(),
-  country: z.string().default('Australia'),
+  country: z.string().default(getDefaultCountry()),
   memberNumber: z.string().optional(),
   tfn: z.string().optional(),
   abn: z.string().optional(),
