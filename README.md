@@ -22,13 +22,13 @@ $ cd secad
 $ yarn install
 ```
 
-Next, create a `.env` file in the root directory and populate it with the following variable:
+Next, create a `.env` file in the root directory. You can copy the `.env.example` file as a starting point:
 
-```
-DATABASE_URL="postgresql://username:password@localhost:5432/secad"
+```bash
+$ cp .env.example .env
 ```
 
-Replace the connection string with your actual PostgreSQL database credentials.
+Then edit the `.env` file and replace the placeholder values with your actual configuration.
 
 Now, you run the development server:
 
