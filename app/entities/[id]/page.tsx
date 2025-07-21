@@ -13,6 +13,7 @@ import Link from 'next/link'
 import { compliancePackRegistration } from '@/lib/compliance'
 import { EntityApiResponse } from '@/lib/types/interfaces/Entity'
 import { EntityIdentifier } from '@/lib/types/interfaces/EntityIdentifier'
+import { getLocale, getLocaleOptions } from '@/lib/locale'
 
 export default function ViewEntityPage() {
     const params = useParams()
@@ -442,10 +443,10 @@ export default function ViewEntityPage() {
                                                             {totalQuantity.toLocaleString()}
                                                         </TableCell>
                                                         <TableCell className="text-right">
-                                                            {totalAmountPaid > 0 ? `$${totalAmountPaid.toLocaleString()}` : '-'}
+                                                            {totalAmountPaid > 0 ? `$${totalAmountPaid.toLocaleString(getLocale(), getLocaleOptions())}` : '-'}
                                                         </TableCell>
                                                         <TableCell className="text-right">
-                                                            {totalAmountUnpaid > 0 ? `$${totalAmountUnpaid.toLocaleString()}` : '-'}
+                                                            {totalAmountUnpaid > 0 ? `$${totalAmountUnpaid.toLocaleString(getLocale(), getLocaleOptions())}` : '-'}
                                                         </TableCell>
                                                         <TableCell>
                                                             <Badge variant={securityClass.isActive ? "default" : "secondary"}>

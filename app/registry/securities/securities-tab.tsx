@@ -13,6 +13,7 @@ import { SecurityForm } from './security-form'
 import { useEntity } from '@/lib/entity-context'
 import Link from 'next/link'
 import type { Entity } from '@/lib/types/interfaces/Entity'
+import { getLocale, getLocaleOptions } from '@/lib/locale'
 
 interface SecuritySummary {
   id: string
@@ -343,14 +344,14 @@ export function SecuritiesTab() {
                   </TableCell>
                   <TableCell>
                     {security.totalAmountPaid > 0 ? (
-                      <span>${security.totalAmountPaid.toFixed(2)} {security.currency}</span>
+                      <span>${security.totalAmountPaid.toLocaleString(getLocale(), getLocaleOptions())} {security.currency}</span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
                   <TableCell>
                     {security.totalAmountUnpaid > 0 ? (
-                      <span>${security.totalAmountUnpaid.toFixed(2)} {security.currency}</span>
+                      <span>${security.totalAmountUnpaid.toLocaleString(getLocale(), getLocaleOptions())} {security.currency}</span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
