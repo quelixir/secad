@@ -1,10 +1,12 @@
 import { PrismaClient } from '../lib/generated/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
+import bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
 
 async function seedDemoData() {
-  console.log('Starting demo data seed...');
+  console.log('🏁 Starting demo data seed...');
 
   try {
     // Create demo entities
@@ -25,7 +27,10 @@ async function seedDemoData() {
       await createDemoTransactions(entity.id);
     }
 
-    console.log('Demo data seeding completed successfully!');
+    // Create demo Better Auth user
+    await createDemoUser();
+
+    console.log('✅ Demo data seeding completed successfully!');
   } catch (error) {
     console.error('❌ Error seeding demo data:', error);
     throw error;
@@ -400,6 +405,54 @@ async function createDemoTransactions(entityId: string) {
   }
 
   console.log(`✅ Created ${transactionData.length} transactions`);
+}
+
+async function createDemoUser() {
+  console.log('👤 Creating demo Better Auth user...');
+  const email = 'admin@example.org';
+  const username = 'admin';
+  const name = 'Administrator';
+  const password = 'password';
+
+  // Check if user already exists
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    console.log('ℹ️ Demo user already exists');
+    return;
+  }
+
+  const userId = randomUUID();
+  const now = new Date();
+  const hashed = await bcrypt.hash(password, 10);
+
+  // Create user and account in a transaction
+  await prisma.$transaction([
+    prisma.user.create({
+      data: {
+        id: userId,
+        name,
+        email,
+        emailVerified: true,
+        createdAt: now,
+        updatedAt: now,
+        username,
+        displayUsername: username,
+      },
+    }),
+    prisma.account.create({
+      data: {
+        id: randomUUID(),
+        accountId: email,
+        providerId: 'email',
+        userId,
+        password: hashed,
+        createdAt: now,
+        updatedAt: now,
+      },
+    }),
+  ]);
+
+  console.log('✅ Created demo user: admin@example.org');
 }
 
 // Run the seed function
