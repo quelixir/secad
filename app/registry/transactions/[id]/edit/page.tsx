@@ -182,7 +182,6 @@ export default function EditTransactionPage() {
                     </CardHeader>
                     <CardContent>
                         <TransactionForm
-                            entities={entities.filter((e: Entity) => e.id === selectedEntity.id)}
                             selectedEntity={selectedEntity}
                             transaction={transaction}
                             onSaved={handleTransactionSaved}

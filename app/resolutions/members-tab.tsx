@@ -4,11 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FileText, Users } from 'lucide-react'
 
 interface MembersTabProps {
-  entityId: string
   entityName: string
 }
 
-export function MembersTab({ entityId, entityName }: MembersTabProps) {
+export function MembersTab({ entityName }: MembersTabProps) {
   return (
     <div className="space-y-6">
       {/* Header */}

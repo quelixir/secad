@@ -86,7 +86,6 @@ export default function NewTransactionPage() {
                     </CardHeader>
                     <CardContent>
                         <TransactionForm
-                            entities={entities.filter((e: Entity) => e.id === selectedEntity.id)}
                             selectedEntity={selectedEntity}
                             onSaved={handleTransactionSaved}
                         />

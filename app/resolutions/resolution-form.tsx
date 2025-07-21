@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ResolutionType, ResolutionStatus, ResolutionCategory, type ResolutionInput } from '@/lib/types'
-import { Plus, Calendar, FileText } from 'lucide-react'
+import { Plus, FileText } from 'lucide-react'
 
 interface ResolutionFormProps {
     entityId: string

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { ApiResponse, MemberInput, MemberWithRelations } from '@/lib/types';
+import { ApiResponse, MemberInput } from '@/lib/types';
 
 // GET /api/members - List all members (optionally filtered by entity)
 export async function GET(request: NextRequest) {

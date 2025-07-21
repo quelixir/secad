@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import {
-  ApiResponse,
-  AssociateInput,
-  AssociateWithRelations,
-} from '@/lib/types';
+import { ApiResponse, AssociateInput } from '@/lib/types';
 
 // GET /api/associates/[id] - Get a specific associate
 export async function GET(

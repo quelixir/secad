@@ -11,12 +11,10 @@ import {
   Shield,
   ArrowRightLeft,
   Building2,
-  BarChart3,
   TrendingUp,
   TrendingDown,
   Repeat,
-  Plus,
-  ArrowUpRight
+  Plus
 } from 'lucide-react'
 import { useEntity } from '@/lib/entity-context'
 import { MembersTab } from './members/members-tab'

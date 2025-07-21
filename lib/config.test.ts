@@ -18,25 +18,21 @@ describe('Config Utilities', () => {
   describe('getDefaultCountry', () => {
     test('returns configured country when DEFAULT_COUNTRY is set', () => {
       process.env.DEFAULT_COUNTRY = 'Canada';
-      const { getDefaultCountry } = require('./config');
       expect(getDefaultCountry()).toBe('Canada');
     });
 
     test('returns fallback when DEFAULT_COUNTRY is not set', () => {
       delete process.env.DEFAULT_COUNTRY;
-      const { getDefaultCountry } = require('./config');
       expect(getDefaultCountry()).toBe('United States');
     });
 
     test('returns fallback when DEFAULT_COUNTRY is empty string', () => {
       process.env.DEFAULT_COUNTRY = '';
-      const { getDefaultCountry } = require('./config');
       expect(getDefaultCountry()).toBe('United States');
     });
 
     test('returns fallback when DEFAULT_COUNTRY is undefined', () => {
       process.env.DEFAULT_COUNTRY = undefined;
-      const { getDefaultCountry } = require('./config');
       expect(getDefaultCountry()).toBe('United States');
     });
 
@@ -54,7 +50,6 @@ describe('Config Utilities', () => {
 
       testCountries.forEach((country) => {
         process.env.DEFAULT_COUNTRY = country;
-        const { getDefaultCountry } = require('./config');
         expect(getDefaultCountry()).toBe(country);
       });
     });
@@ -63,25 +58,21 @@ describe('Config Utilities', () => {
   describe('getDefaultCurrency', () => {
     test('returns configured currency when DEFAULT_CURRENCY is set', () => {
       process.env.DEFAULT_CURRENCY = 'EUR';
-      const { getDefaultCurrency } = require('./config');
       expect(getDefaultCurrency()).toBe('EUR');
     });
 
     test('returns fallback when DEFAULT_CURRENCY is not set', () => {
       delete process.env.DEFAULT_CURRENCY;
-      const { getDefaultCurrency } = require('./config');
       expect(getDefaultCurrency()).toBe('USD');
     });
 
     test('returns fallback when DEFAULT_CURRENCY is empty string', () => {
       process.env.DEFAULT_CURRENCY = '';
-      const { getDefaultCurrency } = require('./config');
       expect(getDefaultCurrency()).toBe('USD');
     });
 
     test('returns fallback when DEFAULT_CURRENCY is undefined', () => {
       process.env.DEFAULT_CURRENCY = undefined;
-      const { getDefaultCurrency } = require('./config');
       expect(getDefaultCurrency()).toBe('USD');
     });
 
@@ -99,7 +90,6 @@ describe('Config Utilities', () => {
 
       testCurrencies.forEach((currency) => {
         process.env.DEFAULT_CURRENCY = currency;
-        const { getDefaultCurrency } = require('./config');
         expect(getDefaultCurrency()).toBe(currency);
       });
     });
@@ -110,39 +100,26 @@ describe('Config Utilities', () => {
       // Test scenario 1: Both set
       process.env.DEFAULT_COUNTRY = 'Australia';
       process.env.DEFAULT_CURRENCY = 'AUD';
-      const { getDefaultCountry, getDefaultCurrency } = require('./config');
       expect(getDefaultCountry()).toBe('Australia');
       expect(getDefaultCurrency()).toBe('AUD');
 
       // Test scenario 2: Only country set
       process.env.DEFAULT_COUNTRY = 'United Kingdom';
       delete process.env.DEFAULT_CURRENCY;
-      const {
-        getDefaultCountry: getCountry2,
-        getDefaultCurrency: getCurrency2,
-      } = require('./config');
-      expect(getCountry2()).toBe('United Kingdom');
-      expect(getCurrency2()).toBe('USD');
+      expect(getDefaultCountry()).toBe('United Kingdom');
+      expect(getDefaultCurrency()).toBe('USD');
 
       // Test scenario 3: Only currency set
       delete process.env.DEFAULT_COUNTRY;
       process.env.DEFAULT_CURRENCY = 'EUR';
-      const {
-        getDefaultCountry: getCountry3,
-        getDefaultCurrency: getCurrency3,
-      } = require('./config');
-      expect(getCountry3()).toBe('United States');
-      expect(getCurrency3()).toBe('EUR');
+      expect(getDefaultCountry()).toBe('United States');
+      expect(getDefaultCurrency()).toBe('EUR');
 
       // Test scenario 4: Neither set
       delete process.env.DEFAULT_COUNTRY;
       delete process.env.DEFAULT_CURRENCY;
-      const {
-        getDefaultCountry: getCountry4,
-        getDefaultCurrency: getCurrency4,
-      } = require('./config');
-      expect(getCountry4()).toBe('United States');
-      expect(getCurrency4()).toBe('USD');
+      expect(getDefaultCountry()).toBe('United States');
+      expect(getDefaultCurrency()).toBe('USD');
     });
   });
 });

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, User, Building, Mail, Phone, MapPin, Calendar, Shield, TrendingUp, Eye, HelpCircle } from 'lucide-react'
+import { ArrowLeft, User, Building, Mail, Phone, MapPin, Shield, TrendingUp, Eye, HelpCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface Member {

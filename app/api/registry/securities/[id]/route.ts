@@ -11,9 +11,6 @@ export async function GET(
     const { id } = await params;
     const { searchParams } = new URL(request.url);
     const includeHoldings = searchParams.get('include')?.includes('holdings');
-    const includeTransactions = searchParams
-      .get('include')
-      ?.includes('transactions');
 
     const securityClass = await prisma.securityClass.findUnique({
       where: { id },

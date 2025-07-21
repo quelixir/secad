@@ -46,7 +46,7 @@ interface Transaction {
 }
 
 export function TransactionsTab() {
-  const { selectedEntity, entities } = useEntity()
+  const { selectedEntity } = useEntity()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')

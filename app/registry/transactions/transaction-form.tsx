@@ -112,13 +112,12 @@ interface Transaction {
 }
 
 interface TransactionFormProps {
-    entities: Entity[]
     selectedEntity?: Entity
     transaction?: Transaction
     onSaved: () => void
 }
 
-export function TransactionForm({ entities, selectedEntity, transaction, onSaved }: TransactionFormProps) {
+export function TransactionForm({ selectedEntity, transaction, onSaved }: TransactionFormProps) {
     const [loading, setLoading] = useState(false)
     const [securities, setSecurities] = useState<SecurityClass[]>([])
     const [members, setMembers] = useState<Member[]>([])

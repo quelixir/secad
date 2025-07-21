@@ -46,10 +46,8 @@ interface SecuritySummary {
 }
 
 export function SecuritiesTab() {
-  const { selectedEntity, entities } = useEntity();
+  const { selectedEntity } = useEntity();
   const [securities, setSecurities] = useState<SecuritySummary[]>([])
-  const [members, setMembers] = useState<any[]>([])
-  const [securityClasses, setSecurityClasses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [editingSecurity, setEditingSecurity] = useState<SecuritySummary | null>(null)
@@ -79,46 +77,9 @@ export function SecuritiesTab() {
     }
   }, [selectedEntity])
 
-  const fetchMembers = useCallback(async () => {
-    if (!selectedEntity) return
-
-    try {
-      const response = await fetch(`/api/registry/members?entityId=${selectedEntity.id}`)
-      const result = await response.json()
-
-      if (result.success) {
-        setMembers(result.data || [])
-        setSecurityClasses(result.data || [])
-      } else {
-        console.error('Failed to fetch members:', result.error)
-      }
-    } catch (error) {
-      console.error('Error fetching members:', error)
-    }
-  }, [selectedEntity])
-
-  const fetchSecurityClasses = useCallback(async () => {
-    if (!selectedEntity) return
-
-    try {
-      const response = await fetch(`/api/registry/securities?entityId=${selectedEntity.id}`)
-      const result = await response.json()
-
-      if (result.success) {
-        setSecurityClasses(result.data || [])
-      } else {
-        console.error('Failed to fetch security classes:', result.error)
-      }
-    } catch (error) {
-      console.error('Error fetching security classes:', error)
-    }
-  }, [selectedEntity])
-
   useEffect(() => {
     fetchSecurities()
-    fetchMembers()
-    fetchSecurityClasses()
-  }, [fetchSecurities, fetchMembers, fetchSecurityClasses])
+  }, [fetchSecurities])
 
   const handleDelete = async (id: string) => {
     try {
@@ -156,7 +117,6 @@ export function SecuritiesTab() {
   const activeSecurities = securities.filter(s => s.isActive).length
   const totalSecurities = securities.reduce((sum, security) => sum + security.totalQuantity, 0)
   const totalTranches = securities.reduce((sum, security) => sum + security.trancheCount, 0)
-  const totalMembers = securities.reduce((sum, security) => sum + security.memberCount, 0)
 
   if (!selectedEntity) {
     return (
@@ -220,7 +180,7 @@ export function SecuritiesTab() {
                     </DialogDescription>
                   </DialogHeader>
                   <SecurityForm
-                    entities={entities.filter((e: Entity) => e.id === selectedEntity.id)}
+                    entities={[{ id: selectedEntity.id, name: selectedEntity.name }]}
                     selectedEntity={selectedEntity}
                     onSaved={handleFormSuccess}
                   />
@@ -391,7 +351,7 @@ export function SecuritiesTab() {
                           </DialogHeader>
                           {editingSecurity && (
                             <SecurityForm
-                              entities={entities.filter((e: Entity) => e.id === selectedEntity.id)}
+                              entities={[{ id: selectedEntity.id, name: selectedEntity.name }]}
                               selectedEntity={selectedEntity}
                               security={editingSecurity}
                               onSaved={handleFormSuccess}

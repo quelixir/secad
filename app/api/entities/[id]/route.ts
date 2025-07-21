@@ -1,17 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { EntityInput } from '@/lib/types';
 import { compliancePackRegistration } from '@/lib/compliance';
-
-interface EntityIdentifierInput {
-  type: string;
-  value: string;
-  country: string;
-}
-
-interface ExtendedEntityInput extends Partial<EntityInput> {
-  identifiers?: EntityIdentifierInput[];
-}
 
 export async function GET(
   request: NextRequest,

@@ -10,7 +10,6 @@ import {
   FileText,
   Users,
   Crown,
-  Building2,
   CheckCircle,
   Clock,
   XCircle,
@@ -97,7 +96,7 @@ function ResolutionsContent() {
       case 'directors':
         return <DirectorsTab entityId={selectedEntity.id} entityName={selectedEntity.name} />
       case 'members':
-        return <MembersTab entityId={selectedEntity.id} entityName={selectedEntity.name} />
+        return <MembersTab entityName={selectedEntity.name} />
       default:
         return <ResolutionsDashboard />
     }

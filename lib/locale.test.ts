@@ -18,25 +18,21 @@ describe('Locale Utilities', () => {
   describe('getLocale', () => {
     test('returns configured locale when LOCALE is set', () => {
       process.env.LOCALE = 'en-AU';
-      const { getLocale } = require('./locale');
       expect(getLocale()).toBe('en-AU');
     });
 
     test('returns fallback when LOCALE is not set', () => {
       delete process.env.LOCALE;
-      const { getLocale } = require('./locale');
       expect(getLocale()).toBe('en-US');
     });
 
     test('returns fallback when LOCALE is empty string', () => {
       process.env.LOCALE = '';
-      const { getLocale } = require('./locale');
       expect(getLocale()).toBe('en-US');
     });
 
     test('returns fallback when LOCALE is undefined', () => {
       process.env.LOCALE = undefined;
-      const { getLocale } = require('./locale');
       expect(getLocale()).toBe('en-US');
     });
 
@@ -54,7 +50,6 @@ describe('Locale Utilities', () => {
 
       testLocales.forEach((locale) => {
         process.env.LOCALE = locale;
-        const { getLocale } = require('./locale');
         expect(getLocale()).toBe(locale);
       });
     });
@@ -78,8 +73,6 @@ describe('Locale Utilities', () => {
 
     test('options are immutable', () => {
       const options = getLocaleOptions();
-      const originalMinimum = options.minimumFractionDigits;
-      const originalMaximum = options.maximumFractionDigits;
 
       // Try to modify the options
       options.minimumFractionDigits = 3;
@@ -105,7 +98,6 @@ describe('Locale Utilities', () => {
 
       testCases.forEach(({ locale, expected }) => {
         process.env.LOCALE = locale;
-        const { getLocale } = require('./locale');
         const localeOptions = getLocaleOptions();
 
         const formatted = testNumber.toLocaleString(getLocale(), localeOptions);
@@ -114,7 +106,6 @@ describe('Locale Utilities', () => {
 
       // Test French locale separately due to potential space character differences
       process.env.LOCALE = 'fr-FR';
-      const { getLocale } = require('./locale');
       const localeOptions = getLocaleOptions();
       const formatted = testNumber.toLocaleString(getLocale(), localeOptions);
       expect(formatted).toMatch(/1\s*234,57/); // Flexible matching for space characters
@@ -123,13 +114,11 @@ describe('Locale Utilities', () => {
     test('handles edge cases with locale configuration', () => {
       // Test with invalid locale (should fall back to en-US)
       process.env.LOCALE = 'invalid-locale';
-      const { getLocale } = require('./locale');
       expect(getLocale()).toBe('invalid-locale'); // Should still return the invalid value
 
       // Test with complex locale string
       process.env.LOCALE = 'en-US-u-ca-gregory';
-      const { getLocale: getLocale2 } = require('./locale');
-      expect(getLocale2()).toBe('en-US-u-ca-gregory');
+      expect(getLocale()).toBe('en-US-u-ca-gregory');
     });
   });
 });

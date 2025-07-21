@@ -9,10 +9,6 @@ interface EntityIdentifierInput {
   country: string;
 }
 
-interface ExtendedEntityInput extends Partial<EntityInput> {
-  identifiers?: EntityIdentifierInput[];
-}
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -70,7 +66,9 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body: ExtendedEntityInput = await request.json();
+    const body: Partial<EntityInput> & {
+      identifiers?: EntityIdentifierInput[];
+    } = await request.json();
 
     // Validate identifiers
     if (body.identifiers) {

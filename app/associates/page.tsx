@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Plus, Search, Edit, Trash2, Building2, Users, Crown, UserCheck } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Building2, Crown, UserCheck } from 'lucide-react'
 import { useEntity } from '@/lib/entity-context'
 import { AssociateForm } from './associate-form'
 
