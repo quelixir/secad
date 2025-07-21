@@ -181,7 +181,7 @@ export default function ViewEntityPage() {
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm font-medium text-muted-foreground">Entity ID</span>
                                         <div className="flex items-center gap-2">
-                                            <code className="text-sm bg-muted px-2 py-1 rounded">{entity.id}</code>
+                                            <code className="text-sm bg-muted px-2 rounded">{entity.id}</code>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"

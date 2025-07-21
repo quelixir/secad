@@ -212,7 +212,7 @@ export default function ViewTransactionPage() {
                             <h1 className="text-3xl font-bold tracking-tight">Transaction Details</h1>
                             <div className="flex items-center gap-2 text-muted-foreground">
                                 <span>Transaction ID:</span>
-                                <code className="px-2 py-1 bg-muted rounded text-sm font-mono">
+                                <code className="px-2 bg-muted rounded text-sm font-mono">
                                     {transaction.id}
                                 </code>
                                 <Button

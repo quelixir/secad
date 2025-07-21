@@ -94,7 +94,7 @@ export default function IssuerPage() {
                                     Entity ID
                                 </label>
                                 <div className="flex items-center gap-2">
-                                    <code className="text-sm bg-muted px-2 py-1 rounded">{selectedEntity.id}</code>
+                                    <code className="text-sm bg-muted px-2 rounded">{selectedEntity.id}</code>
                                     <button
                                         onClick={() => navigator.clipboard.writeText(selectedEntity.id)}
                                         className="p-1 hover:bg-muted rounded transition-colors"
