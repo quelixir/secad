@@ -1,7 +1,7 @@
+'use server';
+
 import { NextRequest } from 'next/server';
 import { auth } from '@/lib/auth';
-
-export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
   return auth.handler(req);

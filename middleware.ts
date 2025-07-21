@@ -1,7 +1,28 @@
+'use server';
+
 import { NextRequest, NextResponse } from 'next/server';
+import { getSessionCookie } from 'better-auth/cookies';
 import { auth } from '@/lib/auth';
 
 export async function middleware(request: NextRequest) {
+  const { nextUrl } = request;
+  const sessionCookie = getSessionCookie(request);
+
+  const isLoggedIn = !!sessionCookie;
+
+  const isOnAuthRoute = nextUrl.pathname.startsWith('/auth');
+
+  if (!isLoggedIn) {
+    return NextResponse.redirect(new URL('/auth/login', request.url));
+  }
+
+  if (isOnAuthRoute && isLoggedIn) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  return NextResponse.next();
+
+  // Old code
   const { pathname } = request.nextUrl;
 
   // Allow auth routes to pass through

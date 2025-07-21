@@ -16,6 +16,7 @@
     "prepare": "husky",
     "commit:check": "commitlint --from HEAD~1 --to HEAD --verbose",
     "commit": "cz",
+    "seed:reset-db": "npx prisma db push --force-reset && npx prisma db push",
     "seed:demo": "tsx scripts/seed-demo-data.ts"
   },
   "dependencies": {
@@ -66,7 +67,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "bcrypt": "^6.0.0",
     "commitizen": "^4.3.1",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^9",
