@@ -7,8 +7,32 @@ async function seedDemoData() {
   console.log('🏁 Starting demo data seed...');
 
   try {
+    // Create demo user
+    const demoUser = await createDemoUser();
+
     // Create demo entities
     const entities = await createDemoEntities();
+
+    // Grant demo user admin access to all entities
+    if (demoUser && entities.length > 0) {
+      for (const entity of entities) {
+        await prisma.userEntityAccess.upsert({
+          where: {
+            userId_entityId: {
+              userId: demoUser.id,
+              entityId: entity.id,
+            },
+          },
+          update: { role: 'Admin' },
+          create: {
+            userId: demoUser.id,
+            entityId: entity.id,
+            role: 'Admin',
+          },
+        });
+      }
+      console.log('✅ Granted demo user admin access to all demo entities');
+    }
 
     // Create demo members for each entity
     for (const entity of entities) {
@@ -25,9 +49,6 @@ async function seedDemoData() {
       await createDemoTransactions(entity.id);
     }
 
-    // Create demo Better Auth user
-    await createDemoUser();
-
     console.log('✅ Demo data seeding completed successfully!');
   } catch (error) {
     console.error('❌ Error seeding demo data:', error);
@@ -42,7 +63,7 @@ async function createDemoEntities() {
 
   const entityData = [
     {
-      name: 'Janus Syndicate Ltd',
+      name: 'Janus Syndicate Pty Limited',
       entityTypeId: 'rptlh9fl9ncd3rd5pwa4cwbt', // LMSH_PROP
       incorporationDate: new Date('1997-08-25'),
       incorporationCountry: 'Australia',
@@ -83,7 +104,7 @@ async function createDemoEntities() {
     },
     {
       name: 'Archangel Defence Systems Ltd',
-      entityTypeId: 'd2013bnn9cl0u3uqkkz1748c', // LMSH_PROP
+      entityTypeId: 'd2013bnn9cl0u3uqkkz1748c', // LMSH_PUBL
       incorporationDate: new Date('1997-03-10'),
       incorporationCountry: 'Australia',
       incorporationState: 'QLD',
@@ -406,7 +427,7 @@ async function createDemoTransactions(entityId: string) {
 }
 
 async function createDemoUser() {
-  console.log('👤 Creating demo Better Auth user...');
+  console.log('👤 Creating demo user...');
   const email = 'admin@example.org';
   const username = 'admin';
   const name = 'Administrator';
@@ -418,7 +439,7 @@ async function createDemoUser() {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     console.log('ℹ️ Demo user already exists');
-    return;
+    return existing;
   }
 
   const now = new Date();
@@ -426,7 +447,7 @@ async function createDemoUser() {
     '7c283c7910dac0aec0ca0edbc28ddbd2:01c7e38775e7433fc69c9ba292055194aae99da4d3d7c2860ca7f6a895ece467943752b55a94e1e33d50e465c8a4efb622b6df8cf3103f27ad74289c1c3d9e88'; // 'password'
 
   // Create user and account in a transaction
-  await prisma.$transaction([
+  const [user] = await prisma.$transaction([
     prisma.user.create({
       data: {
         id: userRecordId,
@@ -453,6 +474,7 @@ async function createDemoUser() {
   ]);
 
   console.log('✅ Created demo user: admin@example.org');
+  return user;
 }
 
 // Run the seed function
