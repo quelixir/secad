@@ -6,6 +6,7 @@ import { transactionsRouter } from './transactions';
 import { associatesRouter } from './associates';
 import { resolutionsRouter } from './resolutions';
 import { registryRouter } from './registry';
+import { invitationsRouter } from './invitations';
 
 /**
  * This is the primary router for your server.
@@ -20,6 +21,7 @@ export const appRouter = createTRPCRouter({
   associates: associatesRouter,
   resolutions: resolutionsRouter,
   registry: registryRouter,
+  invitations: invitationsRouter,
 });
 
 // export type definition of API

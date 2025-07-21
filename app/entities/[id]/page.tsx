@@ -14,6 +14,7 @@ import { compliancePackRegistration } from '@/lib/compliance'
 import { EntityApiResponse } from '@/lib/types/interfaces/Entity'
 import { EntityIdentifier } from '@/lib/types/interfaces/EntityIdentifier'
 import { getLocale, getLocaleOptions } from '@/lib/locale'
+import { CollaboratorsTab } from '../../registry/collaborators/collaborators-tab';
 
 export default function ViewEntityPage() {
     const params = useParams()
@@ -153,6 +154,7 @@ export default function ViewEntityPage() {
                 <Tabs defaultValue="overview" className="space-y-4">
                     <TabsList>
                         <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="collaborators">Collaborators</TabsTrigger>
                         <TabsTrigger value="identifiers">Identifiers</TabsTrigger>
                         <TabsTrigger value="members">Members ({entity._count?.members || 0})</TabsTrigger>
                         <TabsTrigger value="securities">Securities ({entity._count?.securityClasses || 0})</TabsTrigger>
@@ -293,12 +295,16 @@ export default function ViewEntityPage() {
                         </Card>
                     </TabsContent>
 
+                    <TabsContent value="collaborators" className="space-y-4">
+                        <CollaboratorsTab entityId={entity.id} />
+                    </TabsContent>
+
                     <TabsContent value="identifiers" className="space-y-4">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Entity Identifiers</CardTitle>
                                 <CardDescription>
-                                    Legal identifiers for this entity across different countries
+                                    Legal identifiers for this entity across different jurisdictions
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -310,10 +316,10 @@ export default function ViewEntityPage() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Country</TableHead>
-                                                <TableHead>Type</TableHead>
-                                                <TableHead>Value</TableHead>
-                                                <TableHead>Status</TableHead>
+                                                <TableHead className="font-bold">Country</TableHead>
+                                                <TableHead className="font-bold">Type</TableHead>
+                                                <TableHead className="font-bold">Value</TableHead>
+                                                <TableHead className="font-bold">Status</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -353,8 +359,8 @@ export default function ViewEntityPage() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Member Name</TableHead>
-                                                <TableHead className="text-right">Actions</TableHead>
+                                                <TableHead className="font-bold">Member Name</TableHead>
+                                                <TableHead className="font-bold text-right">Actions</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -366,8 +372,8 @@ export default function ViewEntityPage() {
 
                                                 return (
                                                     <TableRow key={member.id}>
-                                                        <TableCell className="font-medium">
-                                                            {memberName}
+                                                        <TableCell>
+                                                            {memberName}{' '}{member.designation || ''}
                                                         </TableCell>
                                                         <TableCell className="text-right">
                                                             <Button
@@ -407,10 +413,10 @@ export default function ViewEntityPage() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Security Class</TableHead>
-                                                <TableHead className="text-right">Total Quantity</TableHead>
-                                                <TableHead className="text-right">Total Amount Paid</TableHead>
-                                                <TableHead className="text-right">Total Amount Unpaid</TableHead>
+                                                <TableHead className="font-bold">Security Class</TableHead>
+                                                <TableHead className="font-bold text-right">Total Quantity</TableHead>
+                                                <TableHead className="font-bold text-right">Total Amount Paid</TableHead>
+                                                <TableHead className="font-bold text-right">Total Amount Unpaid</TableHead>
                                                 <TableHead>Status</TableHead>
                                             </TableRow>
                                         </TableHeader>

@@ -22,6 +22,7 @@ model User {
   displayUsername String?
   sessions        Session[]
   accounts        Account[]
+  userEntityAccess UserEntityAccess[]
 
   @@unique([email])
   @@unique([username])
@@ -101,6 +102,8 @@ model Entity {
   resolutions          Resolution[]
   securityClasses      SecurityClass[]
   transactions         Transaction[]
+  userEntityAccess     UserEntityAccess[]
+  invitations          Invitation[]
 
   @@map("entities")
 }
@@ -254,4 +257,35 @@ model Resolution {
   entity          Entity    @relation(fields: [entityId], references: [id], onDelete: Cascade)
 
   @@map("resolutions")
+}
+
+model UserEntityAccess {
+  id        String   @id @default(cuid(2))
+  userId    String
+  entityId  String
+  role      String   // 'Admin', 'Editor', 'Viewer'
+  invitedBy String?  // userId of inviter, nullable
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entity    Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entityId])
+  @@map("user_entity_access")
+}
+
+model Invitation {
+  id         String   @id @default(cuid(2))
+  entityId   String
+  email      String
+  role       String   // 'Admin', 'Editor', 'Viewer'
+  invitedBy  String   // userId of inviter
+  token      String   @unique
+  accepted   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  acceptedAt DateTime?
+  expiresAt  DateTime
+
+  entity     Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
 }

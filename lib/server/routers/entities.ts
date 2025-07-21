@@ -56,8 +56,19 @@ type CreateEntityInput = z.infer<typeof createEntitySchema>;
 type UpdateEntityInput = z.infer<typeof updateEntitySchema>;
 
 export const entitiesRouter = createTRPCRouter({
-  list: protectedProcedure.query(async () => {
+  list: protectedProcedure.query(async ({ ctx }) => {
+    if (!ctx.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'User not authenticated',
+      });
+    }
     return await prisma.entity.findMany({
+      where: {
+        userEntityAccess: {
+          some: { userId: ctx.user.id },
+        },
+      },
       include: {
         identifiers: true,
       },
@@ -73,9 +84,20 @@ export const entitiesRouter = createTRPCRouter({
         })
         .optional()
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      if (!ctx.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
+        });
+      }
       try {
         const entities = await prisma.entity.findMany({
+          where: {
+            userEntityAccess: {
+              some: { userId: ctx.user.id },
+            },
+          },
           include:
             input?.include === 'details'
               ? {
@@ -123,6 +145,11 @@ export const entitiesRouter = createTRPCRouter({
             securityClasses: true,
             transactions: true,
             associates: true,
+            userEntityAccess: {
+              include: {
+                user: true,
+              },
+            },
             _count: {
               select: {
                 members: true,
@@ -181,22 +208,42 @@ export const entitiesRouter = createTRPCRouter({
         const { identifiers = [], ...entityDataWithoutIdentifiers } =
           entityData;
 
-        return await prisma.entity.create({
-          data: {
-            ...entityDataWithoutIdentifiers,
-            status: 'Active',
-            identifiers: {
-              create: identifiers.map((identifier) => ({
-                type: identifier.type,
-                value: identifier.value,
-                country: identifier.country,
-                isActive: true,
-              })),
+        // Create entity and grant Admin access to creator
+        return await prisma.$transaction(async (tx) => {
+          const entity = await tx.entity.create({
+            data: {
+              ...entityDataWithoutIdentifiers,
+              status: 'Active',
+              identifiers: {
+                create: identifiers.map((identifier) => ({
+                  type: identifier.type,
+                  value: identifier.value,
+                  country: identifier.country,
+                  isActive: true,
+                })),
+              },
             },
-          },
-          include: {
-            identifiers: true,
-          },
+            include: {
+              identifiers: true,
+            },
+          });
+
+          // Grant Admin access to creator
+          if (!ctx.user?.id) {
+            throw new TRPCError({
+              code: 'UNAUTHORIZED',
+              message: 'User not authenticated',
+            });
+          }
+          await tx.userEntityAccess.create({
+            data: {
+              userId: ctx.user.id,
+              entityId: entity.id,
+              role: 'Admin',
+            },
+          });
+
+          return entity;
         });
       }
     ),

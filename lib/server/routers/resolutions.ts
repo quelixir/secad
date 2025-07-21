@@ -34,7 +34,24 @@ export const resolutionsRouter = createTRPCRouter({
   // Get all resolutions for an entity
   getByEntityId: protectedProcedure
     .input(z.object({ entityId: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      if (!ctx.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'User not authenticated',
+        });
+      }
+      const access = await prisma.userEntityAccess.findUnique({
+        where: {
+          userId_entityId: { userId: ctx.user.id, entityId: input.entityId },
+        },
+      });
+      if (!access) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'No access to this entity',
+        });
+      }
       try {
         const resolutions = await prisma.resolution.findMany({
           where: { entityId: input.entityId },

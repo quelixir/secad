@@ -10,7 +10,7 @@ export const newZealandEntityTypes: EntityType[] = [
   },
   {
     id: 'noybk2mvgisthv2fuwjoncc4',
-    shortCode: 'LMGT_ULST',
+    shortCode: 'LMGT_PUBL',
     name: 'Public Company Limited by Guarantee',
     category: 'COMPANY',
     description: 'A public company limited by guarantee',
@@ -24,7 +24,7 @@ export const newZealandEntityTypes: EntityType[] = [
   },
   {
     id: 'qrd9i87vlz8yox3tuqbtrq87',
-    shortCode: 'LMSG_ULST',
+    shortCode: 'LMSG_PUBL',
     name: 'Public Company Limited by Shares & Guarantee',
     category: 'COMPANY',
     description: 'A public company limited by both shares and guarantee',

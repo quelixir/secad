@@ -158,7 +158,7 @@ export default function MemberViewPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Link href="/registry?tab=members">
+                        <Link href="/registry/members">
                             <Button>
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Back to Members
@@ -282,7 +282,7 @@ export default function MemberViewPage() {
                             </Link>
                         </p>
                     </div>
-                    <Link href="/registry?tab=members">
+                    <Link href="/registry/members">
                         <Button variant="outline">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Members

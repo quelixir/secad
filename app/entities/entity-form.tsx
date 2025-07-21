@@ -18,7 +18,7 @@ import { getDefaultCountry } from '@/lib/config'
 const entityFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   entityTypeId: z.string().min(1, 'Entity type is required'),
-  incorporationDate: z.string().optional(),
+  incorporationDate: z.string().min(1, 'Incorporation/formation date is required').refine((val) => !isNaN(Date.parse(val)), 'Invalid date'),
   incorporationCountry: z.string().optional(),
   incorporationState: z.string().optional(),
   address: z.string().optional(),
@@ -85,7 +85,9 @@ export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProp
 
   const handleSubmit = async (values: EntityFormValues) => {
     try {
-      await onSubmit({ ...values, identifiers })
+      // Convert incorporationDate to ISO-8601 if present
+      const isoDate = values.incorporationDate ? new Date(values.incorporationDate).toISOString() : '';
+      await onSubmit({ ...values, incorporationDate: isoDate, identifiers })
     } catch (error) {
       console.error('Error submitting form:', error)
       form.setError('root', { message: 'Failed to save entity' })
@@ -180,9 +182,9 @@ export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProp
               name="incorporationDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Incorporation/Formation Date</FormLabel>
+                  <FormLabel>Incorporation/Formation Date <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" required {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -11,7 +11,7 @@ export const australiaEntityTypes: EntityType[] = [
   },
   {
     id: 'wfny64gez4jjcaejpd582sw0',
-    shortCode: 'LMGT_ULST',
+    shortCode: 'LMGT_PUBL',
     name: 'Public Company Limited by Guarantee',
     category: 'COMPANY',
     description:
@@ -27,7 +27,7 @@ export const australiaEntityTypes: EntityType[] = [
   },
   {
     id: 'owlxc9879ho2o2q78v2ts3m7',
-    shortCode: 'LMSG_ULST',
+    shortCode: 'LMSG_PUBL',
     name: 'Public Company Limited by Shares & Guarantee',
     category: 'COMPANY',
     description:
