@@ -31,7 +31,7 @@ $ cp .env.example .env
 Then edit the `.env` file and replace the placeholder values with your actual configuration.
 
 ```bash
-$ npx prisma migrate dev # migrate schema to database
+$ npx prisma migrate dev --name init # migrate schema to database
 $ yarn seed:demo # populate database with sample data
 $ yarn dev # run the development server
 ```
