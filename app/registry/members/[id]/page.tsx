@@ -231,7 +231,7 @@ export default function MemberViewPage() {
         })
 
     const getMemberDisplayName = (member: any) => {
-        if (member.memberType === 'Individual') {
+        if (member.memberType === 'INDIVIDUAL') {
             return `${member.firstName || ''} ${member.lastName || ''}`.trim()
         }
         return member.entityName || ''
