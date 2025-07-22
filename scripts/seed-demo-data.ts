@@ -1,5 +1,12 @@
+import {
+  EntityStatus,
+  MemberStatus,
+  MemberType,
+  TransactionStatus,
+} from '@/lib/types';
 import { PrismaClient } from '../lib/generated/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
+import { australiaCompliancePack } from '@/lib/compliance/australia';
 
 const prisma = new PrismaClient();
 
@@ -78,7 +85,7 @@ async function createDemoEntities() {
       state: 'NSW',
       postcode: '2000',
       country: 'Australia',
-      status: 'Active',
+      status: EntityStatus.ACTIVE,
       email: 'admin@janussyndicate.com.au',
       phone: '+61 2 0070 0070',
       website: 'https://janussyndicate.com.au',
@@ -98,7 +105,7 @@ async function createDemoEntities() {
       state: 'VIC',
       postcode: '3000',
       country: 'Australia',
-      status: 'Active',
+      status: EntityStatus.ACTIVE,
       email: 'info@severnaya.com.au',
       phone: '+61 3 0070 0070',
       website: 'https://severnaya.com.au',
@@ -118,7 +125,7 @@ async function createDemoEntities() {
       state: 'QLD',
       postcode: '4000',
       country: 'Australia',
-      status: 'Active',
+      status: EntityStatus.ACTIVE,
       email: 'contact@archangel.com.au',
       phone: '+61 7 0070 0070',
       website: 'https://archangel.com.au',
@@ -172,7 +179,7 @@ async function createDemoMembers(entityId: string) {
     {
       firstName: 'James',
       lastName: 'Bond',
-      memberType: 'Individual',
+      memberType: MemberType.INDIVIDUAL,
       beneficiallyHeld: true,
       email: 'james.bond@mi6.gov.uk',
       phone: '+61 412 007 007',
@@ -183,7 +190,7 @@ async function createDemoMembers(entityId: string) {
       postcode: '2000',
       country: 'Australia',
       joinDate: new Date('1997-08-25'),
-      status: 'ACTIVE',
+      status: MemberStatus.ACTIVE,
       tfn: '007007007',
       createdBy: 'system',
       contacts: [
@@ -206,7 +213,7 @@ async function createDemoMembers(entityId: string) {
     {
       firstName: 'Alec',
       lastName: 'Trevelyan',
-      memberType: 'Individual',
+      memberType: MemberType.INDIVIDUAL,
       beneficiallyHeld: false,
       email: 'alec.trevelyan@janus.com',
       phone: '+61 423 006 006',
@@ -218,7 +225,7 @@ async function createDemoMembers(entityId: string) {
       postcode: '3000',
       country: 'Australia',
       joinDate: new Date('1997-08-25'),
-      status: 'ACTIVE',
+      status: MemberStatus.ACTIVE,
       tfn: '006006006',
       createdBy: 'system',
       contacts: [
@@ -233,7 +240,7 @@ async function createDemoMembers(entityId: string) {
     },
     {
       entityName: 'MI6 Holdings Pty Ltd',
-      memberType: 'Company',
+      memberType: MemberType.COMPANY,
       beneficiallyHeld: true,
       email: 'admin@mi6holdings.com.au',
       phone: '+61 2 0070 0070',
@@ -244,7 +251,7 @@ async function createDemoMembers(entityId: string) {
       postcode: '2600',
       country: 'Australia',
       joinDate: new Date('1997-08-25'),
-      status: 'ACTIVE',
+      status: MemberStatus.ACTIVE,
       abn: '00700700704',
       createdBy: 'system',
       contacts: [
@@ -267,7 +274,7 @@ async function createDemoMembers(entityId: string) {
     {
       firstName: 'Natalya',
       lastName: 'Simonova',
-      memberType: 'Individual',
+      memberType: MemberType.INDIVIDUAL,
       beneficiallyHeld: true,
       email: 'natalya.simonova@severnaya.com',
       phone: '+61 434 005 005',
@@ -278,7 +285,7 @@ async function createDemoMembers(entityId: string) {
       postcode: '4000',
       country: 'Australia',
       joinDate: new Date('1997-06-15'),
-      status: 'ACTIVE',
+      status: MemberStatus.ACTIVE,
       tfn: '005005005',
       createdBy: 'system',
       contacts: [
@@ -293,7 +300,7 @@ async function createDemoMembers(entityId: string) {
     },
     {
       entityName: 'GoldenEye Holdings Pty Ltd',
-      memberType: 'Company',
+      memberType: MemberType.COMPANY,
       beneficiallyHeld: false,
       email: 'trustee@goldeneye.com.au',
       phone: '+61 445 004 004',
@@ -305,7 +312,7 @@ async function createDemoMembers(entityId: string) {
       postcode: '6000',
       country: 'Australia',
       joinDate: new Date('1997-03-10'),
-      status: 'ACTIVE',
+      status: MemberStatus.ACTIVE,
       createdBy: 'system',
       contacts: [
         {
@@ -484,7 +491,7 @@ async function createDemoTransactions(entityId: string) {
       settlementDate: new Date('1997-08-25'),
       reference: 'BOND-001',
       description: 'Initial share issue upon entity incorporation',
-      status: 'Completed',
+      status: TransactionStatus.COMPLETED,
       createdBy: 'system',
     },
     {
