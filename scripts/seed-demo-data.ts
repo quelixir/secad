@@ -6,7 +6,6 @@ import {
 } from '@/lib/types';
 import { PrismaClient } from '../lib/generated/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
-import { australiaCompliancePack } from '@/lib/compliance/australia';
 
 const prisma = new PrismaClient();
 
