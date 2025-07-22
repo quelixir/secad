@@ -12,7 +12,6 @@ import {
     FileText,
     Activity,
     Plus,
-    Archive,
     Eye
 } from 'lucide-react'
 import { useEntity } from '@/lib/entity-context'
@@ -109,7 +108,7 @@ export default function RegistryPage() {
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Active Securities</CardTitle>
+                            <CardTitle className="text-sm font-medium">Active Security Classes</CardTitle>
                             <Shield className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>

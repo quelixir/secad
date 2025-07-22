@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Menu, BriefcaseBusiness, Building2, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft, LogOut, User } from 'lucide-react'
+import { Menu, BriefcaseBusiness, Building2, LayoutDashboard, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft, LogOut, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 import EntitySelector from './entity-selector'
@@ -34,11 +34,11 @@ const navigation = [
   },
   {
     name: 'Registry',
-    href: '/registry/issuer',
+    href: '/registry',
     icon: Database,
     description: 'Entity registry view',
     subNav: [
-      { name: 'Issuer', href: '/registry/issuer', icon: Building2 },
+      { name: 'Dashboard', href: '/registry', icon: LayoutDashboard },
       { name: 'Securities', href: '/registry/securities', icon: Layers },
       { name: 'Members', href: '/registry/members', icon: BookUser },
       { name: 'Transactions', href: '/registry/transactions', icon: ArrowRightLeft }

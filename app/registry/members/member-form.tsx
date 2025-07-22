@@ -54,9 +54,10 @@ interface MemberFormProps {
   selectedEntity?: Entity
   member?: any
   onSaved: () => void
+  disableScroll?: boolean
 }
 
-export function MemberForm({ entities, selectedEntity, member, onSaved }: MemberFormProps) {
+export function MemberForm({ entities, selectedEntity, member, onSaved, disableScroll = false }: MemberFormProps) {
   const [loading, setLoading] = useState(false)
 
   const form = useForm<MemberFormValues>({
@@ -116,7 +117,7 @@ export function MemberForm({ entities, selectedEntity, member, onSaved }: Member
   }
 
   return (
-    <div className="max-h-[80vh] overflow-y-auto px-1">
+    <div className={`${disableScroll ? '' : 'max-h-[80vh] overflow-y-auto'} px-1`}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Information */}

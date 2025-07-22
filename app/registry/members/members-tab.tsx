@@ -12,6 +12,7 @@ import { Plus, Search, Edit, Trash2, Users, Eye } from 'lucide-react'
 import { MemberForm } from './member-form'
 import { useEntity } from '@/lib/entity-context'
 import Link from 'next/link'
+import { MemberType } from '@/lib/types'
 
 interface Member {
   id: string
@@ -263,7 +264,7 @@ export function MembersTab() {
                   <TableCell>
                     <div>
                       <div className="font-medium">
-                        {member.memberType === 'INDIVIDUAL'
+                        {member.memberType == MemberType.INDIVIDUAL
                           ? `${member.firstName} ${member.lastName}`.trim()
                           : member.entityName
                         }
@@ -281,7 +282,7 @@ export function MembersTab() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={member.memberType === 'INDIVIDUAL' ? 'default' : 'secondary'}>
+                    <Badge variant={member.memberType == MemberType.INDIVIDUAL ? 'default' : 'secondary'}>
                       {member.memberType}
                     </Badge>
                   </TableCell>
