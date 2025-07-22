@@ -17,6 +17,7 @@ interface Member {
     lastName?: string
     entityName?: string
     memberType: string
+    beneficiallyHeld: boolean
     email?: string
     phone?: string
     address?: string
@@ -34,6 +35,14 @@ interface Member {
         id: string
         name: string
     }
+    contacts?: {
+        id: string
+        name: string
+        email?: string
+        phone?: string
+        role?: string
+        isPrimary: boolean
+    }[]
     transactionsFrom: {
         id: string
         transactionType: string
@@ -360,6 +369,12 @@ export default function MemberViewPage() {
                                             </Badge>
                                         </div>
                                         <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Beneficially Held:</span>
+                                            <Badge variant={member.beneficiallyHeld ? 'default' : 'secondary'}>
+                                                {member.beneficiallyHeld ? 'Yes' : 'No'}
+                                            </Badge>
+                                        </div>
+                                        <div className="flex justify-between">
                                             <span className="text-muted-foreground">Join Date:</span>
                                             <span>{formatDate(member.joinDate)}</span>
                                         </div>
@@ -431,6 +446,56 @@ export default function MemberViewPage() {
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Contacts */}
+                {member.contacts && member.contacts.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <User className="h-5 w-5" />
+                                Contacts
+                            </CardTitle>
+                            <CardDescription>
+                                Contact information for this member
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {member.contacts.map((contact) => (
+                                    <div key={contact.id} className="border rounded-lg p-4">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h4 className="font-medium">{contact.name}</h4>
+                                            <div className="flex gap-1">
+                                                {contact.isPrimary && (
+                                                    <Badge variant="secondary" className="text-xs">Primary</Badge>
+                                                )}
+                                                {contact.role && (
+                                                    <Badge variant="outline" className="text-xs">{contact.role}</Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1 text-sm text-muted-foreground">
+                                            {contact.email && (
+                                                <div className="flex items-center gap-2">
+                                                    <Mail className="h-3 w-3" />
+                                                    <a href={`mailto:${contact.email}`} className="text-primary hover:underline">
+                                                        {contact.email}
+                                                    </a>
+                                                </div>
+                                            )}
+                                            {contact.phone && (
+                                                <div className="flex items-center gap-2">
+                                                    <Phone className="h-3 w-3" />
+                                                    <span>{contact.phone}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Securities Summary */}
                 {securitiesSummary.length > 0 && (

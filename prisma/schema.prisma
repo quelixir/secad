@@ -104,6 +104,7 @@ model Entity {
   transactions         Transaction[]
   userEntityAccess     UserEntityAccess[]
   invitations          Invitation[]
+  eventLogs            EventLog[]
 
   @@map("entities")
 }
@@ -139,15 +140,19 @@ model Member {
   country          String        @default("Australia")
   memberNumber     String?
   designation      String?
+  beneficiallyHeld Boolean       @default(true)
   joinDate         DateTime      @default(now())
   status           String        @default("Active")
   tfn              String?
   abn              String?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+  createdBy        String?
+  updatedBy        String?
   entity           Entity        @relation(fields: [entityId], references: [id], onDelete: Cascade)
   transactionsFrom Transaction[] @relation("TransactionFromMember")
   transactionsTo   Transaction[] @relation("TransactionToMember")
+  contacts         MemberContact[]
 
   @@unique([entityId, memberNumber])
   @@map("members")
@@ -162,8 +167,12 @@ model SecurityClass {
   votingRights   Boolean       @default(true)
   dividendRights Boolean       @default(true)
   isActive       Boolean       @default(true)
+  isArchived     Boolean       @default(false)
+  customRights   Json?         // Entity-specific rights as JSON
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+  createdBy      String?
+  updatedBy      String?
   entity         Entity        @relation(fields: [entityId], references: [id], onDelete: Cascade)
   transactions   Transaction[]
 
@@ -198,6 +207,8 @@ model Transaction {
   status                   String        @default("Completed")
   createdAt                DateTime      @default(now())
   updatedAt                DateTime      @updatedAt
+  createdBy                String?
+  updatedBy                String?
   entity                   Entity        @relation(fields: [entityId], references: [id], onDelete: Cascade)
   fromMember               Member?       @relation("TransactionFromMember", fields: [fromMemberId], references: [id])
   securityClass            SecurityClass @relation(fields: [securityClassId], references: [id], onDelete: Cascade)
@@ -288,4 +299,39 @@ model Invitation {
   expiresAt  DateTime
 
   entity     Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+}
+
+model MemberContact {
+  id          String   @id @default(cuid(2))
+  memberId    String
+  name        String
+  email       String?
+  phone       String?
+  role        String?  // e.g., "Primary Contact", "Authorized Signatory", etc.
+  isPrimary   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("member_contacts")
+}
+
+model EventLog {
+  id         String   @id @default(cuid(2))
+  entityId   String
+  userId     String
+  action     String   // 'CREATE', 'UPDATE', 'DELETE', 'ARCHIVE', 'UNARCHIVE'
+  tableName  String   // 'Member', 'SecurityClass', 'Transaction', etc.
+  recordId   String
+  fieldName  String?  // null for CREATE/DELETE actions
+  oldValue   String?  // JSON string for complex values
+  newValue   String?  // JSON string for complex values
+  metadata   Json?    // Additional context (IP, user agent, etc.)
+  timestamp  DateTime @default(now())
+  entity     Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@index([entityId, timestamp])
+  @@index([tableName, recordId])
+  @@index([userId, timestamp])
+  @@map("event_logs")
 }

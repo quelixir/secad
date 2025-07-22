@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const entityId = searchParams.get('entityId');
+    const includeArchived = searchParams.get('includeArchived') === 'true';
 
     if (!entityId) {
       const response: ApiResponse = {
@@ -17,8 +18,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all security classes for the entity with their transactions
+    const whereClause: any = { entityId };
+    if (!includeArchived) {
+      whereClause.isArchived = false;
+    }
+
     const securityClasses = await prisma.securityClass.findMany({
-      where: { entityId },
+      where: whereClause,
       include: {
         transactions: {
           where: { status: 'Completed' },
@@ -115,6 +121,7 @@ export async function GET(request: NextRequest) {
         votingRights: securityClass.votingRights,
         dividendRights: securityClass.dividendRights,
         isActive: securityClass.isActive,
+        isArchived: securityClass.isArchived,
         totalQuantity,
         totalAmountPaid,
         totalAmountUnpaid,

@@ -19,6 +19,7 @@ interface Member {
   lastName?: string
   entityName?: string
   memberType: string
+  beneficiallyHeld: boolean
   designation?: string
   email?: string
   phone?: string
@@ -220,6 +221,7 @@ export function MembersTab() {
             <TableRow>
               <TableHead>Member</TableHead>
               <TableHead>Type</TableHead>
+              <TableHead>Beneficially Held</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Holdings</TableHead>
@@ -230,7 +232,7 @@ export function MembersTab() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={9} className="text-center py-8">
                   <div className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                     Loading members...
@@ -239,7 +241,7 @@ export function MembersTab() {
               </TableRow>
             ) : filteredMembers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={9} className="text-center py-8">
                   <div className="text-muted-foreground">
                     {searchTerm ? `No members found matching "${searchTerm}"` : 'No members found for this entity.'}
                   </div>
@@ -281,6 +283,11 @@ export function MembersTab() {
                   <TableCell>
                     <Badge variant={member.memberType === 'INDIVIDUAL' ? 'default' : 'secondary'}>
                       {member.memberType}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={member.beneficiallyHeld ? 'default' : 'secondary'}>
+                      {member.beneficiallyHeld ? 'Yes' : 'No'}
                     </Badge>
                   </TableCell>
                   <TableCell>

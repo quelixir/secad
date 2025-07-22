@@ -19,6 +19,7 @@ const memberFormSchema = z.object({
   entityName: z.string().optional(),
   memberType: z.string().min(1, 'Member type is required'),
   designation: z.string().optional(),
+  beneficiallyHeld: z.boolean(),
   email: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional(),
   address: z.string().optional(),
@@ -66,6 +67,7 @@ export function MemberForm({ entities, selectedEntity, member, onSaved }: Member
       entityName: member?.entityName || '',
       memberType: member?.memberType || '',
       designation: member?.designation || '',
+      beneficiallyHeld: member?.beneficiallyHeld ?? true,
       email: member?.email || '',
       phone: member?.phone || '',
       address: member?.address || '',
@@ -252,6 +254,29 @@ export function MemberForm({ entities, selectedEntity, member, onSaved }: Member
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="beneficiallyHeld"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          className="mt-1"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Beneficially Held</FormLabel>
+                        <FormDescription>
+                          Check if the member holds these securities for their own benefit
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
               </>
             ) : (
               <>
@@ -282,6 +307,29 @@ export function MemberForm({ entities, selectedEntity, member, onSaved }: Member
                         Account designation for non-beneficial holdings (optional)
                       </FormDescription>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="beneficiallyHeld"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          className="mt-1"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Beneficially Held</FormLabel>
+                        <FormDescription>
+                          Check if the member holds these securities for their own benefit
+                        </FormDescription>
+                      </div>
                     </FormItem>
                   )}
                 />

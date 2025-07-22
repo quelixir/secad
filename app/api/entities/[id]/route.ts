@@ -66,9 +66,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const entityUpdateData = await request.json();
 
     // Validate entity type if being updated
@@ -91,7 +92,7 @@ export async function PUT(
 
     // Update entity
     const entity = await prisma.entity.update({
-      where: { id: params.id },
+      where: { id },
       data: entityUpdateData,
       include: {
         identifiers: true,

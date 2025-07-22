@@ -49,6 +49,11 @@ async function seedDemoData() {
       await createDemoTransactions(entity.id);
     }
 
+    // Create demo event logs
+    for (const entity of entities) {
+      await createDemoEventLogs(entity.id);
+    }
+
     console.log('✅ Demo data seeding completed successfully!');
   } catch (error) {
     console.error('❌ Error seeding demo data:', error);
@@ -167,7 +172,8 @@ async function createDemoMembers(entityId: string) {
     {
       firstName: 'James',
       lastName: 'Bond',
-      memberType: 'INDIVIDUAL',
+      memberType: 'Individual',
+      beneficiallyHeld: true,
       email: 'james.bond@mi6.gov.uk',
       phone: '+61 412 007 007',
       memberNumber: 'M001',
@@ -177,13 +183,31 @@ async function createDemoMembers(entityId: string) {
       postcode: '2000',
       country: 'Australia',
       joinDate: new Date('1997-08-25'),
-      status: 'Active',
+      status: 'ACTIVE',
       tfn: '007007007',
+      createdBy: 'system',
+      contacts: [
+        {
+          name: 'James Bond',
+          email: 'james.bond@mi6.gov.uk',
+          phone: '+61 412 007 007',
+          role: 'Primary Contact',
+          isPrimary: true,
+        },
+        {
+          name: 'Moneypenny',
+          email: 'moneypenny@mi6.gov.uk',
+          phone: '+61 412 007 008',
+          role: 'Secretary',
+          isPrimary: false,
+        },
+      ],
     },
     {
       firstName: 'Alec',
       lastName: 'Trevelyan',
-      memberType: 'INDIVIDUAL',
+      memberType: 'Individual',
+      beneficiallyHeld: false,
       email: 'alec.trevelyan@janus.com',
       phone: '+61 423 006 006',
       memberNumber: 'M002',
@@ -194,12 +218,23 @@ async function createDemoMembers(entityId: string) {
       postcode: '3000',
       country: 'Australia',
       joinDate: new Date('1997-08-25'),
-      status: 'Active',
+      status: 'ACTIVE',
       tfn: '006006006',
+      createdBy: 'system',
+      contacts: [
+        {
+          name: 'Alec Trevelyan',
+          email: 'alec.trevelyan@janus.com',
+          phone: '+61 423 006 006',
+          role: 'Primary Contact',
+          isPrimary: true,
+        },
+      ],
     },
     {
       entityName: 'MI6 Holdings Pty Ltd',
-      memberType: 'COMPANY',
+      memberType: 'Company',
+      beneficiallyHeld: true,
       email: 'admin@mi6holdings.com.au',
       phone: '+61 2 0070 0070',
       memberNumber: 'M003',
@@ -209,13 +244,31 @@ async function createDemoMembers(entityId: string) {
       postcode: '2600',
       country: 'Australia',
       joinDate: new Date('1997-08-25'),
-      status: 'Active',
+      status: 'ACTIVE',
       abn: '00700700704',
+      createdBy: 'system',
+      contacts: [
+        {
+          name: 'M',
+          email: 'm@mi6.gov.uk',
+          phone: '+61 2 0070 0071',
+          role: 'Director',
+          isPrimary: true,
+        },
+        {
+          name: 'Q',
+          email: 'q@mi6.gov.uk',
+          phone: '+61 2 0070 0072',
+          role: 'Technical Director',
+          isPrimary: false,
+        },
+      ],
     },
     {
       firstName: 'Natalya',
       lastName: 'Simonova',
-      memberType: 'INDIVIDUAL',
+      memberType: 'Individual',
+      beneficiallyHeld: true,
       email: 'natalya.simonova@severnaya.com',
       phone: '+61 434 005 005',
       memberNumber: 'M004',
@@ -225,12 +278,23 @@ async function createDemoMembers(entityId: string) {
       postcode: '4000',
       country: 'Australia',
       joinDate: new Date('1997-06-15'),
-      status: 'Active',
+      status: 'ACTIVE',
       tfn: '005005005',
+      createdBy: 'system',
+      contacts: [
+        {
+          name: 'Natalya Simonova',
+          email: 'natalya.simonova@severnaya.com',
+          phone: '+61 434 005 005',
+          role: 'Primary Contact',
+          isPrimary: true,
+        },
+      ],
     },
     {
       entityName: 'GoldenEye Holdings Pty Ltd',
-      memberType: 'COMPANY',
+      memberType: 'Company',
+      beneficiallyHeld: false,
       email: 'trustee@goldeneye.com.au',
       phone: '+61 445 004 004',
       memberNumber: 'M005',
@@ -241,12 +305,24 @@ async function createDemoMembers(entityId: string) {
       postcode: '6000',
       country: 'Australia',
       joinDate: new Date('1997-03-10'),
-      status: 'Active',
+      status: 'ACTIVE',
+      createdBy: 'system',
+      contacts: [
+        {
+          name: 'General Ourumov',
+          email: 'general.ourumov@goldeneye.com',
+          phone: '+61 445 004 005',
+          role: 'Director',
+          isPrimary: true,
+        },
+      ],
     },
   ];
 
   for (const data of memberData) {
-    await prisma.member.upsert({
+    const { contacts, ...memberDataWithoutContacts } = data;
+
+    const member = await prisma.member.upsert({
       where: {
         entityId_memberNumber: {
           entityId,
@@ -255,14 +331,34 @@ async function createDemoMembers(entityId: string) {
       },
       update: {},
       create: {
-        ...data,
+        ...memberDataWithoutContacts,
         entityId,
         country: 'Australia',
       },
     });
+
+    // Create contacts for the member
+    for (const contactData of contacts) {
+      // Check if contact already exists
+      const existingContact = await prisma.memberContact.findFirst({
+        where: {
+          memberId: member.id,
+          name: contactData.name,
+        },
+      });
+
+      if (!existingContact) {
+        await prisma.memberContact.create({
+          data: {
+            ...contactData,
+            memberId: member.id,
+          },
+        });
+      }
+    }
   }
 
-  console.log(`✅ Created ${memberData.length} members`);
+  console.log(`✅ Created ${memberData.length} members with contacts`);
 }
 
 async function createDemoSecurityClasses(entityId: string) {
@@ -275,7 +371,14 @@ async function createDemoSecurityClasses(entityId: string) {
       description: 'Ordinary voting shares with full rights',
       votingRights: true,
       dividendRights: true,
+      customRights: {
+        preemptiveRights: true,
+        antiDilutionProtection: false,
+        dragAlongRights: true,
+      },
+      isArchived: false,
       isActive: true,
+      createdBy: 'system',
     },
     {
       name: 'Preference Shares',
@@ -283,7 +386,14 @@ async function createDemoSecurityClasses(entityId: string) {
       description: 'Preference shares with priority dividend rights',
       votingRights: false,
       dividendRights: true,
+      customRights: {
+        dividendRate: '8%',
+        liquidationPreference: '2x',
+        conversionRights: true,
+      },
+      isArchived: false,
       isActive: true,
+      createdBy: 'system',
     },
     {
       name: 'Employee Options',
@@ -291,7 +401,29 @@ async function createDemoSecurityClasses(entityId: string) {
       description: 'Employee share options',
       votingRights: false,
       dividendRights: false,
+      customRights: {
+        exercisePrice: '1.00',
+        vestingSchedule: '4 years with 1 year cliff',
+        expiryDate: '2028-12-31',
+      },
+      isArchived: false,
       isActive: true,
+      createdBy: 'system',
+    },
+    {
+      name: 'Founder Shares',
+      symbol: 'FND',
+      description: 'Founder shares with special rights',
+      votingRights: true,
+      dividendRights: true,
+      customRights: {
+        superVotingRights: true,
+        founderProtections: true,
+        transferRestrictions: true,
+      },
+      isArchived: false,
+      isActive: true,
+      createdBy: 'system',
     },
   ];
 
@@ -353,6 +485,7 @@ async function createDemoTransactions(entityId: string) {
       reference: 'BOND-001',
       description: 'Initial share issue upon entity incorporation',
       status: 'Completed',
+      createdBy: 'system',
     },
     {
       transactionType: 'ISSUE',
@@ -372,6 +505,7 @@ async function createDemoTransactions(entityId: string) {
       reference: 'TREV-001',
       description: 'Share issue to former agent',
       status: 'Completed',
+      createdBy: 'system',
     },
     // Share transfer
     {
@@ -379,9 +513,11 @@ async function createDemoTransactions(entityId: string) {
       securityClassId: securityClasses[0].id,
       quantity: 200,
       reasonCode: 'TRF',
-      transferPricePerSecurity: new Decimal('1.50'),
+      amountPaidPerSecurity: new Decimal('1.50'),
+      amountUnpaidPerSecurity: new Decimal('0.00'),
       currency: 'AUD',
-      totalTransferAmount: new Decimal('300.00'),
+      totalAmountPaid: new Decimal('300.00'),
+      totalAmountUnpaid: new Decimal('0.00'),
       fromMemberId: members[0].id,
       toMemberId: members[2].id,
       trancheNumber: 'T002',
@@ -391,6 +527,7 @@ async function createDemoTransactions(entityId: string) {
       reference: 'MI6-001',
       description: 'Share transfer to MI6 Holdings',
       status: 'Completed',
+      createdBy: 'system',
     },
     // Preference share issue
     {
@@ -411,6 +548,28 @@ async function createDemoTransactions(entityId: string) {
       reference: 'NAT-001',
       description: 'Preference share issue to programmer',
       status: 'Completed',
+      createdBy: 'system',
+    },
+    // Employee options grant
+    {
+      transactionType: 'ISSUE',
+      securityClassId: securityClasses[2].id, // Employee Options
+      quantity: 100,
+      reasonCode: 'BON',
+      amountPaidPerSecurity: new Decimal('0.00'),
+      amountUnpaidPerSecurity: new Decimal('1.00'),
+      currency: 'AUD',
+      totalAmountPaid: new Decimal('0.00'),
+      totalAmountUnpaid: new Decimal('100.00'),
+      toMemberId: members[4].id,
+      trancheNumber: 'T004',
+      trancheSequence: 1,
+      transactionDate: new Date('1997-03-10'),
+      settlementDate: new Date('1997-03-10'),
+      reference: 'GOLD-001',
+      description: 'Employee options grant to GoldenEye Holdings',
+      status: 'Completed',
+      createdBy: 'system',
     },
   ];
 
@@ -424,6 +583,137 @@ async function createDemoTransactions(entityId: string) {
   }
 
   console.log(`✅ Created ${transactionData.length} transactions`);
+}
+
+async function createDemoEventLogs(entityId: string) {
+  console.log(`📝 Creating demo event logs for entity ${entityId}...`);
+
+  // Get some members and security classes to reference
+  const members = await prisma.member.findMany({
+    where: { entityId },
+    take: 2,
+  });
+
+  const securityClasses = await prisma.securityClass.findMany({
+    where: { entityId },
+    take: 2,
+  });
+
+  if (members.length === 0 || securityClasses.length === 0) {
+    console.log(
+      '⚠️ Skipping event logs - no members or security classes found'
+    );
+    return;
+  }
+
+  const eventLogData = [
+    // Member creation events
+    {
+      userId: 'system',
+      action: 'CREATE',
+      tableName: 'Member',
+      recordId: members[0].id,
+      fieldName: null,
+      oldValue: null,
+      newValue: JSON.stringify({
+        firstName: members[0].firstName,
+        lastName: members[0].lastName,
+        memberType: members[0].memberType,
+        beneficiallyHeld: members[0].beneficiallyHeld,
+      }),
+      metadata: {
+        ip: '127.0.0.1',
+        userAgent: 'Demo Seeder',
+        source: 'seed-script',
+      },
+      timestamp: new Date('1997-08-25T10:00:00Z'),
+    },
+    {
+      userId: 'system',
+      action: 'CREATE',
+      tableName: 'Member',
+      recordId: members[1].id,
+      fieldName: null,
+      oldValue: null,
+      newValue: JSON.stringify({
+        firstName: members[1].firstName,
+        lastName: members[1].lastName,
+        memberType: members[1].memberType,
+        beneficiallyHeld: members[1].beneficiallyHeld,
+      }),
+      metadata: {
+        ip: '127.0.0.1',
+        userAgent: 'Demo Seeder',
+        source: 'seed-script',
+      },
+      timestamp: new Date('1997-08-25T10:30:00Z'),
+    },
+    // Security class creation events
+    {
+      userId: 'system',
+      action: 'CREATE',
+      tableName: 'SecurityClass',
+      recordId: securityClasses[0].id,
+      fieldName: null,
+      oldValue: null,
+      newValue: JSON.stringify({
+        name: securityClasses[0].name,
+        symbol: securityClasses[0].symbol,
+        votingRights: securityClasses[0].votingRights,
+        dividendRights: securityClasses[0].dividendRights,
+        isArchived: securityClasses[0].isArchived,
+      }),
+      metadata: {
+        ip: '127.0.0.1',
+        userAgent: 'Demo Seeder',
+        source: 'seed-script',
+      },
+      timestamp: new Date('1997-08-25T11:00:00Z'),
+    },
+    // Member update event
+    {
+      userId: 'system',
+      action: 'UPDATE',
+      tableName: 'Member',
+      recordId: members[0].id,
+      fieldName: 'beneficiallyHeld',
+      oldValue: 'false',
+      newValue: 'true',
+      metadata: {
+        ip: '127.0.0.1',
+        userAgent: 'Demo Seeder',
+        source: 'seed-script',
+      },
+      timestamp: new Date('1997-08-25T14:00:00Z'),
+    },
+    // Security class archive event
+    {
+      userId: 'system',
+      action: 'ARCHIVE',
+      tableName: 'SecurityClass',
+      recordId: securityClasses[1].id,
+      fieldName: 'isArchived',
+      oldValue: 'false',
+      newValue: 'true',
+      metadata: {
+        ip: '127.0.0.1',
+        userAgent: 'Demo Seeder',
+        source: 'seed-script',
+      },
+      timestamp: new Date('1997-08-25T15:00:00Z'),
+    },
+  ];
+
+  for (const data of eventLogData) {
+    await prisma.eventLog.create({
+      data: {
+        ...data,
+        entityId,
+      },
+    });
+  }
+
+  console.log(`✅ Created ${eventLogData.length} event logs`);
 }
 
 async function createDemoUser() {

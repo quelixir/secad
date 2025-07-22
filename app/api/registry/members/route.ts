@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, MemberInput } from '@/lib/types';
+import { AuditLogger } from '@/lib/audit';
 
 // GET /api/members - List all members (optionally filtered by entity)
 export async function GET(request: NextRequest) {
@@ -106,6 +107,7 @@ export async function POST(request: NextRequest) {
         lastName: body.lastName || null,
         entityName: body.entityName || null,
         memberType: body.memberType,
+        beneficiallyHeld: body.beneficiallyHeld ?? true,
         email: body.email || null,
         phone: body.phone || null,
         address: body.address || null,
@@ -117,11 +119,22 @@ export async function POST(request: NextRequest) {
         designation: body.designation || null,
         tfn: body.tfn || null,
         abn: body.abn || null,
+        createdBy: 'system', // TODO: Get actual user ID from auth
       },
       include: {
         entity: true,
+        contacts: true,
       },
     });
+
+    // Log the creation
+    await AuditLogger.logCreate(
+      body.entityId,
+      'system', // TODO: Get actual user ID from auth
+      'Member',
+      member.id,
+      member
+    );
 
     const response: ApiResponse<any> = {
       success: true,

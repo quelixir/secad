@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, SecurityClassInput } from '@/lib/types';
+import { AuditLogger } from '@/lib/audit';
 
 // GET /api/securities/[id] - Get a specific security class
 export async function GET(
@@ -125,6 +126,24 @@ export async function PUT(
       updateData.votingRights = body.votingRights;
     if (body.dividendRights !== undefined)
       updateData.dividendRights = body.dividendRights;
+    if (body.customRights !== undefined)
+      updateData.customRights = body.customRights;
+    if (body.isArchived !== undefined) updateData.isArchived = body.isArchived;
+
+    // Get the old values for audit logging
+    const oldValues: Record<string, any> = {};
+    if (body.name) oldValues.name = existingSecurity.name;
+    if (body.symbol !== undefined) oldValues.symbol = existingSecurity.symbol;
+    if (body.description !== undefined)
+      oldValues.description = existingSecurity.description;
+    if (body.votingRights !== undefined)
+      oldValues.votingRights = existingSecurity.votingRights;
+    if (body.dividendRights !== undefined)
+      oldValues.dividendRights = existingSecurity.dividendRights;
+    if (body.customRights !== undefined)
+      oldValues.customRights = existingSecurity.customRights;
+    if (body.isArchived !== undefined)
+      oldValues.isArchived = existingSecurity.isArchived;
 
     const securityClass = await prisma.securityClass.update({
       where: { id },
@@ -139,6 +158,21 @@ export async function PUT(
       },
     });
 
+    // Log the changes
+    if (Object.keys(oldValues).length > 0) {
+      await AuditLogger.logRecordChanges(
+        existingSecurity.entityId,
+        'system', // TODO: Get actual user ID from auth
+        'UPDATE',
+        'SecurityClass',
+        id,
+        Object.entries(oldValues).reduce((acc, [key, oldValue]) => {
+          acc[key] = { oldValue, newValue: updateData[key] };
+          return acc;
+        }, {} as Record<string, { oldValue: any; newValue: any }>)
+      );
+    }
+
     const response: ApiResponse = {
       success: true,
       data: securityClass,
@@ -151,6 +185,82 @@ export async function PUT(
     const response: ApiResponse = {
       success: false,
       error: 'Failed to update security class',
+    };
+    return NextResponse.json(response, { status: 500 });
+  }
+}
+
+// PATCH /api/securities/[id] - Archive/unarchive a security class
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body: { action: 'archive' | 'unarchive' } = await request.json();
+
+    // Check if security class exists
+    const existingSecurity = await prisma.securityClass.findUnique({
+      where: { id },
+    });
+
+    if (!existingSecurity) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Security class not found',
+      };
+      return NextResponse.json(response, { status: 404 });
+    }
+
+    const isArchived = body.action === 'archive';
+
+    // Check if already in desired state
+    if (existingSecurity.isArchived === isArchived) {
+      const response: ApiResponse = {
+        success: false,
+        error: `Security class is already ${
+          isArchived ? 'archived' : 'active'
+        }`,
+      };
+      return NextResponse.json(response, { status: 409 });
+    }
+
+    const securityClass = await prisma.securityClass.update({
+      where: { id },
+      data: { isArchived },
+      include: {
+        entity: true,
+        _count: {
+          select: {
+            transactions: true,
+          },
+        },
+      },
+    });
+
+    // Log the archive action
+    await AuditLogger.logArchive(
+      existingSecurity.entityId,
+      'system', // TODO: Get actual user ID from auth
+      'SecurityClass',
+      id,
+      isArchived
+    );
+
+    const response: ApiResponse = {
+      success: true,
+      data: securityClass,
+      message: `Security class ${
+        isArchived ? 'archived' : 'unarchived'
+      } successfully`,
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error('Error archiving/unarchiving security class:', error);
+    const response: ApiResponse = {
+      success: false,
+      error: 'Failed to archive/unarchive security class',
     };
     return NextResponse.json(response, { status: 500 });
   }

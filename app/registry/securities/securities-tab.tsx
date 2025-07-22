@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Plus, Search, Edit, Trash2, Shield, TrendingUp, Package } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Shield, TrendingUp, Package, Archive, RotateCcw, Eye, EyeOff } from 'lucide-react'
 import { SecurityForm } from './security-form'
 import { useEntity } from '@/lib/entity-context'
 import Link from 'next/link'
@@ -23,6 +23,7 @@ interface SecuritySummary {
   votingRights: boolean
   dividendRights: boolean
   isActive: boolean
+  isArchived: boolean
   totalQuantity: number
   totalAmountPaid: number
   totalAmountUnpaid: number
@@ -50,6 +51,7 @@ export function SecuritiesTab() {
   const [securities, setSecurities] = useState<SecuritySummary[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [showArchived, setShowArchived] = useState(false)
   const [editingSecurity, setEditingSecurity] = useState<SecuritySummary | null>(null)
   const [showAddDialog, setShowAddDialog] = useState(false)
 
@@ -98,6 +100,27 @@ export function SecuritiesTab() {
     }
   }
 
+  const handleArchive = async (id: string, action: 'archive' | 'unarchive') => {
+    try {
+      const response = await fetch(`/api/registry/securities/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action }),
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        await fetchSecurities()
+      } else {
+        console.error(`Error ${action}ing security:`, result.error)
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing security:`, error)
+    }
+  }
+
   const handleFormSuccess = async () => {
     setShowAddDialog(false)
     setEditingSecurity(null)
@@ -105,16 +128,24 @@ export function SecuritiesTab() {
   }
 
   const filteredSecurities = securities.filter(security => {
-    if (!searchTerm) return true
+    // Filter by search term
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      const matchesSearch = security.name.toLowerCase().includes(searchLower) ||
+        (security.symbol || '').toLowerCase().includes(searchLower) ||
+        (security.description || '').toLowerCase().includes(searchLower)
+      if (!matchesSearch) return false
+    }
 
-    const searchLower = searchTerm.toLowerCase()
-    return security.name.toLowerCase().includes(searchLower) ||
-      (security.symbol || '').toLowerCase().includes(searchLower) ||
-      (security.description || '').toLowerCase().includes(searchLower)
+    // Filter by archived status
+    if (!showArchived && security.isArchived) return false
+
+    return true
   })
 
   // Calculate statistics
-  const activeSecurities = securities.filter(s => s.isActive).length
+  const activeSecurities = securities.filter(s => s.isActive && !s.isArchived).length
+  const archivedSecurities = securities.filter(s => s.isArchived).length
   const totalSecurities = securities.reduce((sum, security) => sum + security.totalQuantity, 0)
   const totalTranches = securities.reduce((sum, security) => sum + security.trancheCount, 0)
 
@@ -200,6 +231,11 @@ export function SecuritiesTab() {
             <div className="bg-muted/50 rounded-lg p-4">
               <div className="text-2xl font-bold">{activeSecurities}</div>
               <div className="text-sm text-muted-foreground">Active Securities</div>
+              {archivedSecurities > 0 && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  {archivedSecurities} archived
+                </div>
+              )}
             </div>
             <div className="bg-muted/50 rounded-lg p-4">
               <div className="text-2xl font-bold">{totalSecurities.toLocaleString()}</div>
@@ -211,15 +247,25 @@ export function SecuritiesTab() {
             </div>
           </div>
 
-          {/* Search */}
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search securities..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          {/* Search and Filters */}
+          <div className="flex gap-4 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search securities..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowArchived(!showArchived)}
+              className="flex items-center gap-2"
+            >
+              {showArchived ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showArchived ? 'Hide Archived' : 'Show Archived'}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -326,9 +372,16 @@ export function SecuritiesTab() {
                     {security.memberCount.toLocaleString()}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={security.isActive ? 'default' : 'secondary'}>
-                      {security.isActive ? 'Active' : 'Inactive'}
-                    </Badge>
+                    <div className="flex gap-1">
+                      <Badge variant={security.isActive ? 'default' : 'secondary'}>
+                        {security.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                      {security.isArchived && (
+                        <Badge variant="outline" className="text-orange-600 border-orange-600">
+                          Archived
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -359,6 +412,58 @@ export function SecuritiesTab() {
                           )}
                         </DialogContent>
                       </Dialog>
+
+                      {!security.isArchived ? (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" title="Archive">
+                              <Archive className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Archive Security Class</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to archive this security class? Archived classes are hidden from new transactions but remain accessible for historical records.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleArchive(security.id, 'archive')}
+                                className="bg-orange-600 text-white hover:bg-orange-700"
+                              >
+                                Archive
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      ) : (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" title="Unarchive">
+                              <RotateCcw className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Unarchive Security Class</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to unarchive this security class? It will become available for new transactions again.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleArchive(security.id, 'unarchive')}
+                                className="bg-blue-600 text-white hover:bg-blue-700"
+                              >
+                                Unarchive
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
 
                       <AlertDialog>
                         <AlertDialogTrigger asChild>

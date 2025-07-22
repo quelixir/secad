@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { KeyRound } from 'lucide-react';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
@@ -78,5 +78,25 @@ export default function ResetPasswordPage() {
                 </CardContent>
             </Card>
         </div>
+    );
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center bg-muted">
+                <Card className="w-full max-w-md shadow-lg">
+                    <CardHeader className="flex flex-col items-center gap-2">
+                        <KeyRound className="h-8 w-8 text-primary" />
+                        <CardTitle>Reset Password</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-center">Loading...</div>
+                    </CardContent>
+                </Card>
+            </div>
+        }>
+            <ResetPasswordForm />
+        </Suspense>
     );
 } 

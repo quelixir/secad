@@ -160,12 +160,20 @@ export function TransactionsTab() {
             Manage securities transactions, issuance, and transfers for {selectedEntity.name}
           </p>
         </div>
-        <Link href="/registry/transactions/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            New Transaction
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/registry/transactions/bulk">
+            <Button variant="outline">
+              <Plus className="mr-2 h-4 w-4" />
+              Bulk Transactions
+            </Button>
+          </Link>
+          <Link href="/registry/transactions/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              New Transaction
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Overview Cards */}

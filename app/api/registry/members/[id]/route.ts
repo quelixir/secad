@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, MemberInput } from '@/lib/types';
+import { AuditLogger } from '@/lib/audit';
 
 // GET /api/members/[id] - Get a specific member
 export async function GET(
@@ -18,6 +19,7 @@ export async function GET(
       where: { id },
       include: {
         entity: true,
+        contacts: true,
         transactionsFrom: includeTransactions
           ? {
               include: {
@@ -143,6 +145,8 @@ export async function PUT(
     if (body.entityName !== undefined)
       updateData.entityName = body.entityName || null;
     if (body.memberType) updateData.memberType = body.memberType;
+    if (body.beneficiallyHeld !== undefined)
+      updateData.beneficiallyHeld = body.beneficiallyHeld;
     if (body.email !== undefined) updateData.email = body.email || null;
     if (body.phone !== undefined) updateData.phone = body.phone || null;
     if (body.address !== undefined) updateData.address = body.address || null;
@@ -158,14 +162,57 @@ export async function PUT(
       updateData.designation = body.designation || null;
     if (body.tfn !== undefined) updateData.tfn = body.tfn || null;
     if (body.abn !== undefined) updateData.abn = body.abn || null;
+    updateData.updatedBy = 'system'; // TODO: Get actual user ID from auth
+
+    // Get the old values for audit logging
+    const oldValues: Record<string, any> = {};
+    if (body.firstName !== undefined)
+      oldValues.firstName = existingMember.firstName;
+    if (body.lastName !== undefined)
+      oldValues.lastName = existingMember.lastName;
+    if (body.entityName !== undefined)
+      oldValues.entityName = existingMember.entityName;
+    if (body.memberType) oldValues.memberType = existingMember.memberType;
+    if (body.beneficiallyHeld !== undefined)
+      oldValues.beneficiallyHeld = existingMember.beneficiallyHeld;
+    if (body.email !== undefined) oldValues.email = existingMember.email;
+    if (body.phone !== undefined) oldValues.phone = existingMember.phone;
+    if (body.address !== undefined) oldValues.address = existingMember.address;
+    if (body.city !== undefined) oldValues.city = existingMember.city;
+    if (body.state !== undefined) oldValues.state = existingMember.state;
+    if (body.postcode !== undefined)
+      oldValues.postcode = existingMember.postcode;
+    if (body.country !== undefined) oldValues.country = existingMember.country;
+    if (body.memberNumber !== undefined)
+      oldValues.memberNumber = existingMember.memberNumber;
+    if (body.designation !== undefined)
+      oldValues.designation = existingMember.designation;
+    if (body.tfn !== undefined) oldValues.tfn = existingMember.tfn;
+    if (body.abn !== undefined) oldValues.abn = existingMember.abn;
 
     const member = await prisma.member.update({
       where: { id },
       data: updateData,
       include: {
         entity: true,
+        contacts: true,
       },
     });
+
+    // Log the changes
+    if (Object.keys(oldValues).length > 0) {
+      await AuditLogger.logRecordChanges(
+        existingMember.entityId,
+        'system', // TODO: Get actual user ID from auth
+        'UPDATE',
+        'Member',
+        id,
+        Object.entries(oldValues).reduce((acc, [key, oldValue]) => {
+          acc[key] = { oldValue, newValue: updateData[key] };
+          return acc;
+        }, {} as Record<string, { oldValue: any; newValue: any }>)
+      );
+    }
 
     const response: ApiResponse = {
       success: true,

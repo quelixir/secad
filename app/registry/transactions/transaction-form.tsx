@@ -45,6 +45,25 @@ const transactionFormSchema = z.object({
 }, {
     message: 'Invalid member selection for transaction type',
     path: ['toMemberId']
+}).refine((data) => {
+    // Validate transaction date is not before entity incorporation date
+    if (data.transactionDate) {
+        const transactionDate = new Date(data.transactionDate)
+        const today = new Date()
+        const maxBackdate = new Date()
+        maxBackdate.setFullYear(today.getFullYear() - 10) // Allow backdating up to 10 years
+
+        if (transactionDate > today) {
+            return false // Cannot date in the future
+        }
+        if (transactionDate < maxBackdate) {
+            return false // Cannot backdate more than 10 years
+        }
+    }
+    return true
+}, {
+    message: 'Transaction date cannot be in the future or more than 10 years in the past',
+    path: ['transactionDate']
 })
 
 type TransactionFormValues = z.infer<typeof transactionFormSchema>

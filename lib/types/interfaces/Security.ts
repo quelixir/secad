@@ -9,8 +9,13 @@ export interface SecurityClass {
   description?: string;
   votingRights: boolean;
   dividendRights: boolean;
+  isActive: boolean;
+  isArchived: boolean;
+  customRights?: any;
   createdAt: Date;
   updatedAt: Date;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface SecurityClassWithRelations extends SecurityClass {
@@ -28,4 +33,7 @@ export interface SecurityClassInput {
   description?: string;
   votingRights?: boolean;
   dividendRights?: boolean;
+  isActive?: boolean;
+  isArchived?: boolean;
+  customRights?: any;
 }
