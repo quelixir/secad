@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse } from '@/lib/types';
 import { AuditLogger } from '@/lib/audit';
+import { AuditAction, AuditTableName } from '@/lib/audit';
+import { auth } from '@/lib/auth';
 
 // GET /api/members/[id]/contacts/[contactId] - Get a specific contact
 export async function GET(
@@ -53,6 +55,16 @@ export async function PUT(
   { params }: { params: Promise<{ id: string; contactId: string }> }
 ) {
   try {
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
     const { contactId } = await params;
     const body = await request.json();
 
@@ -120,18 +132,16 @@ export async function PUT(
       data: updateData,
     });
 
-    // Log the changes
-    if (Object.keys(oldValues).length > 0) {
+    // Log only the fields that have actually changed
+    const changedFields = AuditLogger.getChangedFields(oldValues, updateData);
+    if (Object.keys(changedFields).length > 0) {
       await AuditLogger.logRecordChanges(
         existingContact.member.entityId,
-        'system', // TODO: Get actual user ID from auth
-        'UPDATE',
-        'MemberContact',
+        userId, // Use actual user ID from auth
+        AuditAction.UPDATE,
+        AuditTableName.MEMBER_CONTACT,
         contactId,
-        Object.entries(oldValues).reduce((acc, [key, oldValue]) => {
-          acc[key] = { oldValue, newValue: updateData[key] };
-          return acc;
-        }, {} as Record<string, { oldValue: any; newValue: any }>)
+        changedFields
       );
     }
 
@@ -158,6 +168,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; contactId: string }> }
 ) {
   try {
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
     const { contactId } = await params;
 
     // Check if contact exists
@@ -188,8 +208,8 @@ export async function DELETE(
     // Log the deletion
     await AuditLogger.logDelete(
       existingContact.member.entityId,
-      'system', // TODO: Get actual user ID from auth
-      'MemberContact',
+      userId, // Use actual user ID from auth
+      AuditTableName.MEMBER_CONTACT,
       contactId,
       existingContact
     );

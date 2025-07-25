@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse } from '@/lib/types';
-import { AuditLogger } from '@/lib/audit';
+import { AuditLogger, AuditTableName } from '@/lib/audit';
+import { auth } from '@/lib/auth';
 
 /**
  * POST /api/registry/transactions/bulk
@@ -102,6 +103,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
+
     // Create all transactions in a transaction
     const createdTransactions = await prisma.$transaction(async (tx) => {
       const transactions = [];
@@ -140,7 +152,7 @@ export async function POST(request: NextRequest) {
             description:
               transactionData.description || body.description || null,
             status: 'Completed',
-            createdBy: 'system', // TODO: Get actual user ID from auth
+            createdBy: userId, // Use actual user ID from auth
           },
           include: {
             entity: true,
@@ -155,8 +167,8 @@ export async function POST(request: NextRequest) {
         // Log the creation
         await AuditLogger.logCreate(
           body.entityId,
-          'system', // TODO: Get actual user ID from auth
-          'Transaction',
+          userId, // Use actual user ID from auth
+          AuditTableName.TRANSACTION,
           transaction.id,
           transaction
         );

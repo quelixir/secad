@@ -245,7 +245,7 @@ export default function RegistryPage() {
                                         </Button>
                                     </Link>
 
-                                    <Link href="/registry/events">
+                                    <Link href="/events">
                                         <Button variant="outline" className="w-full justify-start">
                                             <FileText className="mr-2 h-4 w-4" />
                                             View Event Log
@@ -367,7 +367,7 @@ export default function RegistryPage() {
                                             Audit trail of all registry changes
                                         </CardDescription>
                                     </div>
-                                    <Link href="/registry/events">
+                                    <Link href="/events">
                                         <Button>
                                             <Eye className="mr-2 h-4 w-4" />
                                             View Event Log

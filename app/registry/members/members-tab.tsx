@@ -12,35 +12,8 @@ import { Plus, Search, Edit, Trash2, Users, Eye } from 'lucide-react'
 import { MemberForm } from './member-form'
 import { useEntity } from '@/lib/entity-context'
 import Link from 'next/link'
+import { Member } from '@/lib/types/interfaces'
 import { MemberType } from '@/lib/types'
-
-interface Member {
-  id: string
-  firstName?: string
-  lastName?: string
-  entityName?: string
-  memberType: string
-  beneficiallyHeld: boolean
-  designation?: string
-  email?: string
-  phone?: string
-  memberNumber?: string
-  status: string
-  joinDate: string
-  entity: {
-    id: string
-    name: string
-  }
-  allocations?: Array<{
-    quantity: number
-    tranche: {
-      securityClass: {
-        name: string
-        symbol?: string
-      }
-    }
-  }>
-}
 
 export function MembersTab() {
   const { selectedEntity, entities } = useEntity()

@@ -11,94 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, User, FileUser, Landmark, Mail, Phone, MapPin, Shield, TrendingUp, Eye, HelpCircle, ExternalLink, Copy, Pencil, Archive, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-
-interface Member {
-    id: string
-    firstName?: string
-    lastName?: string
-    entityName?: string
-    memberType: string
-    beneficiallyHeld: boolean
-    email?: string
-    phone?: string
-    address?: string
-    city?: string
-    state?: string
-    postcode?: string
-    country: string
-    memberNumber?: string
-    designation?: string
-    joinDate: string
-    status: string
-    tfn?: string
-    abn?: string
-    entity: {
-        id: string
-        name: string
-    }
-    contacts?: {
-        id: string
-        name: string
-        email?: string
-        phone?: string
-        role?: string
-        isPrimary: boolean
-    }[]
-    transactionsFrom: {
-        id: string
-        transactionType: string
-        quantity: number
-        amountPaidPerSecurity?: number
-        amountUnpaidPerSecurity?: number
-        transferPricePerSecurity?: number
-        totalAmountPaid?: number
-        totalAmountUnpaid?: number
-        totalTransferAmount?: number
-        transactionDate: string
-        reference?: string
-        description?: string
-        trancheNumber?: string
-        trancheSequence?: number
-        toMember?: {
-            id: string
-            firstName?: string
-            lastName?: string
-            entityName?: string
-        }
-        securityClass?: {
-            id: string
-            name: string
-            symbol?: string
-        }
-    }[]
-    transactionsTo: {
-        id: string
-        transactionType: string
-        quantity: number
-        amountPaidPerSecurity?: number
-        amountUnpaidPerSecurity?: number
-        transferPricePerSecurity?: number
-        totalAmountPaid?: number
-        totalAmountUnpaid?: number
-        totalTransferAmount?: number
-        transactionDate: string
-        reference?: string
-        description?: string
-        trancheNumber?: string
-        trancheSequence?: number
-        fromMember?: {
-            id: string
-            firstName?: string
-            lastName?: string
-            entityName?: string
-        }
-        securityClass?: {
-            id: string
-            name: string
-            symbol?: string
-        }
-    }[]
-}
+import { Member, MemberWithRelations } from '@/lib/types/interfaces'
 
 interface SecuritiesSummary {
     securityClassId: string
@@ -115,7 +28,7 @@ export default function MemberViewPage() {
     const params = useParams()
     const memberId = params.id as string
 
-    const [member, setMember] = useState<Member | null>(null)
+    const [member, setMember] = useState<(MemberWithRelations & { transactionsTo?: any[], transactionsFrom?: any[] }) | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [selectedSecurityClass, setSelectedSecurityClass] = useState<string>('all')
@@ -254,8 +167,8 @@ export default function MemberViewPage() {
         }).format(amount)
     }
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-AU', {
+    const formatDate = (dateInput: string | Date) => {
+        return new Date(dateInput).toLocaleDateString('en-AU', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -286,8 +199,8 @@ export default function MemberViewPage() {
                         </h1>
                         <p className="text-muted-foreground">
                             Member of{' '}
-                            <Link href={`/entities/${member.entity.id}`} className="text-primary underline inline-flex items-center gap-1">
-                                {member.entity.name}
+                            <Link href={`/entities/${member.entityId}`} className="text-primary underline inline-flex items-center gap-1">
+                                {member.entity?.name || member.entityId}
                                 <ExternalLink className="h-4 w-4" />
                             </Link>
                         </p>

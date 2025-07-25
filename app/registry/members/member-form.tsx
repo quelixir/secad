@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { MemberType } from '@/lib/types'
+import { Entity } from '@/lib/types/interfaces'
 import { CountrySelect } from '@/components/ui/country-select'
 import { StateSelect } from '@/components/ui/state-select'
 
@@ -43,11 +44,6 @@ const memberFormSchema = z.object({
 })
 
 type MemberFormValues = z.infer<typeof memberFormSchema>
-
-interface Entity {
-  id: string
-  name: string
-}
 
 interface MemberFormProps {
   entities: Entity[]

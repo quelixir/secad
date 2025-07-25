@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse } from '@/lib/types';
 import { AuditLogger } from '@/lib/audit';
+import { AuditTableName } from '@/lib/audit';
+import { auth } from '@/lib/auth';
 
 /**
  * GET /api/registry/members/{id}/contacts
@@ -47,6 +49,16 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
     const { id } = await params;
     const body = await request.json();
 
@@ -94,8 +106,8 @@ export async function POST(
     // Log the creation
     await AuditLogger.logCreate(
       member.entityId,
-      'system', // TODO: Get actual user ID from auth
-      'MemberContact',
+      userId, // Use actual user ID from auth
+      AuditTableName.MEMBER_CONTACT,
       contact.id,
       contact
     );

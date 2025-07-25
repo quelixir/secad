@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, MemberInput } from '@/lib/types';
-import { AuditLogger } from '@/lib/audit';
+import { AuditLogger, AuditTableName } from '@/lib/audit';
+import { auth } from '@/lib/auth';
 
 // GET /api/members - List all members (optionally filtered by entity)
 export async function GET(request: NextRequest) {
@@ -43,6 +44,17 @@ export async function GET(request: NextRequest) {
 // POST /api/members - Create a new member
 export async function POST(request: NextRequest) {
   try {
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
+
     const body: MemberInput = await request.json();
 
     // Validate required fields
@@ -119,7 +131,7 @@ export async function POST(request: NextRequest) {
         designation: body.designation || null,
         tfn: body.tfn || null,
         abn: body.abn || null,
-        createdBy: 'system', // TODO: Get actual user ID from auth
+        createdBy: userId, // Use actual user ID from auth
       },
       include: {
         entity: true,
@@ -130,8 +142,8 @@ export async function POST(request: NextRequest) {
     // Log the creation
     await AuditLogger.logCreate(
       body.entityId,
-      'system', // TODO: Get actual user ID from auth
-      'Member',
+      userId, // Use actual user ID from auth
+      AuditTableName.MEMBER,
       member.id,
       member
     );

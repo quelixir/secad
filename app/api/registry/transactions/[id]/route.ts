@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, TransactionInput } from '@/lib/types';
 import { Decimal } from '@prisma/client/runtime/library';
+import { AuditLogger } from '@/lib/audit';
+import { AuditAction, AuditTableName } from '@/lib/audit';
+import { auth } from '@/lib/auth';
 
 // GET /api/transactions/[id] - Get a specific transaction
 export async function GET(
@@ -67,44 +70,83 @@ export async function PUT(
       return NextResponse.json(response, { status: 404 });
     }
 
-    // Build update data object
+    // Build update data object and track old values for audit logging
     const updateData: any = {};
+    const oldValues: Record<string, any> = {};
 
-    if (body.transactionType) updateData.transactionType = body.transactionType;
-    if (body.quantity !== undefined) updateData.quantity = body.quantity;
+    if (body.transactionType) {
+      oldValues.transactionType = existingTransaction.transactionType;
+      updateData.transactionType = body.transactionType;
+    }
+    if (body.quantity !== undefined) {
+      oldValues.quantity = existingTransaction.quantity;
+      updateData.quantity = body.quantity;
+    }
     if (body.amountPaidPerSecurity !== undefined) {
+      oldValues.amountPaidPerSecurity =
+        existingTransaction.amountPaidPerSecurity?.toNumber();
       updateData.amountPaidPerSecurity = body.amountPaidPerSecurity
         ? new Decimal(body.amountPaidPerSecurity)
         : null;
     }
     if (body.amountUnpaidPerSecurity !== undefined) {
+      oldValues.amountUnpaidPerSecurity =
+        existingTransaction.amountUnpaidPerSecurity?.toNumber();
       updateData.amountUnpaidPerSecurity = body.amountUnpaidPerSecurity
         ? new Decimal(body.amountUnpaidPerSecurity)
         : null;
     }
     if (body.transferPricePerSecurity !== undefined) {
+      oldValues.transferPricePerSecurity =
+        existingTransaction.transferPricePerSecurity?.toNumber();
       updateData.transferPricePerSecurity = body.transferPricePerSecurity
         ? new Decimal(body.transferPricePerSecurity)
         : null;
     }
-    if (body.fromMemberId !== undefined)
+    if (body.fromMemberId !== undefined) {
+      oldValues.fromMemberId = existingTransaction.fromMemberId;
       updateData.fromMemberId = body.fromMemberId;
-    if (body.toMemberId !== undefined) updateData.toMemberId = body.toMemberId;
-    if (body.trancheNumber !== undefined)
+    }
+    if (body.toMemberId !== undefined) {
+      oldValues.toMemberId = existingTransaction.toMemberId;
+      updateData.toMemberId = body.toMemberId;
+    }
+    if (body.trancheNumber !== undefined) {
+      oldValues.trancheNumber = existingTransaction.trancheNumber;
       updateData.trancheNumber = body.trancheNumber;
-    if (body.trancheSequence !== undefined)
+    }
+    if (body.trancheSequence !== undefined) {
+      oldValues.trancheSequence = existingTransaction.trancheSequence;
       updateData.trancheSequence = body.trancheSequence;
-    if (body.transactionDate) updateData.transactionDate = body.transactionDate;
-    if (body.settlementDate !== undefined)
+    }
+    if (body.transactionDate) {
+      oldValues.transactionDate = existingTransaction.transactionDate;
+      updateData.transactionDate = body.transactionDate;
+    }
+    if (body.settlementDate !== undefined) {
+      oldValues.settlementDate = existingTransaction.settlementDate;
       updateData.settlementDate = body.settlementDate;
-    if (body.reference !== undefined) updateData.reference = body.reference;
-    if (body.description !== undefined)
+    }
+    if (body.reference !== undefined) {
+      oldValues.reference = existingTransaction.reference;
+      updateData.reference = body.reference;
+    }
+    if (body.description !== undefined) {
+      oldValues.description = existingTransaction.description;
       updateData.description = body.description;
-    if (body.certificateNumber !== undefined)
+    }
+    if (body.certificateNumber !== undefined) {
+      oldValues.certificateNumber = existingTransaction.certificateNumber;
       updateData.certificateNumber = body.certificateNumber;
-    if (body.documentPath !== undefined)
+    }
+    if (body.documentPath !== undefined) {
+      oldValues.documentPath = existingTransaction.documentPath;
       updateData.documentPath = body.documentPath;
-    if (body.status) updateData.status = body.status;
+    }
+    if (body.status) {
+      oldValues.status = existingTransaction.status;
+      updateData.status = body.status;
+    }
 
     // Recalculate totals if quantity or prices changed
     if (
@@ -172,6 +214,30 @@ export async function PUT(
       },
     });
 
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
+
+    // Log only the fields that have actually changed
+    const changedFields = AuditLogger.getChangedFields(oldValues, updateData);
+    if (Object.keys(changedFields).length > 0) {
+      await AuditLogger.logRecordChanges(
+        existingTransaction.entityId,
+        userId, // Use actual user ID from auth
+        AuditAction.UPDATE,
+        AuditTableName.TRANSACTION,
+        id,
+        changedFields
+      );
+    }
+
     const response: ApiResponse = {
       success: true,
       data: transaction,
@@ -209,6 +275,26 @@ export async function DELETE(
       };
       return NextResponse.json(response, { status: 404 });
     }
+
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
+
+    // Log the deletion
+    await AuditLogger.logDelete(
+      existingTransaction.entityId,
+      userId, // Use actual user ID from auth
+      AuditTableName.TRANSACTION,
+      id,
+      existingTransaction
+    );
 
     await prisma.transaction.delete({
       where: { id },

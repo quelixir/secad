@@ -299,6 +299,7 @@ model Invitation {
   expiresAt  DateTime
 
   entity     Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  @@map("invitations")
 }
 
 model MemberContact {

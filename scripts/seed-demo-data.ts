@@ -632,7 +632,7 @@ async function createDemoEventLogs(entityId: string) {
         userAgent: 'Demo Seeder',
         source: 'seed-script',
       },
-      timestamp: new Date('1997-08-25T10:00:00Z'),
+      timestamp: new Date(),
     },
     {
       userId: 'system',
@@ -652,7 +652,7 @@ async function createDemoEventLogs(entityId: string) {
         userAgent: 'Demo Seeder',
         source: 'seed-script',
       },
-      timestamp: new Date('1997-08-25T10:30:00Z'),
+      timestamp: new Date(),
     },
     // Security class creation events
     {
@@ -674,7 +674,7 @@ async function createDemoEventLogs(entityId: string) {
         userAgent: 'Demo Seeder',
         source: 'seed-script',
       },
-      timestamp: new Date('1997-08-25T11:00:00Z'),
+      timestamp: new Date(),
     },
     // Member update event
     {
@@ -690,7 +690,7 @@ async function createDemoEventLogs(entityId: string) {
         userAgent: 'Demo Seeder',
         source: 'seed-script',
       },
-      timestamp: new Date('1997-08-25T14:00:00Z'),
+      timestamp: new Date(),
     },
     // Security class archive event
     {
@@ -706,7 +706,7 @@ async function createDemoEventLogs(entityId: string) {
         userAgent: 'Demo Seeder',
         source: 'seed-script',
       },
-      timestamp: new Date('1997-08-25T15:00:00Z'),
+      timestamp: new Date(),
     },
   ];
 

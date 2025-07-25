@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, TransactionInput } from '@/lib/types';
 import { Decimal } from '@prisma/client/runtime/library';
+import { AuditLogger } from '@/lib/audit';
+import { AuditTableName } from '@/lib/audit';
+import { auth } from '@/lib/auth';
 
 // GET /api/transactions - List all transactions (optionally filtered by entity)
 export async function GET(request: NextRequest) {
@@ -57,6 +60,16 @@ export async function GET(request: NextRequest) {
 // POST /api/transactions - Create a new transaction
 export async function POST(request: NextRequest) {
   try {
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
     const body: TransactionInput = await request.json();
     const {
       entityId,
@@ -244,6 +257,15 @@ export async function POST(request: NextRequest) {
         toMember: true,
       },
     });
+
+    // Log the creation
+    await AuditLogger.logCreate(
+      entityId,
+      userId, // Use actual user ID from auth
+      AuditTableName.TRANSACTION,
+      transaction.id,
+      transaction
+    );
 
     const response: ApiResponse = {
       success: true,

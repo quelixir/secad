@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, SecurityClassInput } from '@/lib/types';
+import { AuditLogger } from '@/lib/audit';
+import { AuditTableName } from '@/lib/audit';
+import { auth } from '@/lib/auth';
 
 // GET /api/securities - List all security classes (optionally filtered by entity)
 export async function GET(request: NextRequest) {
@@ -67,6 +70,17 @@ export async function GET(request: NextRequest) {
 // POST /api/securities - Create a new security class
 export async function POST(request: NextRequest) {
   try {
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
+
     const body: SecurityClassInput = await request.json();
 
     // Validate required fields
@@ -120,6 +134,15 @@ export async function POST(request: NextRequest) {
         entity: true,
       },
     });
+
+    // Log the creation
+    await AuditLogger.logCreate(
+      body.entityId,
+      userId, // Use actual user ID from auth
+      AuditTableName.SECURITY_CLASS,
+      securityClass.id,
+      securityClass
+    );
 
     const response: ApiResponse<any> = {
       success: true,

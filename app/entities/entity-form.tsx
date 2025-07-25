@@ -14,6 +14,7 @@ import { StateSelect } from '@/components/ui/state-select'
 import { EntityTypeSelect } from '@/components/ui/entity-type-select'
 import { EntityIdentifiers, type EntityIdentifier } from '@/components/ui/entity-identifiers'
 import { getDefaultCountry } from '@/lib/config'
+import { Entity } from '@/lib/types/interfaces'
 
 const entityFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -32,26 +33,6 @@ const entityFormSchema = z.object({
 })
 
 type EntityFormValues = z.infer<typeof entityFormSchema>
-
-interface Entity {
-  id: string
-  name: string
-  entityType: string
-  status: string
-  email?: string
-  phone?: string
-  city?: string
-  state?: string
-  address?: string
-  postcode?: string
-  country?: string
-  website?: string
-  incorporationDate?: string
-  incorporationCountry?: string
-  incorporationState?: string
-  createdAt: string
-  identifiers?: EntityIdentifier[]
-}
 
 interface EntityFormProps {
   entity?: Entity

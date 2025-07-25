@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, SecurityClassInput } from '@/lib/types';
 import { AuditLogger } from '@/lib/audit';
+import { AuditAction, AuditTableName } from '@/lib/audit';
+import { auth } from '@/lib/auth';
 
 // GET /api/securities/[id] - Get a specific security class
 export async function GET(
@@ -81,6 +83,16 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
     const { id } = await params;
     const body: Partial<SecurityClassInput> = await request.json();
 
@@ -158,18 +170,16 @@ export async function PUT(
       },
     });
 
-    // Log the changes
-    if (Object.keys(oldValues).length > 0) {
+    // Log only the fields that have actually changed
+    const changedFields = AuditLogger.getChangedFields(oldValues, updateData);
+    if (Object.keys(changedFields).length > 0) {
       await AuditLogger.logRecordChanges(
         existingSecurity.entityId,
-        'system', // TODO: Get actual user ID from auth
-        'UPDATE',
-        'SecurityClass',
+        userId, // Use actual user ID from auth
+        AuditAction.UPDATE,
+        AuditTableName.SECURITY_CLASS,
         id,
-        Object.entries(oldValues).reduce((acc, [key, oldValue]) => {
-          acc[key] = { oldValue, newValue: updateData[key] };
-          return acc;
-        }, {} as Record<string, { oldValue: any; newValue: any }>)
+        changedFields
       );
     }
 
@@ -196,6 +206,16 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
     const { id } = await params;
     const body: { action: 'archive' | 'unarchive' } = await request.json();
 
@@ -241,8 +261,8 @@ export async function PATCH(
     // Log the archive action
     await AuditLogger.logArchive(
       existingSecurity.entityId,
-      'system', // TODO: Get actual user ID from auth
-      'SecurityClass',
+      userId, // Use actual user ID from auth
+      AuditTableName.SECURITY_CLASS,
       id,
       isArchived
     );

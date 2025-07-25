@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, MemberInput } from '@/lib/types';
 import { AuditLogger } from '@/lib/audit';
+import { AuditAction, AuditTableName } from '@/lib/audit';
+import { auth } from '@/lib/auth';
 
 // GET /api/members/[id] - Get a specific member
 export async function GET(
@@ -75,6 +77,16 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Get user session from auth
+    const session = await auth.api.getSession({ headers: request.headers });
+    const userId = session?.user?.id;
+    if (!userId) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Unauthorized',
+      };
+      return NextResponse.json(response, { status: 401 });
+    }
     const { id } = await params;
     const body: Partial<MemberInput> = await request.json();
 
@@ -162,7 +174,7 @@ export async function PUT(
       updateData.designation = body.designation || null;
     if (body.tfn !== undefined) updateData.tfn = body.tfn || null;
     if (body.abn !== undefined) updateData.abn = body.abn || null;
-    updateData.updatedBy = 'system'; // TODO: Get actual user ID from auth
+    updateData.updatedBy = userId; // Use actual user ID from auth
 
     // Get the old values for audit logging
     const oldValues: Record<string, any> = {};
@@ -199,18 +211,16 @@ export async function PUT(
       },
     });
 
-    // Log the changes
-    if (Object.keys(oldValues).length > 0) {
+    // Log only the fields that have actually changed
+    const changedFields = AuditLogger.getChangedFields(oldValues, updateData);
+    if (Object.keys(changedFields).length > 0) {
       await AuditLogger.logRecordChanges(
         existingMember.entityId,
-        'system', // TODO: Get actual user ID from auth
-        'UPDATE',
-        'Member',
+        userId, // Use actual user ID from auth
+        AuditAction.UPDATE,
+        AuditTableName.MEMBER,
         id,
-        Object.entries(oldValues).reduce((acc, [key, oldValue]) => {
-          acc[key] = { oldValue, newValue: updateData[key] };
-          return acc;
-        }, {} as Record<string, { oldValue: any; newValue: any }>)
+        changedFields
       );
     }
 
