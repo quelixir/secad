@@ -171,7 +171,6 @@ export default function ViewEntityPage() {
                 <Tabs defaultValue="overview" className="space-y-4">
                     <TabsList>
                         <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="identifiers">Identifiers</TabsTrigger>
                         <TabsTrigger value="collaborators">Access</TabsTrigger>
                         <TabsTrigger value="members">Members ({entity._count?.members || 0})</TabsTrigger>
                         <TabsTrigger value="securities">Securities ({entity._count?.securityClasses || 0})</TabsTrigger>
