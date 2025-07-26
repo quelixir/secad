@@ -27,7 +27,6 @@ const transactionInputSchema = z.object({
   reference: z.string().optional(),
   description: z.string().optional(),
   certificateNumber: z.string().optional(),
-  documentPath: z.string().optional(),
   status: z.string().default('Pending'),
 });
 
@@ -145,7 +144,6 @@ export const transactionsRouter = createTRPCRouter({
             reference: input.reference || null,
             description: input.description || null,
             certificateNumber: input.certificateNumber || null,
-            documentPath: input.documentPath || null,
             status: input.status,
           },
         });

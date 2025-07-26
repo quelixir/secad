@@ -203,7 +203,6 @@ model Transaction {
   reference                String?
   description              String?
   certificateNumber        String?
-  documentPath             String?
   status                   String        @default("Completed")
   createdAt                DateTime      @default(now())
   updatedAt                DateTime      @updatedAt

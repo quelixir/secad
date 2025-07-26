@@ -139,10 +139,6 @@ export async function PUT(
       oldValues.certificateNumber = existingTransaction.certificateNumber;
       updateData.certificateNumber = body.certificateNumber;
     }
-    if (body.documentPath !== undefined) {
-      oldValues.documentPath = existingTransaction.documentPath;
-      updateData.documentPath = body.documentPath;
-    }
     if (body.status) {
       oldValues.status = existingTransaction.status;
       updateData.status = body.status;

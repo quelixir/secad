@@ -23,7 +23,6 @@ export interface Transaction {
   reference?: string;
   description?: string;
   certificateNumber?: string;
-  documentPath?: string;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -56,6 +55,5 @@ export interface TransactionInput {
   reference?: string;
   description?: string;
   certificateNumber?: string;
-  documentPath?: string;
   status?: string;
 }

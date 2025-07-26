@@ -96,7 +96,6 @@ export async function POST(request: NextRequest) {
       reference,
       description,
       certificateNumber,
-      documentPath,
       status = 'Completed',
     } = body;
 
@@ -253,7 +252,6 @@ export async function POST(request: NextRequest) {
         reference,
         description,
         certificateNumber,
-        documentPath,
         status,
       },
       include: {
