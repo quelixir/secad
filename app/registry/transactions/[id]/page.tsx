@@ -11,52 +11,12 @@ import { Input } from '@/components/ui/input'
 
 import { ArrowLeft, TrendingUp, TrendingDown, ArrowRightLeft, Building2, Calendar, Hash, FileText, User, Users, Copy, Check, Edit, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-
-interface Transaction {
-    id: string
-    transactionType: string
-    quantity: number
-    amountPaidPerSecurity?: string
-    amountUnpaidPerSecurity?: string
-    transferPricePerSecurity?: string
-    totalAmountPaid?: string
-    totalAmountUnpaid?: string
-    totalTransferAmount?: string
-    transactionDate: string
-    settlementDate?: string
-    reference?: string
-    description?: string
-    certificateNumber?: string
-    status: string
-    entity: {
-        id: string
-        name: string
-    }
-    securityClass: {
-        id: string
-        name: string
-        symbol?: string
-    }
-    fromMember?: {
-        id: string
-        firstName?: string
-        lastName?: string
-        entityName?: string
-        memberType: string
-    }
-    toMember?: {
-        id: string
-        firstName?: string
-        lastName?: string
-        entityName?: string
-        memberType: string
-    }
-}
+import { TransactionWithRelations } from '@/lib/types/interfaces/Transaction'
 
 export default function ViewTransactionPage() {
     const params = useParams()
     const router = useRouter()
-    const [transaction, setTransaction] = useState<Transaction | null>(null)
+    const [transaction, setTransaction] = useState<TransactionWithRelations | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [copied, setCopied] = useState(false)
@@ -88,7 +48,7 @@ export default function ViewTransactionPage() {
         }
     }, [params.id])
 
-    const formatMemberName = (member: Transaction['fromMember']) => {
+    const formatMemberName = (member: TransactionWithRelations['fromMember']) => {
         if (!member) return 'N/A'
         if (member.entityName) return member.entityName
         return `${member.firstName || ''} ${member.lastName || ''}`.trim()
@@ -123,8 +83,9 @@ export default function ViewTransactionPage() {
         return `$${parseFloat(amount).toLocaleString()}`
     }
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+    const formatDate = (date: Date | string) => {
+        const dateObj = typeof date === 'string' ? new Date(date) : date
+        return dateObj.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -314,8 +275,10 @@ export default function ViewTransactionPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
-                                {transaction.totalTransferAmount ? formatCurrency(transaction.totalTransferAmount) :
-                                    transaction.totalAmountPaid ? formatCurrency(transaction.totalAmountPaid) : 'N/A'}
+                                {transaction.transferPricePerSecurity && transaction.quantity ?
+                                    formatCurrency((transaction.transferPricePerSecurity * transaction.quantity).toString()) :
+                                    transaction.amountPaidPerSecurity && transaction.quantity ?
+                                        formatCurrency((transaction.amountPaidPerSecurity * transaction.quantity).toString()) : 'N/A'}
                             </div>
                         </CardContent>
                     </Card>
@@ -382,9 +345,9 @@ export default function ViewTransactionPage() {
                         <CardContent className="space-y-4">
                             <div>
                                 <label className="text-sm font-medium text-muted-foreground">Security Class</label>
-                                <p className="text-sm font-medium">{transaction.securityClass.name}</p>
-                                {transaction.securityClass.symbol && (
-                                    <p className="text-xs text-muted-foreground font-mono">{transaction.securityClass.symbol}</p>
+                                <p className="text-sm font-medium">{transaction.security?.name || transaction.securityClassId}</p>
+                                {transaction.security?.symbol && (
+                                    <p className="text-xs text-muted-foreground font-mono">{transaction.security.symbol}</p>
                                 )}
                             </div>
 
@@ -414,11 +377,11 @@ export default function ViewTransactionPage() {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="text-sm font-medium text-muted-foreground">Paid per Security</label>
-                                                <p className="text-sm font-mono">{formatCurrency(transaction.amountPaidPerSecurity)}</p>
+                                                <p className="text-sm font-mono">{formatCurrency(transaction.amountPaidPerSecurity.toString())}</p>
                                             </div>
                                             <div>
                                                 <label className="text-sm font-medium text-muted-foreground">Total Paid</label>
-                                                <p className="text-sm font-mono">{formatCurrency(transaction.totalAmountPaid)}</p>
+                                                <p className="text-sm font-mono">{formatCurrency((transaction.amountPaidPerSecurity * transaction.quantity).toString())}</p>
                                             </div>
                                         </div>
                                     )}
@@ -427,11 +390,11 @@ export default function ViewTransactionPage() {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="text-sm font-medium text-muted-foreground">Unpaid per Security</label>
-                                                <p className="text-sm font-mono">{formatCurrency(transaction.amountUnpaidPerSecurity)}</p>
+                                                <p className="text-sm font-mono">{formatCurrency(transaction.amountUnpaidPerSecurity.toString())}</p>
                                             </div>
                                             <div>
                                                 <label className="text-sm font-medium text-muted-foreground">Total Unpaid</label>
-                                                <p className="text-sm font-mono">{formatCurrency(transaction.totalAmountUnpaid)}</p>
+                                                <p className="text-sm font-mono">{formatCurrency((transaction.amountUnpaidPerSecurity * transaction.quantity).toString())}</p>
                                             </div>
                                         </div>
                                     )}
@@ -441,11 +404,11 @@ export default function ViewTransactionPage() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="text-sm font-medium text-muted-foreground">Price per Security</label>
-                                            <p className="text-sm font-mono">{formatCurrency(transaction.transferPricePerSecurity)}</p>
+                                            <p className="text-sm font-mono">{formatCurrency(transaction.transferPricePerSecurity.toString())}</p>
                                         </div>
                                         <div>
                                             <label className="text-sm font-medium text-muted-foreground">Total Amount</label>
-                                            <p className="text-sm font-mono">{formatCurrency(transaction.totalTransferAmount)}</p>
+                                            <p className="text-sm font-mono">{formatCurrency((transaction.transferPricePerSecurity * transaction.quantity).toString())}</p>
                                         </div>
                                     </div>
                                 )
