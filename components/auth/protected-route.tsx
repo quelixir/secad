@@ -1,35 +1,77 @@
-'use client';
+'use client'
 
-import { useAuth } from '@/lib/auth-context';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import { useAuth } from '@/lib/auth-context'
+import { useEntityContext } from '@/lib/entity-context'
 
 interface ProtectedRouteProps {
-    children: React.ReactNode;
+    children: React.ReactNode
+    requireEntity?: boolean
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-    const { user, loading } = useAuth();
-    const router = useRouter();
+// Pages that don't require an entity to be selected
+const ENTITY_MANAGEMENT_PATHS = [
+    '/entities',
+    '/entities/new'
+]
+
+// Check if the current path is an entity management path or entity detail/edit path
+const isEntityManagementPath = (pathname: string) => {
+    // Check exact matches for entity management
+    if (ENTITY_MANAGEMENT_PATHS.includes(pathname)) {
+        return true
+    }
+
+    // Check entity detail pages (e.g., /entities/123, /entities/123/edit)
+    const entityDetailPattern = /^\/entities\/[^\/]+(\/edit)?$/
+    return entityDetailPattern.test(pathname)
+}
+
+export function ProtectedRoute({ children, requireEntity = true }: ProtectedRouteProps) {
+    const { user, loading: authLoading } = useAuth()
+    const { selectedEntity, loading: entityLoading, entityLoaded } = useEntityContext()
+    const router = useRouter()
+    const pathname = usePathname()
+    const [isChecking, setIsChecking] = useState(true)
 
     useEffect(() => {
-        if (!loading && !user) {
-            router.push('/auth/signin');
-        }
-    }, [user, loading, router]);
+        if (!authLoading && !entityLoading && entityLoaded) {
+            if (!user) {
+                router.push('/auth/signin')
+                return
+            }
 
-    if (loading) {
+            // Check if this is an entity management path that doesn't require entity selection
+            const isEntityPath = isEntityManagementPath(pathname)
+
+            if (requireEntity && !selectedEntity && !isEntityPath) {
+                router.push('/entities')
+                return
+            }
+
+            setIsChecking(false)
+        }
+    }, [user, authLoading, selectedEntity, entityLoading, entityLoaded, requireEntity, router, pathname])
+
+    if (authLoading || entityLoading || !entityLoaded || isChecking) {
         return (
-            <div className="flex min-h-screen items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading...</p>
+                </div>
             </div>
-        );
+        )
     }
 
     if (!user) {
-        return null; // Will redirect to sign in
+        return null
     }
 
-    return <>{children}</>;
+    if (requireEntity && !selectedEntity && !isEntityManagementPath(pathname)) {
+        return null
+    }
+
+    return <>{children}</>
 } 

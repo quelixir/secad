@@ -8,18 +8,22 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Plus, Search, Edit, Trash2, Building2, Users, Shield } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Building2, Users, Shield, Play } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEntities, useDeleteEntity } from '@/lib/hooks/use-trpc'
 import { Entity } from '@/lib/types/interfaces/Entity'
-import { compliancePackRegistration } from '@/lib/compliance';
-// Remove incorrect import
+import { compliancePackRegistration } from '@/lib/compliance'
+import { useEntityContext } from '@/lib/entity-context'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 
 export default function EntitiesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [transformedEntities, setTransformedEntities] = useState<Entity[]>([])
   const { data: entitiesData, isLoading, refetch, error } = useEntities()
   const deleteEntityMutation = useDeleteEntity()
+  const { setSelectedEntity } = useEntityContext()
+  const router = useRouter()
 
   // Transform entities to match our Entity interface
   useEffect(() => {
@@ -64,6 +68,11 @@ export default function EntitiesPage() {
     }
   }
 
+  const handleUseEntity = (entity: Entity) => {
+    setSelectedEntity(entity)
+    router.push(`/entities/${entity.id}`) // Redirect to the entity view page
+  }
+
   const filteredEntities = transformedEntities.filter((entity: Entity) => {
     const searchTermLower = searchTerm.toLowerCase();
     const nameMatch = entity.name?.toLowerCase().includes(searchTermLower);
@@ -98,14 +107,14 @@ export default function EntitiesPage() {
   console.log('Available Australia entity types:', availableTypes.map(t => ({ id: t.id, name: t.name })));
 
   return (
-    <MainLayout>
+    <MainLayout requireEntity={false}>
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Entities</h1>
             <p className="text-muted-foreground">
-              Manage your corporate entities and their details
+              Select an entity to work with or manage your corporate entities
             </p>
           </div>
           <Button asChild>
@@ -142,7 +151,7 @@ export default function EntitiesPage() {
           <CardHeader>
             <CardTitle>Entities ({filteredEntities.length})</CardTitle>
             <CardDescription>
-              All registered entities in the system
+              All registered entities in the system. Click "Use" to select an entity and start working with it.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -157,12 +166,12 @@ export default function EntitiesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[30%]">Entity</TableHead>
-                      <TableHead className="w-[25%]">Entity Type</TableHead>
-                      <TableHead className="w-[12%]">Status</TableHead>
-                      <TableHead className="w-[10%]">Members</TableHead>
-                      <TableHead className="w-[10%]">Securities</TableHead>
-                      <TableHead className="w-[13%] text-center">Actions</TableHead>
+                      <TableHead className="w-[25%]">Entity</TableHead>
+                      <TableHead className="w-[20%]">Entity Type</TableHead>
+                      <TableHead className="w-[10%]">Status</TableHead>
+                      <TableHead className="w-[8%]">Members</TableHead>
+                      <TableHead className="w-[8%]">Securities</TableHead>
+                      <TableHead className="w-[29%] text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -208,6 +217,15 @@ export default function EntitiesPage() {
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex items-center gap-2 justify-center">
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleUseEntity(entity)}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <Play className="h-4 w-4 mr-1" />
+                              Use
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"

@@ -1,33 +1,72 @@
 'use client'
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { Entity } from './types/interfaces/Entity';
 import { trpc } from './trpc/client';
 
 interface EntityContextType {
   selectedEntity: Entity | null;
   setSelectedEntity: (entity: Entity | null) => void;
+  clearSelectedEntity: () => void;
   entities: Entity[];
   loading: boolean;
+  entityLoaded: boolean; // New flag to indicate if we've attempted to load the stored entity
 }
 
 const EntityContext = createContext<EntityContextType>({
   selectedEntity: null,
   setSelectedEntity: () => { },
+  clearSelectedEntity: () => { },
   entities: [],
   loading: false,
+  entityLoaded: false,
 });
 
 export function EntityProvider({ children }: { children: React.ReactNode }) {
-  const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
+  const [selectedEntity, setSelectedEntityState] = useState<Entity | null>(null);
+  const [entityLoaded, setEntityLoaded] = useState(false);
   const { data: entities = [], isLoading } = trpc.entities.list.useQuery();
+
+  // Load selected entity from sessionStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && entities.length > 0 && !entityLoaded) {
+      const storedEntityId = sessionStorage.getItem('selectedEntityId');
+      if (storedEntityId) {
+        const entity = entities.find(e => e.id === storedEntityId);
+        if (entity) {
+          setSelectedEntityState(entity);
+        }
+      }
+      setEntityLoaded(true);
+    }
+  }, [entities, entityLoaded]);
+
+  const setSelectedEntity = (entity: Entity | null) => {
+    setSelectedEntityState(entity);
+    if (typeof window !== 'undefined') {
+      if (entity) {
+        sessionStorage.setItem('selectedEntityId', entity.id);
+      } else {
+        sessionStorage.removeItem('selectedEntityId');
+      }
+    }
+  };
+
+  const clearSelectedEntity = () => {
+    setSelectedEntityState(null);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('selectedEntityId');
+    }
+  };
 
   return (
     <EntityContext.Provider value={{
       selectedEntity,
       setSelectedEntity,
+      clearSelectedEntity,
       entities,
-      loading: isLoading
+      loading: isLoading,
+      entityLoaded
     }}>
       {children}
     </EntityContext.Provider>

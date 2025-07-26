@@ -2,16 +2,28 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Menu, BriefcaseBusiness, Building2, LayoutDashboard, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft, LogOut, User } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from '@/components/ui/toggle-group'
+import { Menu, BriefcaseBusiness, Building2, LayoutDashboard, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft, LogOut, User, ArrowLeftRight, Settings, Palette, Moon, Sun, SunMoon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-import EntitySelector from './entity-selector'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { useAuth } from '@/lib/auth-context'
+import { useEntityContext } from '@/lib/entity-context'
 
 const navigation = [
   {
@@ -48,12 +60,20 @@ const navigation = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const { user, signOut } = useAuth()
+  const { selectedEntity, clearSelectedEntity } = useEntityContext()
+  const { theme, setTheme } = useTheme()
 
   const NavItems = () => (
     <>
       {navigation.map((item) => {
+        // Only show Entities if no entity is selected, show all if entity is selected
+        if (!selectedEntity && item.name !== 'Entities') {
+          return null
+        }
+
         const isActive = pathname === item.href ||
           (item.href.startsWith('/registry') && pathname.startsWith('/registry'))
         const Icon = item.icon
@@ -83,6 +103,17 @@ export function Navbar() {
     </>
   )
 
+  const handleChangeEntity = () => {
+    clearSelectedEntity()
+    router.push('/entities')
+  }
+
+  const handleThemeChange = (value: string) => {
+    if (value) {
+      setTheme(value)
+    }
+  }
+
   return (
     <>
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -105,20 +136,70 @@ export function Navbar() {
             <NavItems />
           </div>
 
-          {/* Entity Selector - Desktop */}
+          {/* Entity Indicator and User - Desktop */}
           <div className="hidden md:flex items-center gap-2">
-            <EntitySelector />
-            <ThemeToggle />
+            {selectedEntity && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleChangeEntity}
+                className="text-xs"
+              >
+                {selectedEntity.name}
+                <ArrowLeftRight className="h-3 w-3 ml-1" />
+              </Button>
+            )}
             {user && (
-              <div className="flex items-center gap-2 ml-4 pl-4 border-l">
-                <div className="flex items-center gap-2 text-sm">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">{user.name || user.username || user.email}</span>
-                </div>
-                <Button variant="ghost" size="icon" onClick={signOut}>
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline">{user.name || user.username || user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Palette className="mr-2 h-4 w-4" />
+                    <span>Theme</span>
+                    <div className="ml-auto">
+                      <ToggleGroup type="single" value={theme} onValueChange={handleThemeChange} size="sm">
+                        <ToggleGroupItem
+                          value="light"
+                          aria-label="Light theme"
+                          className="data-[state=on]:bg-zinc-700 data-[state=on]:text-white"
+                        >
+                          <Sun className="h-3 w-3 data-[state=on]:text-white" />
+                        </ToggleGroupItem>
+                        <ToggleGroupItem
+                          value="dark"
+                          aria-label="Dark theme"
+                          className="data-[state=on]:bg-zinc-700 data-[state=on]:text-white"
+                        >
+                          <Moon className="h-3 w-3 data-[state=on]:text-white" />
+                        </ToggleGroupItem>
+                        <ToggleGroupItem
+                          value="system"
+                          aria-label="System theme"
+                          className="data-[state=on]:bg-zinc-700 data-[state=on]:text-white"
+                        >
+                          <SunMoon className="h-3 w-3 data-[state=on]:text-white" />
+                        </ToggleGroupItem>
+                      </ToggleGroup>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
 
@@ -132,14 +213,54 @@ export function Navbar() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[240px] sm:w-[300px]">
-                {/* Entity Selector - Mobile */}
-                <div className="mb-4 mt-4">
-                  <EntitySelector />
-                </div>
+                {/* Entity Indicator - Mobile */}
+                {selectedEntity && (
+                  <div className="mb-4 mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleChangeEntity}
+                      className="w-full justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs truncate">{selectedEntity.name}</span>
+                      </div>
+                      <ArrowLeftRight className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
 
                 {/* Theme Toggle - Mobile */}
-                <div className="mb-4 flex justify-center">
-                  <ThemeToggle />
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Theme</span>
+                  </div>
+                  <ToggleGroup type="single" value={theme} onValueChange={handleThemeChange} className="w-full">
+                    <ToggleGroupItem
+                      value="light"
+                      aria-label="Light theme"
+                      className="flex-1 data-[state=on]:bg-sky-600 data-[state=on]:text-white"
+                    >
+                      <Sun className="h-4 w-4 mr-2 data-[state=on]:text-white" />
+                      Light
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="dark"
+                      aria-label="Dark theme"
+                      className="flex-1 data-[state=on]:bg-sky-600 data-[state=on]:text-white"
+                    >
+                      <Moon className="h-4 w-4 mr-2 data-[state=on]:text-white" />
+                      Dark
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="system"
+                      aria-label="System theme"
+                      className="flex-1 data-[state=on]:bg-sky-600 data-[state=on]:text-white"
+                    >
+                      <SunMoon className="h-4 w-4 mr-2 data-[state=on]:text-white" />
+                      System
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
 
                 {/* User Info - Mobile */}
@@ -163,42 +284,44 @@ export function Navbar() {
       </nav>
 
       {/* Sub-navbar for Registry */}
-      <div
-        className={cn(
-          "border-b bg-muted/30 backdrop-blur supports-[backdrop-filter]:bg-muted/30 overflow-hidden transition-all duration-300 ease-in-out",
-          (hoveredItem === 'Registry' || pathname.startsWith('/registry'))
-            ? 'h-12 opacity-100 translate-y-0'
-            : 'h-0 opacity-0 -translate-y-2'
-        )}
-        onMouseEnter={() => setHoveredItem('Registry')}
-        onMouseLeave={() => setHoveredItem(null)}
-      >
-        <div className="flex h-12 items-center px-4">
-          <div className="hidden md:flex items-center space-x-1 ml-[calc(theme(spacing.16)+theme(spacing.6))]">
-            {navigation.find(item => item.name === 'Registry')?.subNav?.map((subItem) => {
-              const isActive = pathname === subItem.href ||
-                (subItem.name === 'Transactions' && pathname.startsWith('/registry/transactions'))
-              const SubIcon = subItem.icon
+      {selectedEntity && (
+        <div
+          className={cn(
+            "border-b bg-muted/30 backdrop-blur supports-[backdrop-filter]:bg-muted/30 overflow-hidden transition-all duration-300 ease-in-out",
+            (hoveredItem === 'Registry' || pathname.startsWith('/registry'))
+              ? 'h-12 opacity-100 translate-y-0'
+              : 'h-0 opacity-0 -translate-y-2'
+          )}
+          onMouseEnter={() => setHoveredItem('Registry')}
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <div className="flex h-12 items-center px-4">
+            <div className="hidden md:flex items-center space-x-1 ml-[calc(theme(spacing.16)+theme(spacing.6))]">
+              {navigation.find(item => item.name === 'Registry')?.subNav?.map((subItem) => {
+                const isActive = pathname === subItem.href ||
+                  (subItem.name === 'Transactions' && pathname.startsWith('/registry/transactions'))
+                const SubIcon = subItem.icon
 
-              return (
-                <Link
-                  key={subItem.name}
-                  href={subItem.href}
-                  className={cn(
-                    'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                  )}
-                >
-                  <SubIcon className="h-4 w-4" />
-                  {subItem.name}
-                </Link>
-              )
-            })}
+                return (
+                  <Link
+                    key={subItem.name}
+                    href={subItem.href}
+                    className={cn(
+                      'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    )}
+                  >
+                    <SubIcon className="h-4 w-4" />
+                    {subItem.name}
+                  </Link>
+                )
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   )
 } 
