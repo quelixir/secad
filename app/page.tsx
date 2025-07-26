@@ -9,7 +9,7 @@ import { Building2, Users, Shield, ArrowRightLeft, Plus, TrendingUp } from 'luci
 import Link from 'next/link'
 import { useEntity } from '@/lib/entity-context'
 import { compliancePackRegistration } from '@/lib/compliance'
-import { Member } from '@/lib/types/interfaces/Member'
+import { Member, getFormattedMemberName } from '@/lib/types/interfaces/Member'
 
 interface DashboardStats {
   members: number
@@ -26,7 +26,7 @@ interface RecentTransaction {
   securityClass: { name: string }
   fromMember?: { firstName?: string; lastName?: string; entityName?: string }
   toMember?: { firstName?: string; lastName?: string; entityName?: string }
-  transactionDate: string
+  settlementDate: string
 }
 
 export default function Dashboard() {
@@ -68,8 +68,8 @@ export default function Dashboard() {
 
         // Calculate total holdings
         const totalHoldings = members.data?.reduce((total: number, member: Member) => {
-          return total + (member.allocations?.reduce((memberTotal: number, allocation: { quantity: number }) => {
-            return memberTotal + allocation.quantity
+          return total + (member.transactions?.reduce((memberTotal: number, transaction: { quantity: number }) => {
+            return memberTotal + transaction.quantity
           }, 0) || 0)
         }, 0) || 0
 
@@ -93,8 +93,7 @@ export default function Dashboard() {
   }, [selectedEntity])
 
   const formatMemberName = (member: any) => {
-    if (member.entityName) return member.entityName
-    return `${member.firstName || ''} ${member.lastName || ''}`.trim()
+    return getFormattedMemberName(member)
   }
 
   const getTransactionTypeColor = (type: string) => {
@@ -283,7 +282,7 @@ export default function Dashboard() {
                       </div>
                       <div className="text-right text-sm">
                         <div className="text-xs text-muted-foreground">
-                          {new Date(transaction.transactionDate).toLocaleDateString()}
+                          {new Date(transaction.settlementDate).toLocaleDateString()}
                         </div>
                       </div>
                     </div>

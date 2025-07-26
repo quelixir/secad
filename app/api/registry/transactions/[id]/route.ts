@@ -119,9 +119,9 @@ export async function PUT(
       oldValues.trancheSequence = existingTransaction.trancheSequence;
       updateData.trancheSequence = body.trancheSequence;
     }
-    if (body.transactionDate) {
-      oldValues.transactionDate = existingTransaction.transactionDate;
-      updateData.transactionDate = body.transactionDate;
+    if (body.postedDate) {
+      oldValues.postedDate = existingTransaction.postedDate;
+      updateData.postedDate = body.postedDate;
     }
     if (body.settlementDate !== undefined) {
       oldValues.settlementDate = existingTransaction.settlementDate;

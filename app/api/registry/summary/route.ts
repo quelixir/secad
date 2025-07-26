@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
         id: true,
         transactionType: true,
         quantity: true,
-        transactionDate: true,
+        postedDate: true,
         status: true,
         reference: true,
         description: true,
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: { transactionDate: 'desc' },
+      orderBy: { settlementDate: 'desc' },
       take: 10,
     });
 
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       id: tx.id,
       transactionType: tx.transactionType,
       quantity: tx.quantity,
-      transactionDate: tx.transactionDate.toISOString(),
+      transactionDate: tx.postedDate.toISOString(),
       status: tx.status,
       reference: tx.reference,
       description: tx.description,

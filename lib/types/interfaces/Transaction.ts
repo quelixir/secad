@@ -7,7 +7,7 @@ export interface Transaction {
   id: string;
   entityId: string;
   securityClassId: string;
-  transactionType: string;
+  transactionType: TransactionType;
   reasonCode: string;
   quantity: number;
   amountPaidPerSecurity?: number;
@@ -18,8 +18,8 @@ export interface Transaction {
   toMemberId?: string;
   trancheNumber?: string;
   trancheSequence?: number;
-  transactionDate: Date;
-  settlementDate?: Date;
+  postedDate: Date;
+  settlementDate: Date;
   reference?: string;
   description?: string;
   certificateNumber?: string;
@@ -31,7 +31,7 @@ export interface Transaction {
 export interface TransactionWithRelations extends Transaction {
   entity?: Entity;
   currency?: Currency;
-  security?: SecurityClass;
+  securityClass?: SecurityClass;
   fromMember?: Member;
   toMember?: Member;
 }
@@ -39,7 +39,7 @@ export interface TransactionWithRelations extends Transaction {
 export interface TransactionInput {
   entityId: string;
   securityClassId: string;
-  transactionType: string;
+  transactionType: TransactionType;
   reasonCode: string;
   quantity: number;
   amountPaidPerSecurity?: number;
@@ -50,10 +50,30 @@ export interface TransactionInput {
   toMemberId?: string;
   trancheNumber?: string;
   trancheSequence?: number;
-  transactionDate?: Date;
+  postedDate?: Date;
   settlementDate?: Date;
   reference?: string;
   description?: string;
   certificateNumber?: string;
   status?: string;
+}
+
+export enum TransactionType {
+  ISSUE = 'ISSUE',
+  TRANSFER = 'TRANSFER',
+  CANCELLATION = 'CANCELLATION',
+  REDEMPTION = 'REDEMPTION',
+  RETURN_OF_CAPITAL = 'RETURN_OF_CAPITAL',
+  CAPITAL_CALL = 'CAPITAL_CALL',
+}
+
+export enum TransactionStatus {
+  PENDING = 'Pending',
+  COMPLETED = 'Completed',
+  CANCELLED = 'Cancelled',
+}
+
+export enum TransactionDirection {
+  IN = 'IN',
+  OUT = 'OUT',
 }

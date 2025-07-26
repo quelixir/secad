@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse } from '@/lib/types';
+import { getDefaultCurrencyCode } from '@/lib/config';
 
 // GET /api/securities/summary - Get securities summary with totals per class
 export async function GET(request: NextRequest) {
@@ -90,13 +91,13 @@ export async function GET(request: NextRequest) {
             trancheGroups.set(trancheNumber, {
               id: transaction.id,
               trancheNumber,
-              issueDate: transaction.transactionDate,
+              issueDate: transaction.settlementDate,
               quantity: 0,
               amountPaidPerSecurity: transaction.amountPaidPerSecurity,
               amountUnpaidPerSecurity: transaction.amountUnpaidPerSecurity,
               totalAmountPaid: 0,
               totalAmountUnpaid: 0,
-              currency: 'AUD',
+              currency: transaction.currencyCode,
               reference: transaction.reference,
               description: transaction.description,
               allocationCount: 0,
@@ -125,7 +126,7 @@ export async function GET(request: NextRequest) {
         totalQuantity,
         totalAmountPaid,
         totalAmountUnpaid,
-        currency: 'AUD',
+        currency: getDefaultCurrencyCode(),
         trancheCount: trancheNumbers.size,
         memberCount: memberIds.size,
         tranches: Array.from(trancheGroups.values()),

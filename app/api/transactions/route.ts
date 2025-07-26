@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         toMember: true,
       },
       orderBy: {
-        transactionDate: 'desc',
+        settlementDate: 'desc',
       },
     });
 
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       toMemberId,
       trancheNumber,
       trancheSequence,
-      transactionDate,
+      postedDate,
       settlementDate,
       reference,
       description,
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
         toMemberId,
         trancheNumber,
         trancheSequence,
-        transactionDate: transactionDate || new Date(),
+        postedDate: postedDate ? new Date(postedDate) : new Date(),
         settlementDate,
         reference,
         description,

@@ -146,8 +146,8 @@ export async function POST(request: NextRequest) {
             totalAmountUnpaid: totalAmountUnpaid > 0 ? totalAmountUnpaid : null,
             fromMemberId: transactionData.fromMemberId || null,
             toMemberId: transactionData.toMemberId || null,
-            transactionDate: body.transactionDate
-              ? new Date(body.transactionDate)
+            postedDate: body.postedDate
+              ? new Date(body.postedDate)
               : new Date(),
             reference: transactionData.reference || body.reference || null,
             description:

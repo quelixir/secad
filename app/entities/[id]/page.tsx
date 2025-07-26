@@ -203,8 +203,12 @@ export default function ViewEntityPage() {
                     <TabsList>
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="collaborators">Access</TabsTrigger>
-                        <TabsTrigger value="members">Members ({entity._count?.members || 0})</TabsTrigger>
-                        <TabsTrigger value="securities">Securities ({entity._count?.securityClasses || 0})</TabsTrigger>
+                        {selectedEntity?.id === entity.id && (
+                            <>
+                                <TabsTrigger value="members">Members ({entity._count?.members || 0})</TabsTrigger>
+                                <TabsTrigger value="securities">Securities ({entity._count?.securityClasses || 0})</TabsTrigger>
+                            </>
+                        )}
                     </TabsList>
 
                     <TabsContent value="overview" className="space-y-4">
@@ -397,132 +401,136 @@ export default function ViewEntityPage() {
                         <CollaboratorsTab entityId={entity.id} />
                     </TabsContent>
 
-                    <TabsContent value="members" className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Members</CardTitle>
-                                <CardDescription>
-                                    Members associated with this entity
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                {!entity.members || entity.members.length === 0 ? (
-                                    <div className="text-center py-8 text-muted-foreground">
-                                        No members registered for this entity.
-                                    </div>
-                                ) : (
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="font-bold">Member Name</TableHead>
-                                                <TableHead className="font-bold text-right">Actions</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {entity.members.map((member) => {
-                                                // Determine member name based on type
-                                                const memberName = member.memberType === 'INDIVIDUAL'
-                                                    ? `${member.firstName || ''} ${member.lastName || ''}`.trim()
-                                                    : member.entityName;
+                    {selectedEntity?.id === entity.id && (
+                        <TabsContent value="members" className="space-y-4">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Members</CardTitle>
+                                    <CardDescription>
+                                        Members associated with this entity
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {!entity.members || entity.members.length === 0 ? (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            No members registered for this entity.
+                                        </div>
+                                    ) : (
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="font-bold">Member Name</TableHead>
+                                                    <TableHead className="font-bold text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {entity.members.map((member) => {
+                                                    // Determine member name based on type
+                                                    const memberName = member.memberType === 'INDIVIDUAL'
+                                                        ? `${member.firstName || ''} ${member.lastName || ''}`.trim()
+                                                        : member.entityName;
 
-                                                return (
-                                                    <TableRow key={member.id}>
-                                                        <TableCell>
-                                                            {memberName}{' '}{member.designation || ''}
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                asChild
-                                                            >
-                                                                <Link href={`/registry/members/${member.id}`}>
-                                                                    View
-                                                                </Link>
-                                                            </Button>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
-                                            })}
-                                        </TableBody>
-                                    </Table>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                                                    return (
+                                                        <TableRow key={member.id}>
+                                                            <TableCell>
+                                                                {memberName}{' '}{member.designation || ''}
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    asChild
+                                                                >
+                                                                    <Link href={`/registry/members/${member.id}`}>
+                                                                        View
+                                                                    </Link>
+                                                                </Button>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    )}
 
-                    <TabsContent value="securities" className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Securities</CardTitle>
-                                <CardDescription>
-                                    Security classes issued by this entity
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                {!entity.securityClasses || entity.securityClasses.length === 0 ? (
-                                    <div className="text-center py-8 text-muted-foreground">
-                                        No securities issued by this entity.
-                                    </div>
-                                ) : (
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="font-bold">Security Class</TableHead>
-                                                <TableHead className="font-bold text-right">Total Quantity</TableHead>
-                                                <TableHead className="font-bold text-right">Total Amount Paid</TableHead>
-                                                <TableHead className="font-bold text-right">Total Amount Unpaid</TableHead>
-                                                <TableHead>Status</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {entity.securityClasses.map((securityClass: any) => {
-                                                // Calculate totals from transactions
-                                                const totalQuantity = securityClass.transactions?.reduce((sum: number, t: any) => sum + t.quantity, 0) || 0;
-                                                const totalAmountPaid = securityClass.transactions?.reduce((sum: number, t: any) => {
-                                                    const amount = parseFloat(t.totalAmountPaid || '0');
-                                                    return sum + (isNaN(amount) ? 0 : amount);
-                                                }, 0) || 0;
-                                                const totalAmountUnpaid = securityClass.transactions?.reduce((sum: number, t: any) => {
-                                                    const amount = parseFloat(t.totalAmountUnpaid || '0');
-                                                    return sum + (isNaN(amount) ? 0 : amount);
-                                                }, 0) || 0;
+                    {selectedEntity?.id === entity.id && (
+                        <TabsContent value="securities" className="space-y-4">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Securities</CardTitle>
+                                    <CardDescription>
+                                        Security classes issued by this entity
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {!entity.securityClasses || entity.securityClasses.length === 0 ? (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            No securities issued by this entity.
+                                        </div>
+                                    ) : (
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="font-bold">Security Class</TableHead>
+                                                    <TableHead className="font-bold text-right">Total Quantity</TableHead>
+                                                    <TableHead className="font-bold text-right">Total Amount Paid</TableHead>
+                                                    <TableHead className="font-bold text-right">Total Amount Unpaid</TableHead>
+                                                    <TableHead>Status</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {entity.securityClasses.map((securityClass: any) => {
+                                                    // Calculate totals from transactions
+                                                    const totalQuantity = securityClass.transactions?.reduce((sum: number, t: any) => sum + t.quantity, 0) || 0;
+                                                    const totalAmountPaid = securityClass.transactions?.reduce((sum: number, t: any) => {
+                                                        const amount = parseFloat(t.totalAmountPaid || '0');
+                                                        return sum + (isNaN(amount) ? 0 : amount);
+                                                    }, 0) || 0;
+                                                    const totalAmountUnpaid = securityClass.transactions?.reduce((sum: number, t: any) => {
+                                                        const amount = parseFloat(t.totalAmountUnpaid || '0');
+                                                        return sum + (isNaN(amount) ? 0 : amount);
+                                                    }, 0) || 0;
 
-                                                return (
-                                                    <TableRow key={securityClass.id}>
-                                                        <TableCell>
-                                                            <div>
-                                                                <div className="font-medium">{securityClass.name}</div>
-                                                                {securityClass.description && (
-                                                                    <div className="text-sm text-muted-foreground">
-                                                                        {securityClass.description}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            {totalQuantity.toLocaleString()}
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            {totalAmountPaid > 0 ? `$${totalAmountPaid.toLocaleString(getLocale(), getLocaleOptions())}` : '-'}
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            {totalAmountUnpaid > 0 ? `$${totalAmountUnpaid.toLocaleString(getLocale(), getLocaleOptions())}` : '-'}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Badge variant={securityClass.isActive ? "default" : "secondary"}>
-                                                                {securityClass.isActive ? "Active" : "Inactive"}
-                                                            </Badge>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
-                                            })}
-                                        </TableBody>
-                                    </Table>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                                                    return (
+                                                        <TableRow key={securityClass.id}>
+                                                            <TableCell>
+                                                                <div>
+                                                                    <div className="font-medium">{securityClass.name}</div>
+                                                                    {securityClass.description && (
+                                                                        <div className="text-sm text-muted-foreground">
+                                                                            {securityClass.description}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                {totalQuantity.toLocaleString()}
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                {totalAmountPaid > 0 ? `$${totalAmountPaid.toLocaleString(getLocale(), getLocaleOptions())}` : '-'}
+                                                            </TableCell>
+                                                            <TableCell className="text-right">
+                                                                {totalAmountUnpaid > 0 ? `$${totalAmountUnpaid.toLocaleString(getLocale(), getLocaleOptions())}` : '-'}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Badge variant={securityClass.isActive ? "default" : "secondary"}>
+                                                                    {securityClass.isActive ? "Active" : "Inactive"}
+                                                                </Badge>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    )}
                 </Tabs>
             </div>
         </MainLayout>

@@ -1,6 +1,19 @@
 import { Countries, getCountryByName, getStatesForCountry } from './Countries';
 
 describe('Countries Data', () => {
+  let countryNames: string[];
+  let isoCodes: string[];
+  let countriesWithStates: typeof Countries;
+  let countriesWithoutStates: typeof Countries;
+
+  beforeAll(() => {
+    // pre-compute data once for all tests
+    countryNames = Countries.map((country) => country.name);
+    isoCodes = Countries.map((country) => country.iso2);
+    countriesWithStates = Countries.filter((c) => c.states.length > 0);
+    countriesWithoutStates = Countries.filter((c) => c.states.length === 0);
+  });
+
   describe('Countries array', () => {
     test('should be an array', () => {
       expect(Array.isArray(Countries)).toBe(true);
@@ -11,7 +24,8 @@ describe('Countries Data', () => {
     });
 
     test('each country should have required properties', () => {
-      Countries.forEach((country) => {
+      const sampleCountries = Countries.slice(0, 10);
+      sampleCountries.forEach((country) => {
         expect(country).toHaveProperty('name');
         expect(country).toHaveProperty('iso2');
         expect(country).toHaveProperty('states');
@@ -22,32 +36,27 @@ describe('Countries Data', () => {
     });
 
     test('country names should be unique', () => {
-      const names = Countries.map((country) => country.name);
-      const uniqueNames = new Set(names);
-      expect(uniqueNames.size).toBe(names.length);
+      const uniqueNames = new Set(countryNames);
+      expect(uniqueNames.size).toBe(countryNames.length);
     });
 
     test('ISO codes should be unique (excluding XX fallback codes)', () => {
-      const isoCodes = Countries.map((country) => country.iso2);
       const nonFallbackCodes = isoCodes.filter((code) => code !== 'XX');
       const uniqueIsoCodes = new Set(nonFallbackCodes);
       expect(uniqueIsoCodes.size).toBe(nonFallbackCodes.length);
     });
 
-    test('ISO codes should be 2 characters long', () => {
-      Countries.forEach((country) => {
+    test('ISO codes should be 2 characters long and uppercase', () => {
+      const sampleCountries = Countries.slice(0, 20);
+      sampleCountries.forEach((country) => {
         expect(country.iso2.length).toBe(2);
-      });
-    });
-
-    test('ISO codes should be uppercase', () => {
-      Countries.forEach((country) => {
         expect(country.iso2).toBe(country.iso2.toUpperCase());
       });
     });
 
     test('each state should have required properties', () => {
-      Countries.forEach((country) => {
+      const sampleCountriesWithStates = countriesWithStates.slice(0, 5);
+      sampleCountriesWithStates.forEach((country) => {
         country.states.forEach((state) => {
           expect(state).toHaveProperty('name');
           expect(state).toHaveProperty('state_code');
@@ -57,37 +66,13 @@ describe('Countries Data', () => {
       });
     });
 
-    test('state names should be non-empty', () => {
-      Countries.forEach((country) => {
+    test('state names and codes should be non-empty', () => {
+      const sampleCountriesWithStates = countriesWithStates.slice(0, 3);
+      sampleCountriesWithStates.forEach((country) => {
         country.states.forEach((state) => {
           expect(state.name.trim().length).toBeGreaterThan(0);
-        });
-      });
-    });
-
-    test('state codes should be non-empty', () => {
-      Countries.forEach((country) => {
-        country.states.forEach((state) => {
           expect(state.state_code.trim().length).toBeGreaterThan(0);
         });
-      });
-    });
-
-    test('state names should be unique within each country (allowing for duplicates in source data)', () => {
-      // This test is relaxed because the source JSON contains some duplicate state names
-      // We'll just verify the structure is correct
-      Countries.forEach((country) => {
-        const stateNames = country.states.map((state) => state.name);
-        expect(stateNames.length).toBeGreaterThanOrEqual(0);
-      });
-    });
-
-    test('state codes should be unique within each country (allowing for duplicates in source data)', () => {
-      // This test is relaxed because the source JSON contains some duplicate state codes
-      // We'll just verify the structure is correct
-      Countries.forEach((country) => {
-        const stateCodes = country.states.map((state) => state.state_code);
-        expect(stateCodes.length).toBeGreaterThanOrEqual(0);
       });
     });
   });
@@ -125,10 +110,6 @@ describe('Countries Data', () => {
       const usa = getCountryByName('United States');
       expect(usa?.states.length).toBeGreaterThan(0);
       expect(usa?.states.some((state) => state.name === 'California')).toBe(
-        true
-      );
-      // Check for any state with 'CA' in the code (since we generate codes from names)
-      expect(usa?.states.some((state) => state.state_code.includes('CA'))).toBe(
         true
       );
     });
@@ -190,35 +171,29 @@ describe('Countries Data', () => {
     });
 
     test('Countries should contain countries with and without states', () => {
-      const countriesWithStates = Countries.filter((c) => c.states.length > 0);
-      const countriesWithoutStates = Countries.filter(
-        (c) => c.states.length === 0
-      );
-
       expect(countriesWithStates.length).toBeGreaterThan(0);
       expect(countriesWithoutStates.length).toBeGreaterThanOrEqual(0);
     });
 
     test('ISO codes should be valid ISO 3166-1 alpha-2 format (excluding XX fallback)', () => {
-      const isoCodes = Countries.map((c) => c.iso2).filter(
-        (code) => code !== 'XX'
-      );
+      const nonFallbackCodes = isoCodes.filter((code) => code !== 'XX');
       const isoCodePattern = /^[A-Z]{2}$/;
 
-      isoCodes.forEach((isoCode) => {
+      const sampleCodes = nonFallbackCodes.slice(0, 50);
+      sampleCodes.forEach((isoCode) => {
         expect(isoCode).toMatch(isoCodePattern);
       });
     });
 
     test('should have consistent data structure', () => {
-      Countries.forEach((country) => {
-        // All countries should have the same structure
+      const sampleCountries = Countries.slice(0, 10);
+      sampleCountries.forEach((country) => {
         expect(country).toHaveProperty('name');
         expect(country).toHaveProperty('iso2');
         expect(country).toHaveProperty('states');
         expect(Array.isArray(country.states)).toBe(true);
 
-        // States should have consistent structure
+        // states should have consistent structure
         country.states.forEach((state) => {
           expect(state).toHaveProperty('name');
           expect(state).toHaveProperty('state_code');

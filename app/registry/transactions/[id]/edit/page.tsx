@@ -8,54 +8,13 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, Building2 } from 'lucide-react'
 import { TransactionForm } from '../../transaction-form'
 import { useEntity } from '@/lib/entity-context'
-import type { Entity } from '@/lib/types/interfaces/Entity'
-
-interface Transaction {
-    id: string
-    transactionType: string
-    quantity: number
-    amountPaidPerSecurity?: string
-    amountUnpaidPerSecurity?: string
-    transferPricePerSecurity?: string
-    totalAmountPaid?: string
-    totalAmountUnpaid?: string
-    totalTransferAmount?: string
-    transactionDate: string
-    settlementDate?: string
-    reference?: string
-    description?: string
-    certificateNumber?: string
-    status: string
-    entity: {
-        id: string
-        name: string
-    }
-    securityClass: {
-        id: string
-        name: string
-        symbol?: string
-    }
-    fromMember?: {
-        id: string
-        firstName?: string
-        lastName?: string
-        entityName?: string
-        memberType: string
-    }
-    toMember?: {
-        id: string
-        firstName?: string
-        lastName?: string
-        entityName?: string
-        memberType: string
-    }
-}
+import type { TransactionWithRelations } from '@/lib/types/interfaces/Transaction';
 
 export default function EditTransactionPage() {
     const params = useParams()
     const router = useRouter()
     const { selectedEntity, entities } = useEntity()
-    const [transaction, setTransaction] = useState<Transaction | null>(null)
+    const [transaction, setTransaction] = useState<TransactionWithRelations | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 

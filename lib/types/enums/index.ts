@@ -16,21 +16,6 @@ export const MemberStatus = {
   RESIGNED: 'Resigned',
 } as const;
 
-export const TransactionType = {
-  ISSUE: 'ISSUE',
-  TRANSFER: 'TRANSFER',
-  CANCELLATION: 'CANCELLATION',
-  REDEMPTION: 'REDEMPTION',
-  RETURN_OF_CAPITAL: 'RETURN_OF_CAPITAL',
-  CAPITAL_CALL: 'CAPITAL_CALL',
-} as const;
-
-export const TransactionStatus = {
-  PENDING: 'Pending',
-  COMPLETED: 'Completed',
-  CANCELLED: 'Cancelled',
-} as const;
-
 export const AssociateType = {
   OFFICEHOLDER_DIRECTOR: 'officeholder_director',
   OFFICEHOLDER_SECRETARY: 'officeholder_secretary',

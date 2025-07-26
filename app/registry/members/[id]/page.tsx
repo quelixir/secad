@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, User, FileUser, Landmark, Mail, Phone, MapPin, Shield, TrendingUp, Eye, HelpCircle, ExternalLink, Copy, Pencil, Archive, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { MemberWithRelations } from '@/lib/types/interfaces'
+import { MemberWithRelations, TransactionDirection } from '@/lib/types/interfaces'
 import { getDefaultCurrencyCode } from '@/lib/config'
 
 interface SecurityClassesSummary {
@@ -143,9 +143,9 @@ export default function MemberViewPage() {
 
     // Combine all transactions
     const allTransactions = [
-        ...(member.transactionsFrom || []).map(t => ({ ...t, direction: 'out' as const })),
-        ...(member.transactionsTo || []).map(t => ({ ...t, direction: 'in' as const }))
-    ].sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime())
+        ...(member.transactionsFrom || []).map(t => ({ ...t, direction: TransactionDirection.OUT as const })),
+        ...(member.transactionsTo || []).map(t => ({ ...t, direction: TransactionDirection.IN as const }))
+    ].sort((a, b) => new Date(b.settlementDate).getTime() - new Date(a.settlementDate).getTime())
 
     // Filter transactions by security class
     const filteredTransactions = selectedSecurityClass === 'all'
@@ -164,7 +164,7 @@ export default function MemberViewPage() {
     const formatCurrency = (amount: number, currency: string) => {
         return new Intl.NumberFormat('en-AU', {
             style: 'currency',
-            currency: currency || 'AUD'
+            currency: currency || getDefaultCurrencyCode()
         }).format(amount)
     }
 
@@ -576,7 +576,7 @@ export default function MemberViewPage() {
                                     Transaction History
                                 </CardTitle>
                                 <CardDescription>
-                                    History of securities allocations and transactions
+                                    History of securities transactions
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -605,7 +605,6 @@ export default function MemberViewPage() {
                                                     <TableHead>Date</TableHead>
                                                     <TableHead>Type</TableHead>
                                                     <TableHead>Security Class</TableHead>
-                                                    <TableHead>Direction</TableHead>
                                                     <TableHead>Quantity</TableHead>
                                                     <TableHead>
                                                         <div className="flex items-center gap-1">
@@ -638,7 +637,7 @@ export default function MemberViewPage() {
                                             <TableBody>
                                                 {filteredTransactions.map((transaction) => (
                                                     <TableRow key={transaction.id}>
-                                                        <TableCell>{formatDate(transaction.transactionDate)}</TableCell>
+                                                        <TableCell>{formatDate(transaction.settlementDate)}</TableCell>
                                                         <TableCell>
                                                             <Badge variant="outline">{transaction.transactionType}</Badge>
                                                         </TableCell>
@@ -649,39 +648,58 @@ export default function MemberViewPage() {
                                                                         {transaction.securityClass?.symbol}
                                                                     </Badge>
                                                                 )}
-                                                                <div className="font-medium">{transaction.securityClass?.name || transaction.securityClassId}</div>
+                                                                <div>{transaction.securityClass?.name || transaction.securityClassId}</div>
                                                             </div>
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Badge variant={transaction.direction === 'in' ? 'default' : 'secondary'}>
-                                                                {transaction.direction === 'in' ? 'RECEIVED' : 'SENT'}
-                                                            </Badge>
+                                                            <div className="font-bold">
+                                                                <span className={transaction.direction === TransactionDirection.IN ? 'text-green-800' : 'text-red-800'}>
+                                                                    {transaction.direction === TransactionDirection.OUT && '('}
+                                                                    {transaction.quantity.toLocaleString()}
+                                                                    {transaction.direction === TransactionDirection.OUT && ')'}
+                                                                </span>
+                                                            </div>
                                                         </TableCell>
-                                                        <TableCell>{transaction.quantity.toLocaleString()}</TableCell>
                                                         <TableCell>
                                                             {transaction.amountPaidPerSecurity ? (
-                                                                <span>{formatCurrency(transaction.amountPaidPerSecurity, transaction.currencyCode || getDefaultCurrencyCode())}</span>
+                                                                <span className={transaction.direction === TransactionDirection.IN ? 'text-green-800' : 'text-red-800'}>
+                                                                    {transaction.direction === TransactionDirection.OUT && '('}
+                                                                    {formatCurrency(transaction.amountPaidPerSecurity, transaction.currencyCode || getDefaultCurrencyCode())}
+                                                                    {transaction.direction === TransactionDirection.OUT && ')'}
+                                                                </span>
                                                             ) : (
                                                                 <span className="text-muted-foreground">-</span>
                                                             )}
                                                         </TableCell>
                                                         <TableCell>
                                                             {transaction.totalAmountPaid ? (
-                                                                <span>{formatCurrency(transaction.totalAmountPaid, transaction.currencyCode || getDefaultCurrencyCode())}</span>
+                                                                <span className={transaction.direction === TransactionDirection.IN ? 'text-green-800' : 'text-red-800'}>
+                                                                    {transaction.direction === TransactionDirection.OUT && '('}
+                                                                    {formatCurrency(transaction.totalAmountPaid, transaction.currencyCode || getDefaultCurrencyCode())}
+                                                                    {transaction.direction === TransactionDirection.OUT && ')'}
+                                                                </span>
                                                             ) : (
                                                                 <span className="text-muted-foreground">-</span>
                                                             )}
                                                         </TableCell>
                                                         <TableCell>
                                                             {transaction.amountUnpaidPerSecurity ? (
-                                                                <span>{formatCurrency(transaction.amountUnpaidPerSecurity, transaction.currencyCode || getDefaultCurrencyCode())}</span>
+                                                                <span className={transaction.direction === TransactionDirection.IN ? 'text-green-800' : 'text-red-800'}>
+                                                                    {transaction.direction === TransactionDirection.OUT && '('}
+                                                                    {formatCurrency(transaction.amountUnpaidPerSecurity, transaction.currencyCode || getDefaultCurrencyCode())}
+                                                                    {transaction.direction === TransactionDirection.OUT && ')'}
+                                                                </span>
                                                             ) : (
                                                                 <span className="text-muted-foreground">-</span>
                                                             )}
                                                         </TableCell>
                                                         <TableCell>
                                                             {transaction.totalAmountUnpaid ? (
-                                                                <span>{formatCurrency(transaction.totalAmountUnpaid, transaction.currencyCode || getDefaultCurrencyCode())}</span>
+                                                                <span className={transaction.direction === TransactionDirection.OUT ? 'text-red-800' : 'text-green-800'}>
+                                                                    {transaction.direction === TransactionDirection.OUT && '('}
+                                                                    {formatCurrency(transaction.totalAmountUnpaid, transaction.currencyCode || getDefaultCurrencyCode())}
+                                                                    {transaction.direction === TransactionDirection.OUT && ')'}
+                                                                </span>
                                                             ) : (
                                                                 <span className="text-muted-foreground">-</span>
                                                             )}

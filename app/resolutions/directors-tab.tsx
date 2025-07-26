@@ -10,25 +10,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Plus, Search, Edit, Trash2, FileText, Crown, CheckCircle, Clock, XCircle, Eye } from 'lucide-react'
 import { ResolutionType, ResolutionStatus } from '@/lib/types'
+import { Resolution } from '@/lib/types/interfaces'
 import { ResolutionForm } from './resolution-form'
 import Link from 'next/link'
-
-interface Resolution {
-  id: string
-  title: string
-  type: string
-  description?: string
-  status: string
-  resolutionDate?: string
-  effectiveDate?: string
-  referenceNumber?: string
-  approvedBy?: string
-  createdAt: string
-  entity: {
-    id: string
-    name: string
-  }
-}
 
 interface DirectorsTabProps {
   entityId: string

@@ -16,6 +16,10 @@ import { TransactionType } from '@/lib/types'
 import { TransactionReasons } from '@/lib/transaction-reasons'
 import { Currencies } from '@/lib/currencies'
 import { getDefaultCurrencyCode } from '@/lib/config'
+import { getFormattedMemberName, Member as MemberType } from '@/lib/types/interfaces/Member'
+import type { Entity } from '@/lib/types/interfaces/Entity';
+import type { SecurityClass } from '@/lib/types/interfaces/Security';
+import type { Member } from '@/lib/types/interfaces/Member';
 
 const bulkTransactionSchema = z.object({
     entityId: z.string().min(1, 'Entity is required'),
@@ -23,7 +27,7 @@ const bulkTransactionSchema = z.object({
     type: z.string().min(1, 'Transaction type is required'),
     reasonCode: z.string().min(1, 'Reason code is required'),
     currency: z.string().min(1, 'Currency is required'),
-    transactionDate: z.string().optional(),
+    postedDate: z.string().optional(),
     reference: z.string().optional(),
     description: z.string().optional(),
     transactions: z.array(z.object({
@@ -50,16 +54,16 @@ const bulkTransactionSchema = z.object({
     path: ['transactions']
 }).refine((data) => {
     // Validate transaction date is not before entity incorporation date
-    if (data.transactionDate) {
-        const transactionDate = new Date(data.transactionDate)
+    if (data.postedDate) {
+        const postedDate = new Date(data.postedDate)
         const today = new Date()
         const maxBackdate = new Date()
         maxBackdate.setFullYear(today.getFullYear() - 10) // Allow backdating up to 10 years
 
-        if (transactionDate > today) {
+        if (postedDate > today) {
             return false // Cannot date in the future
         }
-        if (transactionDate < maxBackdate) {
+        if (postedDate < maxBackdate) {
             return false // Cannot backdate more than 10 years
         }
     }
@@ -70,27 +74,6 @@ const bulkTransactionSchema = z.object({
 })
 
 type BulkTransactionFormValues = z.infer<typeof bulkTransactionSchema>
-
-interface Entity {
-    id: string
-    name: string
-}
-
-interface SecurityClass {
-    id: string
-    name: string
-    symbol?: string
-    entityId: string
-}
-
-interface Member {
-    id: string
-    firstName?: string
-    lastName?: string
-    entityName?: string
-    memberType: string
-    entityId: string
-}
 
 interface BulkTransactionFormProps {
     selectedEntity?: Entity
@@ -111,7 +94,7 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
             type: '',
             reasonCode: '',
             currency: getDefaultCurrencyCode(),
-            transactionDate: new Date().toISOString().split('T')[0],
+            postedDate: new Date().toISOString().split('T')[0],
             reference: '',
             description: '',
             transactions: [
@@ -169,10 +152,7 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
 
     const formatMemberName = (member: Member | undefined) => {
         if (!member) return ''
-        if (member.memberType === 'Individual') {
-            return `${member.firstName} ${member.lastName}`.trim()
-        }
-        return member.entityName || ''
+        return getFormattedMemberName(member as MemberType)
     }
 
     const addTransaction = () => {
@@ -365,7 +345,7 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
 
                             <FormField
                                 control={form.control}
-                                name="transactionDate"
+                                name="postedDate"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Transaction Date</FormLabel>

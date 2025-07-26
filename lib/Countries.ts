@@ -6615,11 +6615,24 @@ export const Countries: Country[] = [
   },
 ];
 
+const countryByNameMap = new Map<string, Country>();
+const countryByIsoMap = new Map<string, Country>();
+
+// initialize maps once
+Countries.forEach((country) => {
+  countryByNameMap.set(country.name, country);
+  countryByIsoMap.set(country.iso2, country);
+});
+
 export function getCountryByName(name: string): Country | null {
-  return Countries.find((country) => country.name === name) || null;
+  return countryByNameMap.get(name) || null;
+}
+
+export function getCountryByIso(iso2: string): Country | null {
+  return countryByIsoMap.get(iso2) || null;
 }
 
 export function getStatesForCountry(countryName: string) {
-  const country = Countries.find((country) => country.name === countryName);
+  const country = countryByNameMap.get(countryName);
   return country ? country.states : [];
 }

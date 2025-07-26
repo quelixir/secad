@@ -25,7 +25,7 @@ export async function GET(
                 securityClass: true,
               },
               orderBy: {
-                transactionDate: 'desc',
+                settlementDate: 'desc',
               },
             }
           : false,
@@ -36,7 +36,7 @@ export async function GET(
                 securityClass: true,
               },
               orderBy: {
-                transactionDate: 'desc',
+                settlementDate: 'desc',
               },
             }
           : false,

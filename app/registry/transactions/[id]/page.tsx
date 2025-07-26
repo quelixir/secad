@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { ArrowLeft, TrendingUp, TrendingDown, ArrowRightLeft, Building2, Calendar, Hash, FileText, User, Users, Copy, Check, Edit, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { TransactionWithRelations } from '@/lib/types/interfaces/Transaction'
+import { getFormattedMemberName } from '@/lib/types/interfaces/Member'
 
 export default function ViewTransactionPage() {
     const params = useParams()
@@ -50,8 +51,7 @@ export default function ViewTransactionPage() {
 
     const formatMemberName = (member: TransactionWithRelations['fromMember']) => {
         if (!member) return 'N/A'
-        if (member.entityName) return member.entityName
-        return `${member.firstName || ''} ${member.lastName || ''}`.trim()
+        return getFormattedMemberName(member)
     }
 
     const getTransactionTypeColor = (type: string) => {
@@ -269,17 +269,32 @@ export default function ViewTransactionPage() {
                     </Card>
 
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
                             <CardTitle className="text-sm font-medium">Total Amount</CardTitle>
                             <FileText className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">
-                                {transaction.transferPricePerSecurity && transaction.quantity ?
-                                    formatCurrency((transaction.transferPricePerSecurity * transaction.quantity).toString()) :
-                                    transaction.amountPaidPerSecurity && transaction.quantity ?
-                                        formatCurrency((transaction.amountPaidPerSecurity * transaction.quantity).toString()) : 'N/A'}
-                            </div>
+                        <CardContent className="pt-0">
+                            {(() => {
+                                const pricePerSecurity = Number(transaction.transferPricePerSecurity || transaction.amountPaidPerSecurity);
+                                const currencyCode = transaction.currencyCode || transaction.currency?.code || 'USD';
+                                const securitySymbol = transaction.securityClass?.symbol || 'SEC';
+
+                                if (pricePerSecurity && !isNaN(pricePerSecurity) && transaction.quantity) {
+                                    const total = pricePerSecurity * transaction.quantity;
+                                    return (
+                                        <>
+                                            <div className="text-sm text-muted-foreground mb-0 -mt-3">
+                                                ${pricePerSecurity.toFixed(2)} ({currencyCode}) &times; {transaction.quantity.toLocaleString()} {securitySymbol}
+                                            </div>
+                                            <div className="text-2xl font-bold">
+                                                {formatCurrency(total.toString())}
+                                            </div>
+                                        </>
+                                    );
+                                } else {
+                                    return <div className="text-2xl font-bold">N/A</div>;
+                                }
+                            })()}
                         </CardContent>
                     </Card>
 
@@ -289,7 +304,7 @@ export default function ViewTransactionPage() {
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{formatDate(transaction.transactionDate)}</div>
+                            <div className="text-2xl font-bold">{formatDate(transaction.settlementDate)}</div>
                         </CardContent>
                     </Card>
                 </div>
@@ -324,7 +339,7 @@ export default function ViewTransactionPage() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm font-medium text-muted-foreground">Transaction Date</label>
-                                    <p className="text-sm">{formatDate(transaction.transactionDate)}</p>
+                                    <p className="text-sm">{formatDate(transaction.settlementDate)}</p>
                                 </div>
                                 {transaction.settlementDate && (
                                     <div>
@@ -345,9 +360,9 @@ export default function ViewTransactionPage() {
                         <CardContent className="space-y-4">
                             <div>
                                 <label className="text-sm font-medium text-muted-foreground">Security Class</label>
-                                <p className="text-sm font-medium">{transaction.security?.name || transaction.securityClassId}</p>
-                                {transaction.security?.symbol && (
-                                    <p className="text-xs text-muted-foreground font-mono">{transaction.security.symbol}</p>
+                                <p className="text-sm font-medium">{transaction.securityClass?.name || transaction.securityClassId}</p>
+                                {transaction.securityClass?.symbol && (
+                                    <p className="text-xs text-muted-foreground font-mono">{transaction.securityClass.symbol}</p>
                                 )}
                             </div>
 

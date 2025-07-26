@@ -198,8 +198,8 @@ model Transaction {
   toMemberId               String?
   trancheNumber            String?
   trancheSequence          Int?
-  transactionDate          DateTime      @default(now())
-  settlementDate           DateTime?
+  postedDate               DateTime      @default(now())
+  settlementDate           DateTime      @default(now())
   reference                String?
   description              String?
   certificateNumber        String?

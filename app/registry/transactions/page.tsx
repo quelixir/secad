@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { MainLayout } from '@/components/layout/main-layout'
 import { useEntity } from '@/lib/entity-context'
 import { TransactionWithRelations } from '@/lib/types/interfaces/Transaction'
+import { getFormattedMemberName } from '@/lib/types/interfaces/Member'
 
 export default function TransactionsPage() {
     const { selectedEntity } = useEntity()
@@ -50,8 +51,7 @@ export default function TransactionsPage() {
 
     const formatMemberName = (member: TransactionWithRelations['fromMember']) => {
         if (!member) return 'N/A'
-        if (member.entityName) return member.entityName
-        return `${member.firstName || ''} ${member.lastName || ''}`.trim()
+        return getFormattedMemberName(member)
     }
 
     const filteredTransactions = transactions.filter(transaction => {
@@ -59,7 +59,7 @@ export default function TransactionsPage() {
         const matchesSearch =
             transaction.reference?.toLowerCase().includes(searchLower) ||
             transaction.description?.toLowerCase().includes(searchLower) ||
-            transaction.security?.name.toLowerCase().includes(searchLower) ||
+            transaction.securityClass?.name.toLowerCase().includes(searchLower) ||
             formatMemberName(transaction.fromMember).toLowerCase().includes(searchLower) ||
             formatMemberName(transaction.toMember).toLowerCase().includes(searchLower)
 
@@ -281,12 +281,12 @@ export default function TransactionsPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div>
-                                                        {transaction.security?.symbol && (
+                                                        {transaction.securityClass?.symbol && (
                                                             <Badge variant="outline" className="text-xs">
-                                                                {transaction.security?.symbol}
+                                                                {transaction.securityClass?.symbol}
                                                             </Badge>
                                                         )}
-                                                        <div className="font-medium">{transaction.security?.name || transaction.securityClassId}</div>
+                                                        <div className="font-medium">{transaction.securityClass?.name || transaction.securityClassId}</div>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
@@ -316,7 +316,7 @@ export default function TransactionsPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <span className="text-sm">
-                                                        {new Date(transaction.transactionDate).toLocaleDateString()}
+                                                        {new Date(transaction.settlementDate).toLocaleDateString()}
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>

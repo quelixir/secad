@@ -17,6 +17,11 @@ import { TransactionReasons } from '@/lib/transaction-reasons'
 import { Currencies } from '@/lib/currencies'
 import { cn } from '@/lib/utils'
 import { getDefaultCurrencyCode } from '@/lib/config'
+import { getFormattedMemberName, Member as MemberType } from '@/lib/types/interfaces/Member'
+import type { TransactionWithRelations } from '@/lib/types/interfaces/Transaction'
+import type { Entity } from '@/lib/types/interfaces/Entity';
+import type { SecurityClass } from '@/lib/types/interfaces/Security';
+import type { Member } from '@/lib/types/interfaces/Member';
 
 const transactionFormSchema = z.object({
     entityId: z.string().min(1, 'Entity is required'),
@@ -29,7 +34,7 @@ const transactionFormSchema = z.object({
     currency: z.string().min(1, 'Currency is required'),
     fromMemberId: z.string().optional(),
     toMemberId: z.string().optional(),
-    transactionDate: z.string().optional(),
+    postedDate: z.string().optional(),
     reference: z.string().optional(),
     description: z.string().optional()
 }).refine((data) => {
@@ -47,16 +52,16 @@ const transactionFormSchema = z.object({
     path: ['toMemberId']
 }).refine((data) => {
     // Validate transaction date is not before entity incorporation date
-    if (data.transactionDate) {
-        const transactionDate = new Date(data.transactionDate)
+    if (data.postedDate) {
+        const postedDate = new Date(data.postedDate)
         const today = new Date()
         const maxBackdate = new Date()
         maxBackdate.setFullYear(today.getFullYear() - 10) // Allow backdating up to 10 years
 
-        if (transactionDate > today) {
+        if (postedDate > today) {
             return false // Cannot date in the future
         }
-        if (transactionDate < maxBackdate) {
+        if (postedDate < maxBackdate) {
             return false // Cannot backdate more than 10 years
         }
     }
@@ -68,71 +73,9 @@ const transactionFormSchema = z.object({
 
 type TransactionFormValues = z.infer<typeof transactionFormSchema>
 
-interface Entity {
-    id: string
-    name: string
-}
-
-interface SecurityClass {
-    id: string
-    name: string
-    symbol?: string
-    entityId: string
-}
-
-interface Member {
-    id: string
-    firstName?: string
-    lastName?: string
-    entityName?: string
-    memberType: string
-    entityId: string
-}
-
-interface Transaction {
-    id: string
-    transactionType: string
-    quantity: number
-    amountPaidPerSecurity?: string
-    amountUnpaidPerSecurity?: string
-    transferPricePerSecurity?: string
-    totalAmountPaid?: string
-    totalAmountUnpaid?: string
-    totalTransferAmount?: string
-    transactionDate: string
-    settlementDate?: string
-    reference?: string
-    description?: string
-    certificateNumber?: string
-    status: string
-    entity: {
-        id: string
-        name: string
-    }
-    securityClass: {
-        id: string
-        name: string
-        symbol?: string
-    }
-    fromMember?: {
-        id: string
-        firstName?: string
-        lastName?: string
-        entityName?: string
-        memberType: string
-    }
-    toMember?: {
-        id: string
-        firstName?: string
-        lastName?: string
-        entityName?: string
-        memberType: string
-    }
-}
-
 interface TransactionFormProps {
     selectedEntity?: Entity
-    transaction?: Transaction
+    transaction?: TransactionWithRelations
     onSaved: () => void
 }
 
@@ -155,13 +98,13 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
             securityClassId: transaction?.securityClass?.id || '',
             type: transaction?.transactionType || '',
             reasonCode: '',
-            quantity: transaction?.quantity?.toString() || '',
-            paidPerSecurity: transaction?.amountPaidPerSecurity || transaction?.transferPricePerSecurity || '',
-            unpaidPerSecurity: transaction?.amountUnpaidPerSecurity || '',
+            quantity: transaction?.quantity !== undefined ? transaction.quantity.toString() : '',
+            paidPerSecurity: transaction?.amountPaidPerSecurity !== undefined ? transaction.amountPaidPerSecurity.toString() : (transaction?.transferPricePerSecurity !== undefined ? transaction.transferPricePerSecurity.toString() : ''),
+            unpaidPerSecurity: transaction?.amountUnpaidPerSecurity !== undefined ? transaction.amountUnpaidPerSecurity.toString() : '',
             currency: getDefaultCurrencyCode(),
             fromMemberId: transaction?.fromMember?.id || '',
             toMemberId: transaction?.toMember?.id || '',
-            transactionDate: transaction?.transactionDate ? new Date(transaction.transactionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            postedDate: transaction?.postedDate ? new Date(transaction.postedDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
             reference: transaction?.reference || '',
             description: transaction?.description || ''
         }
@@ -219,8 +162,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
 
     const formatMemberName = (member: Member | undefined) => {
         if (!member) return 'N/A'
-        if (member.entityName) return `${member.entityName} (${member.memberType})`
-        return `${member.firstName || ''} ${member.lastName || ''} (${member.memberType})`.trim()
+        return `${getFormattedMemberName(member as MemberType)} (${member.memberType})`
     }
 
     const showTooltip = (text: string, event: React.MouseEvent) => {
@@ -294,7 +236,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                 pricePerSecurity: values.paidPerSecurity ? parseFloat(values.paidPerSecurity) : undefined,
                 unpaidPerSecurity: values.unpaidPerSecurity ? parseFloat(values.unpaidPerSecurity) : undefined,
                 currency: values.currency,
-                transactionDate: values.transactionDate ? new Date(values.transactionDate).toISOString() : undefined,
+                postedDate: values.postedDate ? new Date(values.postedDate).toISOString() : undefined,
                 fromMemberId: values.type === 'ISSUE' ? null : (values.fromMemberId || undefined),
                 toMemberId: values.toMemberId || undefined
             }
@@ -951,7 +893,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                     <div className="grid grid-cols-2 gap-4">
                         <FormField
                             control={form.control}
-                            name="transactionDate"
+                            name="postedDate"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Transaction Date</FormLabel>

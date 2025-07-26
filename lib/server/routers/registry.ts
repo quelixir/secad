@@ -60,10 +60,10 @@ export const registryRouter = createTRPCRouter({
                 id: true,
                 transactionType: true,
                 quantity: true,
-                transactionDate: true,
+                postedDate: true,
                 status: true,
               },
-              orderBy: { transactionDate: 'desc' },
+              orderBy: { settlementDate: 'desc' },
               take: 10,
             }),
             prisma.associate.findMany({
@@ -133,7 +133,7 @@ export const registryRouter = createTRPCRouter({
                 toMember: true,
               },
               orderBy: {
-                transactionDate: 'desc',
+                settlementDate: 'desc',
               },
             },
             _count: {
@@ -258,7 +258,7 @@ export const registryRouter = createTRPCRouter({
             securityClass: true,
           },
           orderBy: {
-            transactionDate: 'desc',
+            settlementDate: 'desc',
           },
           take: input.limit,
           skip: input.offset,

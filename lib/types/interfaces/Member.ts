@@ -1,4 +1,6 @@
 import { Entity } from './Entity';
+import { TransactionWithRelations, TransactionType } from './Transaction';
+import { SecurityClass } from './Security';
 
 export interface MemberContact {
   id: string;
@@ -37,12 +39,116 @@ export interface Member {
   updatedAt: Date;
   createdBy?: string | null;
   updatedBy?: string | null;
-  allocations?: Array<{ quantity: number }>;
+  transactions?: Array<{ quantity: number }>;
   contacts?: MemberContact[];
+}
+
+export function getFormattedMemberName(member: Member): string {
+  if (member.entityName) return member.entityName;
+  return `${member.firstName || ''} ${member.lastName || ''}`.trim();
+}
+
+// Utility function to add getFormattedName method to any Member object
+export function addFormattedNameMethod(
+  member: Member
+): Member & { getFormattedName(): string } {
+  return {
+    ...member,
+    getFormattedName() {
+      return getFormattedMemberName(member);
+    },
+  };
 }
 
 export interface MemberWithRelations extends Member {
   entity?: Entity;
+}
+
+export interface MemberHolding {
+  securityClass: SecurityClass;
+  balance: number;
+}
+
+export function calculateMemberHoldings(
+  memberId: string,
+  transactions: TransactionWithRelations[]
+): MemberHolding[] {
+  const holdings = new Map<
+    string,
+    { securityClass: SecurityClass; balance: number }
+  >();
+
+  transactions.forEach((transaction) => {
+    if (!transaction.securityClass) return;
+
+    const securityClassId = transaction.securityClassId;
+    const currentHolding = holdings.get(securityClassId) || {
+      securityClass: transaction.securityClass,
+      balance: 0,
+    };
+
+    let quantityChange = 0;
+
+    switch (transaction.transactionType) {
+      case TransactionType.ISSUE:
+        // Member receives shares (positive)
+        if (transaction.toMemberId === memberId) {
+          quantityChange = transaction.quantity;
+        }
+        break;
+
+      case TransactionType.TRANSFER:
+        // Member receives shares (positive)
+        if (transaction.toMemberId === memberId) {
+          quantityChange = transaction.quantity;
+        }
+        // Member gives up shares (negative)
+        if (transaction.fromMemberId === memberId) {
+          quantityChange -= transaction.quantity;
+        }
+        break;
+
+      case TransactionType.REDEMPTION:
+        // Member loses shares (negative)
+        if (transaction.fromMemberId === memberId) {
+          quantityChange = -transaction.quantity;
+        }
+        break;
+
+      case TransactionType.CANCELLATION:
+        // Member loses shares (negative)
+        if (transaction.fromMemberId === memberId) {
+          quantityChange = -transaction.quantity;
+        }
+        break;
+
+      case TransactionType.RETURN_OF_CAPITAL:
+        // Member loses shares (negative)
+        if (transaction.fromMemberId === memberId) {
+          quantityChange = -transaction.quantity;
+        }
+        break;
+
+      case TransactionType.CAPITAL_CALL:
+        // Member receives shares (positive) - typically for capital calls
+        if (transaction.toMemberId === memberId) {
+          quantityChange = transaction.quantity;
+        }
+        break;
+
+      default:
+        // Unknown transaction type - no change
+        break;
+    }
+
+    currentHolding.balance += quantityChange;
+    holdings.set(securityClassId, currentHolding);
+  });
+
+  // Return only holdings with positive balances
+  return Array.from(holdings.values())
+    .filter((holding) => holding.balance > 0)
+    .sort((a, b) => a.securityClass.name.localeCompare(b.securityClass.name));
 }
 
 export interface MemberInput {

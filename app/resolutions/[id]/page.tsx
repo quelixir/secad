@@ -23,29 +23,7 @@ import {
     History
 } from 'lucide-react'
 import { ResolutionForm } from '../resolution-form'
-
-interface Resolution {
-    id: string
-    title: string
-    type: string
-    category: string
-    description?: string
-    content: string
-    status: string
-    resolutionDate?: string
-    effectiveDate?: string
-    referenceNumber?: string
-    approvedBy?: string
-    votingDetails?: string
-    notes?: string
-    createdAt: string
-    updatedAt: string
-    createdBy?: string
-    entity: {
-        id: string
-        name: string
-    }
-}
+import { Resolution } from '@/lib/types/interfaces'
 
 // Standard directors' resolutions with their legislative sections and descriptions
 const STANDARD_DIRECTORS_RESOLUTIONS = [

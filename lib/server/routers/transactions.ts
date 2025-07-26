@@ -22,7 +22,7 @@ const transactionInputSchema = z.object({
   toMemberId: z.string().optional(),
   trancheNumber: z.string().optional(),
   trancheSequence: z.number().optional(),
-  transactionDate: z.date().optional(),
+  postedDate: z.date().optional(),
   settlementDate: z.date().optional(),
   reference: z.string().optional(),
   description: z.string().optional(),
@@ -66,7 +66,7 @@ export const transactionsRouter = createTRPCRouter({
             securityClass: true,
           },
           orderBy: {
-            transactionDate: 'desc',
+            settlementDate: 'desc',
           },
         });
 
@@ -139,8 +139,8 @@ export const transactionsRouter = createTRPCRouter({
             toMemberId: input.toMemberId || null,
             trancheNumber: input.trancheNumber || null,
             trancheSequence: input.trancheSequence || null,
-            transactionDate: input.transactionDate || new Date(),
-            settlementDate: input.settlementDate || null,
+            postedDate: input.postedDate || new Date(),
+            settlementDate: input.settlementDate || new Date(),
             reference: input.reference || null,
             description: input.description || null,
             certificateNumber: input.certificateNumber || null,

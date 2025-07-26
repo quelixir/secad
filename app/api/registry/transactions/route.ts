@@ -5,6 +5,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { AuditLogger } from '@/lib/audit';
 import { AuditTableName } from '@/lib/audit';
 import { auth } from '@/lib/auth';
+import { getDefaultCurrencyCode } from '@/lib/config';
 
 // GET /api/transactions - List all transactions (optionally filtered by entity)
 export async function GET(request: NextRequest) {
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
         toMember: true,
       },
       orderBy: {
-        transactionDate: 'desc',
+        settlementDate: 'desc',
       },
     });
 
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
       toMemberId,
       trancheNumber,
       trancheSequence,
-      transactionDate,
+      postedDate,
       settlementDate,
       reference,
       description,
@@ -239,7 +240,7 @@ export async function POST(request: NextRequest) {
         transferPricePerSecurity: transferPricePerSecurity
           ? new Decimal(transferPricePerSecurity)
           : null,
-        currencyCode: currency || 'AUD',
+        currencyCode: currency || getDefaultCurrencyCode(),
         totalAmountPaid,
         totalAmountUnpaid,
         totalTransferAmount,
@@ -247,8 +248,8 @@ export async function POST(request: NextRequest) {
         toMemberId,
         trancheNumber,
         trancheSequence,
-        transactionDate: transactionDate || new Date(),
-        settlementDate,
+        postedDate: postedDate || new Date(),
+        settlementDate: settlementDate || new Date(),
         reference,
         description,
         certificateNumber,

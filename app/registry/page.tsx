@@ -28,7 +28,7 @@ interface RegistrySummary {
         id: string
         transactionType: string
         quantity: number
-        transactionDate: string
+        settlementDate: string
         status: string
     }>
 }
@@ -185,7 +185,7 @@ export default function RegistryPage() {
                                                             {transaction.transactionType.toLowerCase()}
                                                         </div>
                                                         <div className="text-sm text-muted-foreground">
-                                                            {new Date(transaction.transactionDate).toLocaleDateString()}
+                                                            {new Date(transaction.settlementDate).toLocaleDateString()}
                                                         </div>
                                                     </div>
                                                     <div className="text-right">

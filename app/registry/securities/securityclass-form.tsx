@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
+import type { Entity } from '@/lib/types/interfaces/Entity';
 
 const securityFormSchema = z.object({
   entityId: z.string().min(1, 'Entity is required'),
@@ -21,11 +22,6 @@ const securityFormSchema = z.object({
 })
 
 type SecurityFormValues = z.infer<typeof securityFormSchema>
-
-interface Entity {
-  id: string
-  name: string
-}
 
 interface SecurityFormProps {
   entities: Entity[]

@@ -13,27 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Search, Edit, Trash2, Building2, Crown, UserCheck } from 'lucide-react'
 import { useEntity } from '@/lib/entity-context'
 import { AssociateForm } from './associate-form'
-
-interface Associate {
-  id: string
-  type: string
-  isIndividual: boolean
-  givenNames?: string
-  familyName?: string
-  dateOfBirth?: string
-  previousNames?: string[]
-  entityName?: string
-  email?: string
-  phone?: string
-  status: string
-  appointmentDate: string
-  resignationDate?: string
-  notes?: string
-  entity: {
-    id: string
-    name: string
-  }
-}
+import type { AssociateWithRelations as Associate } from '@/lib/types/interfaces/Associate';
 
 export default function AssociatesPage() {
   const { selectedEntity } = useEntity()
@@ -303,7 +283,7 @@ export default function AssociatesPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {new Date(associate.appointmentDate).toLocaleDateString()}
+                          {associate.appointmentDate ? new Date(associate.appointmentDate).toLocaleDateString() : '—'}
                         </TableCell>
                         <TableCell>
                           {associate.resignationDate
@@ -356,7 +336,7 @@ export default function AssociatesPage() {
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Officeholder</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete "{formatAssociateName(associate)}"? This action cannot be undone.
+                                    Are you sure you want to delete &quot;{formatAssociateName(associate)}&quot;? This action cannot be undone.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

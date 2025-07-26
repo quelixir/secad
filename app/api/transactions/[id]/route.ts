@@ -94,7 +94,7 @@ export async function PUT(
       updateData.trancheNumber = body.trancheNumber;
     if (body.trancheSequence !== undefined)
       updateData.trancheSequence = body.trancheSequence;
-    if (body.transactionDate) updateData.transactionDate = body.transactionDate;
+    if (body.postedDate) updateData.postedDate = body.postedDate;
     if (body.settlementDate !== undefined)
       updateData.settlementDate = body.settlementDate;
     if (body.reference !== undefined) updateData.reference = body.reference;

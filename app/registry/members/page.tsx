@@ -8,21 +8,24 @@ import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Plus, Search, Edit, Trash2, Users, Eye } from 'lucide-react'
 import { MemberForm } from './member-form'
 import { useEntity } from '@/lib/entity-context'
 import Link from 'next/link'
-import { Member } from '@/lib/types/interfaces'
-import { MemberType } from '@/lib/types'
+import { Member, MemberStatus, MemberType, calculateMemberHoldings } from '@/lib/types'
 import { MainLayout } from '@/components/layout/main-layout'
+import { TransactionWithRelations } from '@/lib/types/interfaces/Transaction'
 
 export default function MembersPage() {
     const { selectedEntity, entities } = useEntity()
     const [members, setMembers] = useState<Member[]>([])
+    const [transactions, setTransactions] = useState<TransactionWithRelations[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
     const [editingMember, setEditingMember] = useState<Member | null>(null)
     const [showAddDialog, setShowAddDialog] = useState(false)
+    const [popoverStates, setPopoverStates] = useState<{ [key: string]: boolean }>({})
 
     const fetchMembers = useCallback(async () => {
         if (!selectedEntity) {
@@ -48,9 +51,30 @@ export default function MembersPage() {
         }
     }, [selectedEntity])
 
+    const fetchTransactions = useCallback(async () => {
+        if (!selectedEntity) {
+            setTransactions([])
+            return
+        }
+
+        try {
+            const response = await fetch(`/api/registry/transactions?entityId=${selectedEntity.id}`)
+            const result = await response.json()
+
+            if (result.success) {
+                setTransactions(result.data)
+            } else {
+                console.error('Failed to fetch transactions:', result.error)
+            }
+        } catch (error) {
+            console.error('Error fetching transactions:', error)
+        }
+    }, [selectedEntity])
+
     useEffect(() => {
         fetchMembers()
-    }, [fetchMembers])
+        fetchTransactions()
+    }, [fetchMembers, fetchTransactions])
 
     const handleDelete = async (id: string) => {
         try {
@@ -93,7 +117,8 @@ export default function MembersPage() {
     // Calculate member statistics
     const activeMembers = members.filter(m => m.status === 'ACTIVE').length
     const totalHoldings = members.reduce((sum, member) => {
-        return sum + (member.allocations?.reduce((holdingSum, allocation) => holdingSum + allocation.quantity, 0) || 0)
+        const memberHoldings = calculateMemberHoldings(member.id, transactions);
+        return sum + memberHoldings.reduce((memberSum, holding) => memberSum + holding.balance, 0);
     }, 0)
 
     if (!selectedEntity) {
@@ -198,13 +223,13 @@ export default function MembersPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Member</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>Beneficially Held</TableHead>
+                                <TableHead className="text-center">Type</TableHead>
+                                <TableHead className="text-center">Beneficially Held</TableHead>
                                 <TableHead>Contact</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead className="text-center">Status</TableHead>
                                 <TableHead>Holdings</TableHead>
                                 <TableHead>Join Date</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead className="text-center">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -236,132 +261,161 @@ export default function MembersPage() {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                filteredMembers.map((member) => (
-                                    <TableRow key={member.id}>
-                                        <TableCell>
-                                            <div>
-                                                <div className="font-medium">
-                                                    {member.memberType == MemberType.INDIVIDUAL
-                                                        ? `${member.firstName} ${member.lastName}`.trim()
-                                                        : member.entityName
-                                                    }
-                                                </div>
-                                                {member.designation && (
-                                                    <div className="text-sm text-muted-foreground">
-                                                        {member.designation}
-                                                    </div>
-                                                )}
-                                                {member.memberNumber && (
-                                                    <div className="text-sm text-muted-foreground">
-                                                        #{member.memberNumber}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={member.memberType == MemberType.INDIVIDUAL ? 'default' : 'secondary'}>
-                                                {member.memberType}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={member.beneficiallyHeld ? 'default' : 'secondary'}>
-                                                {member.beneficiallyHeld ? 'Yes' : 'No'}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="text-sm">
-                                                {member.email && (
-                                                    <div className="text-muted-foreground">{member.email}</div>
-                                                )}
-                                                {member.phone && (
-                                                    <div className="text-muted-foreground">{member.phone}</div>
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={member.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                                                {member.status}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {member.allocations && member.allocations.length > 0 ? (
-                                                <div className="text-sm">
-                                                    {member.allocations.map((allocation, index) => (
-                                                        <div key={index} className="text-muted-foreground">
-                                                            {allocation.quantity.toLocaleString()} shares
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <span className="text-muted-foreground">No holdings</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {new Date(member.joinDate).toLocaleDateString()}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <Link href={`/registry/members/${member.id}`}>
-                                                    <Button variant="ghost" size="sm">
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                </Link>
-                                                <Dialog>
-                                                    <DialogTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => setEditingMember(member)}
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent className="dialog-wide max-h-[95vh] overflow-hidden">
-                                                        <DialogHeader>
-                                                            <DialogTitle>Edit Member</DialogTitle>
-                                                            <DialogDescription>
-                                                                Update member information.
-                                                            </DialogDescription>
-                                                        </DialogHeader>
-                                                        {editingMember && (
-                                                            <MemberForm
-                                                                member={editingMember}
-                                                                onSaved={handleFormSuccess}
-                                                                entities={entities}
-                                                                selectedEntity={selectedEntity}
-                                                            />
-                                                        )}
-                                                    </DialogContent>
-                                                </Dialog>
+                                filteredMembers.map((member) => {
+                                    const memberHoldings = calculateMemberHoldings(member.id, transactions);
 
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
+                                    return (
+                                        <TableRow key={member.id}>
+                                            <TableCell>
+                                                <div>
+                                                    <div className="font-medium">
+                                                        {member.memberType == MemberType.INDIVIDUAL
+                                                            ? `${member.firstName} ${member.lastName}`.trim()
+                                                            : member.entityName
+                                                        }
+                                                    </div>
+                                                    {member.designation && (
+                                                        <div className="text-sm text-muted-foreground">
+                                                            {member.designation}
+                                                        </div>
+                                                    )}
+                                                    {member.memberNumber && (
+                                                        <div className="text-sm text-muted-foreground">
+                                                            #{member.memberNumber}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <Badge variant={member.memberType == MemberType.INDIVIDUAL ? 'default' : 'secondary'}>
+                                                    {member.memberType}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <Badge variant='outline' className={member.beneficiallyHeld ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
+                                                    {member.beneficiallyHeld ? 'Yes' : 'No'}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="text-sm">
+                                                    {member.email && (
+                                                        <div className="text-muted-foreground hover:underline">
+                                                            <Link href={`mailto:${member.email}`}>{member.email}</Link>
+                                                        </div>
+                                                    )}
+                                                    {member.phone && (
+                                                        <div className="text-muted-foreground">{member.phone}</div>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <Badge variant='outline' className={member.status === MemberStatus.ACTIVE ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                                                    {member.status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                {memberHoldings.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {memberHoldings.map((holding, index) => {
+                                                            const popoverKey = `${member.id}-${holding.securityClass.id}-${index}`;
+                                                            return (
+                                                                <Popover
+                                                                    key={index}
+                                                                    open={popoverStates[popoverKey]}
+                                                                    onOpenChange={(open) => setPopoverStates(prev => ({ ...prev, [popoverKey]: open }))}
+                                                                >
+                                                                    <PopoverTrigger asChild>
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="text-xs cursor-help"
+                                                                            onMouseEnter={() => setPopoverStates(prev => ({ ...prev, [popoverKey]: true }))}
+                                                                            onMouseLeave={() => setPopoverStates(prev => ({ ...prev, [popoverKey]: false }))}
+                                                                        >
+                                                                            {holding.securityClass.symbol || holding.securityClass.name}
+                                                                        </Badge>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="w-auto p-2">
+                                                                        <div className="text-sm font-medium">{holding.securityClass.name}</div>
+                                                                        {holding.securityClass.symbol && (
+                                                                            <div className="text-xs text-muted-foreground">Symbol: {holding.securityClass.symbol}</div>
+                                                                        )}
+                                                                        <div className="text-xs text-muted-foreground">Balance: {holding.balance.toLocaleString()} shares</div>
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-muted-foreground">No holdings</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {new Date(member.joinDate).toLocaleDateString()}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Link href={`/registry/members/${member.id}`}>
                                                         <Button variant="ghost" size="sm">
-                                                            <Trash2 className="h-4 w-4" />
+                                                            <Eye className="h-4 w-4" />
                                                         </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Delete Member</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                Are you sure you want to delete this member? This action cannot be undone and will also remove all associated holdings and transactions.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction
-                                                                onClick={() => handleDelete(member.id)}
-                                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                    </Link>
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => setEditingMember(member)}
                                                             >
-                                                                Delete
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="dialog-wide max-h-[95vh] overflow-hidden">
+                                                            <DialogHeader>
+                                                                <DialogTitle>Edit Member</DialogTitle>
+                                                                <DialogDescription>
+                                                                    Update member information.
+                                                                </DialogDescription>
+                                                            </DialogHeader>
+                                                            {editingMember && (
+                                                                <MemberForm
+                                                                    member={editingMember}
+                                                                    onSaved={handleFormSuccess}
+                                                                    entities={entities}
+                                                                    selectedEntity={selectedEntity}
+                                                                />
+                                                            )}
+                                                        </DialogContent>
+                                                    </Dialog>
+
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button variant="ghost" size="sm">
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Delete Member</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Are you sure you want to delete this member? This action cannot be undone and will also remove all associated holdings and transactions.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() => handleDelete(member.id)}
+                                                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                                >
+                                                                    Delete
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })
                             )}
                         </TableBody>
                     </Table>
