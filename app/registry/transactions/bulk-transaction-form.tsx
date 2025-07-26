@@ -52,25 +52,6 @@ const bulkTransactionSchema = z.object({
 }, {
     message: 'Invalid member selection for transaction type',
     path: ['transactions']
-}).refine((data) => {
-    // Validate transaction date is not before entity incorporation date
-    if (data.postedDate) {
-        const postedDate = new Date(data.postedDate)
-        const today = new Date()
-        const maxBackdate = new Date()
-        maxBackdate.setFullYear(today.getFullYear() - 10) // Allow backdating up to 10 years
-
-        if (postedDate > today) {
-            return false // Cannot date in the future
-        }
-        if (postedDate < maxBackdate) {
-            return false // Cannot backdate more than 10 years
-        }
-    }
-    return true
-}, {
-    message: 'Transaction date cannot be in the future or more than 10 years in the past',
-    path: ['transactionDate']
 })
 
 type BulkTransactionFormValues = z.infer<typeof bulkTransactionSchema>
