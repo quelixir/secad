@@ -7,25 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { EntityForm } from '../../entity-form'
-import type { EntityIdentifier } from '@/components/ui/entity-identifiers'
-
-interface Entity {
-    id: string
-    name: string
-    entityType: string
-    status: string
-    email?: string
-    phone?: string
-    city?: string
-    state?: string
-    address?: string
-    postcode?: string
-    country?: string
-    website?: string
-    incorporationDate?: string
-    createdAt: string
-    identifiers?: EntityIdentifier[]
-}
+import type { Entity, EntityApiResponse } from '@/lib/types/interfaces/Entity'
 
 interface EntityFormData {
     name: string;
@@ -57,7 +39,15 @@ export default function EditEntityPage({ params }: { params: Promise<{ id: strin
                 const result = await response.json()
 
                 if (result.success) {
-                    setEntity(result.data)
+                    // Transform API response to Entity interface
+                    const apiEntity: EntityApiResponse = result.data
+                    const transformedEntity: Entity = {
+                        ...apiEntity,
+                        incorporationDate: apiEntity.incorporationDate ? new Date(apiEntity.incorporationDate) : null,
+                        createdAt: new Date(apiEntity.createdAt),
+                        updatedAt: new Date(apiEntity.updatedAt)
+                    }
+                    setEntity(transformedEntity)
                 } else {
                     setError(result.error || 'Failed to fetch entity')
                 }

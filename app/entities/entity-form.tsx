@@ -49,8 +49,8 @@ export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProp
     resolver: zodResolver(entityFormSchema),
     defaultValues: {
       name: entity?.name || '',
-      entityTypeId: entity?.entityType || '',
-      incorporationDate: entity?.incorporationDate ? entity.incorporationDate.split('T')[0] : '',
+      entityTypeId: entity?.entityTypeId || '',
+      incorporationDate: entity?.incorporationDate ? entity.incorporationDate.toISOString().split('T')[0] : '',
       incorporationCountry: entity?.incorporationCountry || getDefaultCountry(),
       incorporationState: entity?.incorporationState || '',
       address: entity?.address || '',
