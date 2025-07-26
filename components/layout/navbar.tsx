@@ -75,7 +75,8 @@ export function Navbar() {
         }
 
         const isActive = pathname === item.href ||
-          (item.href.startsWith('/registry') && pathname.startsWith('/registry'))
+          (item.href.startsWith('/registry') && pathname.startsWith('/registry')) ||
+          (item.href === '/entities' && pathname.startsWith('/entities'))
         const Icon = item.icon
 
         return (
