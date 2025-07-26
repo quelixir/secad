@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { MainLayout } from '@/components/layout/main-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,21 +8,24 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { ArrowLeft, Building2, Users, Shield, FileText, MapPin, Phone, Mail, Globe, Edit, Copy, BadgeInfo } from 'lucide-react'
+import { ArrowLeft, Building2, Users, Shield, FileText, MapPin, Phone, Mail, Globe, Edit, Copy, BadgeInfo, Play } from 'lucide-react'
 import Link from 'next/link'
 import { compliancePackRegistration } from '@/lib/compliance'
 import { EntityApiResponse } from '@/lib/types/interfaces/Entity'
 import { EntityIdentifier } from '@/lib/types/interfaces/EntityIdentifier'
 import { getLocale, getLocaleOptions } from '@/lib/locale'
 import { getCountryByName } from '@/lib/Countries'
-import { CollaboratorsTab } from '../../registry/collaborators/collaborators-tab';
+import { CollaboratorsTab } from '../../registry/collaborators/collaborators-tab'
+import { useEntityContext } from '@/lib/entity-context'
 import 'flag-icons/css/flag-icons.min.css'
 
 export default function ViewEntityPage() {
     const params = useParams()
+    const router = useRouter()
     const [entity, setEntity] = useState<EntityApiResponse | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const { setSelectedEntity } = useEntityContext()
 
     useEffect(() => {
         const fetchEntity = async () => {
@@ -114,6 +117,20 @@ export default function ViewEntityPage() {
         }
     }
 
+    const handleUseEntity = () => {
+        if (entity) {
+            // Transform the API response to match the Entity interface
+            const transformedEntity = {
+                ...entity,
+                incorporationDate: entity.incorporationDate ? new Date(entity.incorporationDate) : null,
+                createdAt: new Date(entity.createdAt),
+                updatedAt: new Date(entity.updatedAt)
+            }
+            setSelectedEntity(transformedEntity)
+            router.push('/associates') // Redirect to a default module
+        }
+    }
+
     if (loading) {
         return (
             <MainLayout>
@@ -153,18 +170,31 @@ export default function ViewEntityPage() {
                             Back to Entities
                         </Link>
                     </Button>
-                    <Button size="sm" asChild>
-                        <Link href={`/entities/${entity.id}/edit`}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit Entity
-                        </Link>
-                    </Button>
                 </div>
 
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{entity.name}</h1>
-                    <div className="flex items-center gap-2 mt-2">
-                        <Badge className={getStatusColor(entity.status)}>{entity.status}</Badge>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">{entity.name}</h1>
+                        <div className="flex items-center gap-2 mt-2">
+                            <Badge className={getStatusColor(entity.status)}>{entity.status}</Badge>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="default"
+                            size="sm"
+                            onClick={handleUseEntity}
+                            className="bg-green-600 hover:bg-green-700"
+                        >
+                            <Play className="h-4 w-4 mr-2" />
+                            Use This Entity
+                        </Button>
+                        <Button size="sm" asChild>
+                            <Link href={`/entities/${entity.id}/edit`}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit Entity
+                            </Link>
+                        </Button>
                     </div>
                 </div>
 
