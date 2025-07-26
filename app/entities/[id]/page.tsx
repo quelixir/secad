@@ -21,11 +21,10 @@ import 'flag-icons/css/flag-icons.min.css'
 
 export default function ViewEntityPage() {
     const params = useParams()
-    const router = useRouter()
     const [entity, setEntity] = useState<EntityApiResponse | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const { setSelectedEntity } = useEntityContext()
+    const { selectedEntity, setSelectedEntity } = useEntityContext()
 
     useEffect(() => {
         const fetchEntity = async () => {
@@ -175,19 +174,21 @@ export default function ViewEntityPage() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">{entity.name}</h1>
-                        <div className="flex items-center gap-2 mt-2">
-                            <Badge className={getStatusColor(entity.status)}>{entity.status}</Badge>
-                        </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button
                             variant="default"
                             size="sm"
                             onClick={handleUseEntity}
-                            className="bg-green-600 hover:bg-green-700"
+                            disabled={selectedEntity?.id === entity.id}
+                            className={
+                                selectedEntity?.id === entity.id
+                                    ? "bg-blue-600 hover:bg-blue-700"
+                                    : "bg-green-600 hover:bg-green-700"
+                            }
                         >
                             <Play className="h-4 w-4 mr-2" />
-                            Use This Entity
+                            {selectedEntity?.id === entity.id ? "Using This Entity" : "Use This Entity"}
                         </Button>
                         <Button size="sm" asChild>
                             <Link href={`/entities/${entity.id}/edit`}>
