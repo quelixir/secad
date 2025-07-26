@@ -51,7 +51,7 @@ export function CollaboratorsTab({ entityId }: { entityId: string }) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Collaborators</CardTitle>
+                <CardTitle>Access Permissions</CardTitle>
             </CardHeader>
             <CardContent>
                 <h3 className="font-semibold mb-2">Current Collaborators</h3>
