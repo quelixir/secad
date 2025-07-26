@@ -8,13 +8,15 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { ArrowLeft, Building2, Users, Shield, FileText, MapPin, Phone, Mail, Globe, Edit, Copy } from 'lucide-react'
+import { ArrowLeft, Building2, Users, Shield, FileText, MapPin, Phone, Mail, Globe, Edit, Copy, BadgeInfo } from 'lucide-react'
 import Link from 'next/link'
 import { compliancePackRegistration } from '@/lib/compliance'
 import { EntityApiResponse } from '@/lib/types/interfaces/Entity'
 import { EntityIdentifier } from '@/lib/types/interfaces/EntityIdentifier'
 import { getLocale, getLocaleOptions } from '@/lib/locale'
+import { getCountryByName } from '@/lib/Countries'
 import { CollaboratorsTab } from '../../registry/collaborators/collaborators-tab';
+import 'flag-icons/css/flag-icons.min.css'
 
 export default function ViewEntityPage() {
     const params = useParams()
@@ -59,6 +61,21 @@ export default function ViewEntityPage() {
     const getCountryName = (country: string) => {
         const pack = compliancePackRegistration.getByCountry(country)
         return pack?.country || country
+    }
+
+    const getCountryFlag = (countryName: string) => {
+        const country = getCountryByName(countryName)
+        return country ? country.iso2.toLowerCase() : null
+    }
+
+    const CountryWithFlag = ({ countryName }: { countryName: string }) => {
+        const flagCode = getCountryFlag(countryName)
+        return (
+            <span className="flex items-center gap-2">
+                {flagCode && <span className={`fi fi-${flagCode}`}></span>}
+                <span>{countryName}</span>
+            </span>
+        )
     }
 
     const getEntityType = (entityTypeId: string, country?: string) => {
@@ -154,14 +171,15 @@ export default function ViewEntityPage() {
                 <Tabs defaultValue="overview" className="space-y-4">
                     <TabsList>
                         <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="collaborators">Collaborators</TabsTrigger>
                         <TabsTrigger value="identifiers">Identifiers</TabsTrigger>
+                        <TabsTrigger value="collaborators">Access</TabsTrigger>
                         <TabsTrigger value="members">Members ({entity._count?.members || 0})</TabsTrigger>
                         <TabsTrigger value="securities">Securities ({entity._count?.securityClasses || 0})</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="overview" className="space-y-4">
-                        {/* First Row: Basic Information and Statistics */}
+                        {/* First Row */}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Basic Information */}
                             <Card>
@@ -231,7 +249,54 @@ export default function ViewEntityPage() {
                             </Card>
                         </div>
 
-                        {/* Second Row: Contact Information (Full Width) */}
+                        {/* Entity Identifiers */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <BadgeInfo className="h-5 w-5" />
+                                    Entity Identifiers
+                                </CardTitle>
+                                <CardDescription>
+                                    Legal identifiers for this entity across different jurisdictions
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {!entity.identifiers || entity.identifiers.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        No identifiers registered for this entity.
+                                    </div>
+                                ) : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="font-bold">Country</TableHead>
+                                                <TableHead className="font-bold">Type</TableHead>
+                                                <TableHead className="font-bold">Value</TableHead>
+                                                <TableHead className="font-bold">Status</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {entity.identifiers.map((identifier: EntityIdentifier) => (
+                                                <TableRow key={identifier.id}>
+                                                    <TableCell>
+                                                        <CountryWithFlag countryName={getCountryName(identifier.country)} />
+                                                    </TableCell>
+                                                    <TableCell>{getIdentifierTypeName(identifier.country, identifier.type)}</TableCell>
+                                                    <TableCell className="font-mono">{formatIdentifierValue(identifier)}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={identifier.isActive ? "default" : "secondary"}>
+                                                            {identifier.isActive ? "Active" : "Inactive"}
+                                                        </Badge>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Contact Information (Full Width) */}
                         <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
@@ -256,7 +321,9 @@ export default function ViewEntityPage() {
                                             </div>
                                         )}
                                         {entity.country && (
-                                            <div className="text-sm text-muted-foreground ml-6">{entity.country}</div>
+                                            <div className="text-sm text-muted-foreground ml-6">
+                                                <CountryWithFlag countryName={entity.country} />
+                                            </div>
                                         )}
                                         {!entity.address && !entity.city && !entity.state && !entity.postcode && !entity.country && (
                                             <div className="text-sm text-muted-foreground italic">No address information recorded yet</div>
@@ -293,53 +360,11 @@ export default function ViewEntityPage() {
                                 </div>
                             </CardContent>
                         </Card>
+
                     </TabsContent>
 
                     <TabsContent value="collaborators" className="space-y-4">
                         <CollaboratorsTab entityId={entity.id} />
-                    </TabsContent>
-
-                    <TabsContent value="identifiers" className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Entity Identifiers</CardTitle>
-                                <CardDescription>
-                                    Legal identifiers for this entity across different jurisdictions
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                {!entity.identifiers || entity.identifiers.length === 0 ? (
-                                    <div className="text-center py-8 text-muted-foreground">
-                                        No identifiers registered for this entity.
-                                    </div>
-                                ) : (
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="font-bold">Country</TableHead>
-                                                <TableHead className="font-bold">Type</TableHead>
-                                                <TableHead className="font-bold">Value</TableHead>
-                                                <TableHead className="font-bold">Status</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {entity.identifiers.map((identifier: EntityIdentifier) => (
-                                                <TableRow key={identifier.id}>
-                                                    <TableCell>{getCountryName(identifier.country)}</TableCell>
-                                                    <TableCell>{getIdentifierTypeName(identifier.country, identifier.type)}</TableCell>
-                                                    <TableCell className="font-mono">{formatIdentifierValue(identifier)}</TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={identifier.isActive ? "default" : "secondary"}>
-                                                            {identifier.isActive ? "Active" : "Inactive"}
-                                                        </Badge>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                )}
-                            </CardContent>
-                        </Card>
                     </TabsContent>
 
                     <TabsContent value="members" className="space-y-4">
