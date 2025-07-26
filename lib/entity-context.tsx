@@ -27,10 +27,10 @@ export function EntityProvider({ children }: { children: React.ReactNode }) {
   const [entityLoaded, setEntityLoaded] = useState(false);
   const { data: entities = [], isLoading } = trpc.entities.list.useQuery();
 
-  // Load selected entity from sessionStorage on mount
+  // Load selected entity from localStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined' && entities.length > 0 && !entityLoaded) {
-      const storedEntityId = sessionStorage.getItem('selectedEntityId');
+      const storedEntityId = localStorage.getItem('selectedEntityId');
       if (storedEntityId) {
         const entity = entities.find(e => e.id === storedEntityId);
         if (entity) {
@@ -45,9 +45,9 @@ export function EntityProvider({ children }: { children: React.ReactNode }) {
     setSelectedEntityState(entity);
     if (typeof window !== 'undefined') {
       if (entity) {
-        sessionStorage.setItem('selectedEntityId', entity.id);
+        localStorage.setItem('selectedEntityId', entity.id);
       } else {
-        sessionStorage.removeItem('selectedEntityId');
+        localStorage.removeItem('selectedEntityId');
       }
     }
   };
@@ -55,7 +55,7 @@ export function EntityProvider({ children }: { children: React.ReactNode }) {
   const clearSelectedEntity = () => {
     setSelectedEntityState(null);
     if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('selectedEntityId');
+      localStorage.removeItem('selectedEntityId');
     }
   };
 
