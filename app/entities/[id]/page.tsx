@@ -346,12 +346,12 @@ export default function ViewEntityPage() {
                                             </div>
                                         )}
                                         {(entity.city || entity.state || entity.postcode) && (
-                                            <div className="text-sm text-muted-foreground ml-6">
+                                            <div className="text-sm ml-6">
                                                 {[entity.city, entity.state, entity.postcode].filter(Boolean).join(', ')}
                                             </div>
                                         )}
                                         {entity.country && (
-                                            <div className="text-sm text-muted-foreground ml-6">
+                                            <div className="text-sm ml-6">
                                                 <CountryWithFlag countryName={entity.country} />
                                             </div>
                                         )}
