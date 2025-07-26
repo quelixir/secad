@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { getAllCountries, getCountryByName } from '@/lib/Countries'
+import { Countries, getCountryByName } from '@/lib/Countries'
 import { cn } from '@/lib/utils'
 import 'flag-icons/css/flag-icons.min.css'
 
@@ -27,7 +27,6 @@ export function CountrySelect({
     const [open, setOpen] = useState(false)
 
     const selectedCountry = value ? getCountryByName(value) : null
-    const allCountries = getAllCountries()
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -56,7 +55,7 @@ export function CountrySelect({
                     <CommandList>
                         <CommandEmpty>No country found.</CommandEmpty>
                         <CommandGroup>
-                            {allCountries.map((country) => (
+                            {Countries.map((country) => (
                                 <CommandItem
                                     key={country.name}
                                     value={country.name}
