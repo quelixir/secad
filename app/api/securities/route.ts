@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { ApiResponse, SecurityClassInput } from '@/lib/types';
+import { ApiResponse, SecurityInput } from '@/lib/types';
 
 // GET /api/securities - List all security classes (optionally filtered by entity)
 export async function GET(request: NextRequest) {
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 // POST /api/securities - Create a new security class
 export async function POST(request: NextRequest) {
   try {
-    const body: SecurityClassInput = await request.json();
+    const body: SecurityInput = await request.json();
 
     // Validate required fields
     if (!body.entityId || !body.name) {

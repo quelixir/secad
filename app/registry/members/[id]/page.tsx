@@ -11,9 +11,10 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, User, FileUser, Landmark, Mail, Phone, MapPin, Shield, TrendingUp, Eye, HelpCircle, ExternalLink, Copy, Pencil, Archive, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { Member, MemberWithRelations } from '@/lib/types/interfaces'
+import { MemberWithRelations } from '@/lib/types/interfaces'
+import { getDefaultCurrencyCode } from '@/lib/config'
 
-interface SecuritiesSummary {
+interface SecurityClassesSummary {
     securityClassId: string
     securityClassName: string
     securityClassSymbol?: string
@@ -94,8 +95,8 @@ export default function MemberViewPage() {
     }
 
     // Calculate securities summary from transactions
-    const securitiesSummary: SecuritiesSummary[] = []
-    const securityClassMap = new Map<string, SecuritiesSummary>()
+    const securitiesSummary: SecurityClassesSummary[] = []
+    const securityClassMap = new Map<string, SecurityClassesSummary>()
 
         // Process incoming transactions (toMember)
         ; (member.transactionsTo || []).forEach(transaction => {
@@ -109,14 +110,14 @@ export default function MemberViewPage() {
                     existing.totalAmountUnpaid += transaction.totalAmountUnpaid || 0
                     existing.trancheCount += 1
                 } else {
-                    const summary: SecuritiesSummary = {
+                    const summary: SecurityClassesSummary = {
                         securityClassId,
                         securityClassName: transaction.securityClass.name,
                         securityClassSymbol: transaction.securityClass.symbol,
                         totalQuantity: transaction.quantity,
                         totalAmountPaid: transaction.totalAmountPaid || 0,
                         totalAmountUnpaid: transaction.totalAmountUnpaid || 0,
-                        currency: 'AUD',
+                        currency: getDefaultCurrencyCode(),
                         trancheCount: 1
                     }
                     securityClassMap.set(securityClassId, summary)
@@ -476,7 +477,7 @@ export default function MemberViewPage() {
                                             <div className="text-2xl font-bold">
                                                 {formatCurrency(
                                                     securitiesSummary.reduce((sum, s) => sum + s.totalAmountPaid, 0),
-                                                    securitiesSummary[0]?.currency || 'AUD'
+                                                    securitiesSummary[0]?.currency || getDefaultCurrencyCode()
                                                 )}
                                             </div>
                                             <div className="text-sm text-muted-foreground">Total Paid</div>
@@ -485,7 +486,7 @@ export default function MemberViewPage() {
                                             <div className="text-2xl font-bold">
                                                 {formatCurrency(
                                                     securitiesSummary.reduce((sum, s) => sum + s.totalAmountUnpaid, 0),
-                                                    securitiesSummary[0]?.currency || 'AUD'
+                                                    securitiesSummary[0]?.currency || getDefaultCurrencyCode()
                                                 )}
                                             </div>
                                             <div className="text-sm text-muted-foreground">Total Unpaid</div>
@@ -503,31 +504,31 @@ export default function MemberViewPage() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {securitiesSummary.map((security) => (
-                                                <TableRow key={security.securityClassId}>
+                                            {securitiesSummary.map((securityClass) => (
+                                                <TableRow key={securityClass.securityClassId}>
                                                     <TableCell>
                                                         <div>
-                                                            <div className="font-medium">{security.securityClassName}</div>
-                                                            {security.securityClassSymbol && (
+                                                            {securityClass.securityClassSymbol && (
                                                                 <Badge variant="outline" className="text-xs">
-                                                                    {security.securityClassSymbol}
+                                                                    {securityClass.securityClassSymbol}
                                                                 </Badge>
                                                             )}
+                                                            <div className="font-medium">{securityClass.securityClassName}</div>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <div className="font-medium">{security.totalQuantity.toLocaleString()}</div>
+                                                        <div className="font-medium">{securityClass.totalQuantity.toLocaleString()}</div>
                                                     </TableCell>
                                                     <TableCell>
-                                                        {security.totalAmountPaid > 0 ? (
-                                                            <span>{formatCurrency(security.totalAmountPaid, security.currency)}</span>
+                                                        {securityClass.totalAmountPaid > 0 ? (
+                                                            <span>{formatCurrency(securityClass.totalAmountPaid, securityClass.currency)}</span>
                                                         ) : (
                                                             <span className="text-muted-foreground">-</span>
                                                         )}
                                                     </TableCell>
                                                     <TableCell>
-                                                        {security.totalAmountUnpaid > 0 ? (
-                                                            <span>{formatCurrency(security.totalAmountUnpaid, security.currency)}</span>
+                                                        {securityClass.totalAmountUnpaid > 0 ? (
+                                                            <span>{formatCurrency(securityClass.totalAmountUnpaid, securityClass.currency)}</span>
                                                         ) : (
                                                             <span className="text-muted-foreground">-</span>
                                                         )}
@@ -535,7 +536,7 @@ export default function MemberViewPage() {
                                                     <TableCell>
                                                         <div className="flex items-center gap-1">
                                                             <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                                                            {security.trancheCount}
+                                                            {securityClass.trancheCount}
                                                         </div>
                                                     </TableCell>
                                                 </TableRow>
@@ -589,9 +590,9 @@ export default function MemberViewPage() {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="all">All Security Classes</SelectItem>
-                                                    {securitiesSummary.map((security) => (
-                                                        <SelectItem key={security.securityClassId} value={security.securityClassId}>
-                                                            {security.securityClassName} {security.securityClassSymbol && `(${security.securityClassSymbol})`}
+                                                    {securitiesSummary.map((securityClass) => (
+                                                        <SelectItem key={securityClass.securityClassId} value={securityClass.securityClassId}>
+                                                            {securityClass.securityClassName} {securityClass.securityClassSymbol && `(${securityClass.securityClassSymbol})`}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -642,52 +643,45 @@ export default function MemberViewPage() {
                                                             <Badge variant="outline">{transaction.transactionType}</Badge>
                                                         </TableCell>
                                                         <TableCell>
-                                                            {transaction.securityClass ? (
-                                                                <div className="flex items-center gap-1">
+                                                            <div>
+                                                                {transaction.securityClass?.symbol && (
                                                                     <Badge variant="outline" className="text-xs">
-                                                                        {transaction.securityClass.symbol || '-'}
+                                                                        {transaction.securityClass?.symbol}
                                                                     </Badge>
-                                                                    <span
-                                                                        onMouseEnter={(e) => showTooltip(transaction.securityClass!.name, e)}
-                                                                        onMouseLeave={hideTooltip}
-                                                                    >
-                                                                        <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
-                                                                    </span>
-                                                                </div>
-                                                            ) : (
-                                                                <span className="text-muted-foreground">-</span>
-                                                            )}
+                                                                )}
+                                                                <div className="font-medium">{transaction.securityClass?.name || transaction.securityClassId}</div>
+                                                            </div>
                                                         </TableCell>
                                                         <TableCell>
                                                             <Badge variant={transaction.direction === 'in' ? 'default' : 'secondary'}>
-                                                                {transaction.direction === 'in' ? 'Received' : 'Sent'}
+                                                                {transaction.direction === 'in' ? 'RECEIVED' : 'SENT'}
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell>{transaction.quantity.toLocaleString()}</TableCell>
                                                         <TableCell>
                                                             {transaction.amountPaidPerSecurity ? (
-                                                                <span>{formatCurrency(transaction.amountPaidPerSecurity, 'AUD')}</span>
+                                                                <span>{formatCurrency(transaction.amountPaidPerSecurity, transaction.currencyCode || getDefaultCurrencyCode())}</span>
                                                             ) : (
                                                                 <span className="text-muted-foreground">-</span>
                                                             )}
                                                         </TableCell>
                                                         <TableCell>
                                                             {transaction.totalAmountPaid ? (
-                                                                <span>{formatCurrency(transaction.totalAmountPaid, 'AUD')}</span>
+                                                                <span>{formatCurrency(transaction.totalAmountPaid, transaction.currencyCode || getDefaultCurrencyCode())}</span>
                                                             ) : (
                                                                 <span className="text-muted-foreground">-</span>
                                                             )}
                                                         </TableCell>
                                                         <TableCell>
                                                             {transaction.amountUnpaidPerSecurity ? (
-                                                                <span>{formatCurrency(transaction.amountUnpaidPerSecurity, 'AUD')}</span>
+                                                                <span>{formatCurrency(transaction.amountUnpaidPerSecurity, transaction.currencyCode || getDefaultCurrencyCode())}</span>
                                                             ) : (
                                                                 <span className="text-muted-foreground">-</span>
                                                             )}
                                                         </TableCell>
                                                         <TableCell>
                                                             {transaction.totalAmountUnpaid ? (
-                                                                <span>{formatCurrency(transaction.totalAmountUnpaid, 'AUD')}</span>
+                                                                <span>{formatCurrency(transaction.totalAmountUnpaid, transaction.currencyCode || getDefaultCurrencyCode())}</span>
                                                             ) : (
                                                                 <span className="text-muted-foreground">-</span>
                                                             )}

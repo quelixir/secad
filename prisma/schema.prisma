@@ -190,7 +190,7 @@ model Transaction {
   amountPaidPerSecurity    Decimal?      @db.Decimal(10, 4)
   amountUnpaidPerSecurity  Decimal?      @db.Decimal(10, 4)
   transferPricePerSecurity Decimal?      @db.Decimal(10, 4)
-  currency                 String?       @default("AUD")
+  currencyCode             String?       @default("AUD")
   totalAmountPaid          Decimal?      @db.Decimal(12, 2)
   totalAmountUnpaid        Decimal?      @db.Decimal(12, 2)
   totalTransferAmount      Decimal?      @db.Decimal(12, 2)

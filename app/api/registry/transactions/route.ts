@@ -41,9 +41,15 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Map the response to match the expected interface
+    const mappedTransactions = transactions.map((transaction) => ({
+      ...transaction,
+      security: transaction.securityClass, // Map securityClass to security
+    }));
+
     const response: ApiResponse<any[]> = {
       success: true,
-      data: transactions,
+      data: mappedTransactions,
     };
 
     return NextResponse.json(response);
@@ -80,7 +86,7 @@ export async function POST(request: NextRequest) {
       amountPaidPerSecurity,
       amountUnpaidPerSecurity,
       transferPricePerSecurity,
-      currency,
+      currencyCode: currency,
       fromMemberId,
       toMemberId,
       trancheNumber,
@@ -234,7 +240,7 @@ export async function POST(request: NextRequest) {
         transferPricePerSecurity: transferPricePerSecurity
           ? new Decimal(transferPricePerSecurity)
           : null,
-        currency: currency || 'AUD',
+        currencyCode: currency || 'AUD',
         totalAmountPaid,
         totalAmountUnpaid,
         totalTransferAmount,

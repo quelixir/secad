@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { ApiResponse, SecurityClassInput } from '@/lib/types';
+import { ApiResponse, SecurityInput } from '@/lib/types';
 
 // GET /api/securities/[id] - Get a specific security class
 export async function GET(
@@ -81,14 +81,14 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body: Partial<SecurityClassInput> = await request.json();
+    const body: Partial<SecurityInput> = await request.json();
 
     // Check if security class exists
-    const existingSecurity = await prisma.securityClass.findUnique({
+    const existingSecurityClass = await prisma.securityClass.findUnique({
       where: { id },
     });
 
-    if (!existingSecurity) {
+    if (!existingSecurityClass) {
       const response: ApiResponse = {
         success: false,
         error: 'Security class not found',
@@ -97,10 +97,10 @@ export async function PUT(
     }
 
     // Check for duplicate name if being updated and within same entity
-    if (body.name && body.name !== existingSecurity.name) {
+    if (body.name && body.name !== existingSecurityClass.name) {
       const duplicate = await prisma.securityClass.findFirst({
         where: {
-          entityId: existingSecurity.entityId,
+          entityId: existingSecurityClass.entityId,
           name: body.name,
           id: { not: id },
         },
@@ -165,7 +165,7 @@ export async function DELETE(
     const { id } = await params;
 
     // Check if security class exists and get transaction counts
-    const existingSecurity = await prisma.securityClass.findUnique({
+    const existingSecurityClass = await prisma.securityClass.findUnique({
       where: { id },
       include: {
         _count: {
@@ -176,7 +176,7 @@ export async function DELETE(
       },
     });
 
-    if (!existingSecurity) {
+    if (!existingSecurityClass) {
       const response: ApiResponse = {
         success: false,
         error: 'Security class not found',
@@ -185,7 +185,7 @@ export async function DELETE(
     }
 
     // Check if security class has transactions
-    if (existingSecurity._count.transactions > 0) {
+    if (existingSecurityClass._count.transactions > 0) {
       const response: ApiResponse = {
         success: false,
         error: 'Cannot delete security class with existing transactions',

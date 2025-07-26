@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, TransactionInput } from '@/lib/types';
 import { Decimal } from '@prisma/client/runtime/library';
+import { getDefaultCurrencyCode } from '@/lib/config';
 
 // GET /api/transactions - List all transactions (optionally filtered by entity)
 export async function GET(request: NextRequest) {
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
       amountPaidPerSecurity,
       amountUnpaidPerSecurity,
       transferPricePerSecurity,
-      currency,
+      currencyCode,
       fromMemberId,
       toMemberId,
       trancheNumber,
@@ -221,7 +222,7 @@ export async function POST(request: NextRequest) {
         transferPricePerSecurity: transferPricePerSecurity
           ? new Decimal(transferPricePerSecurity)
           : null,
-        currency: currency || 'AUD',
+        currencyCode: currencyCode || getDefaultCurrencyCode(),
         totalAmountPaid,
         totalAmountUnpaid,
         totalTransferAmount,

@@ -34,18 +34,18 @@ interface SecurityFormProps {
   onSaved: () => void
 }
 
-export function SecurityForm({ entities, selectedEntity, security, onSaved }: SecurityFormProps) {
+export function SecurityForm({ entities, selectedEntity, security: securityClass, onSaved }: SecurityFormProps) {
   const [loading, setLoading] = useState(false)
 
   const form = useForm<SecurityFormValues>({
     resolver: zodResolver(securityFormSchema),
     defaultValues: {
-      entityId: security?.entity?.id || selectedEntity?.id || '',
-      name: security?.name || '',
-      symbol: security?.symbol || '',
-      description: security?.description || '',
-      votingRights: security?.votingRights ?? true,
-      dividendRights: security?.dividendRights ?? true
+      entityId: securityClass?.entity?.id || selectedEntity?.id || '',
+      name: securityClass?.name || '',
+      symbol: securityClass?.symbol || '',
+      description: securityClass?.description || '',
+      votingRights: securityClass?.votingRights ?? true,
+      dividendRights: securityClass?.dividendRights ?? true
     }
   })
 
@@ -53,8 +53,8 @@ export function SecurityForm({ entities, selectedEntity, security, onSaved }: Se
     try {
       setLoading(true)
 
-      const url = security ? `/api/registry/securities/${security.id}` : '/api/registry/securities'
-      const method = security ? 'PUT' : 'POST'
+      const url = securityClass ? `/api/registry/securities/${securityClass.id}` : '/api/registry/securities'
+      const method = securityClass ? 'PUT' : 'POST'
 
       const response = await fetch(url, {
         method,
@@ -93,7 +93,7 @@ export function SecurityForm({ entities, selectedEntity, security, onSaved }: Se
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Entity *</FormLabel>
-                  {selectedEntity && !security ? (
+                  {selectedEntity && !securityClass ? (
                     <div className="flex items-center space-x-2 p-3 bg-muted rounded-md">
                       <span className="text-sm font-medium">{selectedEntity.name}</span>
                       <span className="text-xs text-muted-foreground">(Selected entity)</span>
@@ -287,7 +287,7 @@ export function SecurityForm({ entities, selectedEntity, security, onSaved }: Se
           {/* Form Actions */}
           <div className="flex justify-end space-x-4">
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : security ? 'Update Security Class' : 'Create Security Class'}
+              {loading ? 'Saving...' : securityClass ? 'Update Security Class' : 'Create Security Class'}
             </Button>
           </div>
         </form>

@@ -1,4 +1,4 @@
-import { getDefaultCountry, getDefaultCurrency } from './config';
+import { getDefaultCountry, getDefaultCurrencyCode } from './config';
 
 // Save original environment variables
 const originalEnv = process.env;
@@ -58,22 +58,22 @@ describe('Config Utilities', () => {
   describe('getDefaultCurrency', () => {
     test('returns configured currency when DEFAULT_CURRENCY is set', () => {
       process.env.DEFAULT_CURRENCY = 'EUR';
-      expect(getDefaultCurrency()).toBe('EUR');
+      expect(getDefaultCurrencyCode()).toBe('EUR');
     });
 
     test('returns fallback when DEFAULT_CURRENCY is not set', () => {
       delete process.env.DEFAULT_CURRENCY;
-      expect(getDefaultCurrency()).toBe('USD');
+      expect(getDefaultCurrencyCode()).toBe('USD');
     });
 
     test('returns fallback when DEFAULT_CURRENCY is empty string', () => {
       process.env.DEFAULT_CURRENCY = '';
-      expect(getDefaultCurrency()).toBe('USD');
+      expect(getDefaultCurrencyCode()).toBe('USD');
     });
 
     test('returns fallback when DEFAULT_CURRENCY is undefined', () => {
       process.env.DEFAULT_CURRENCY = undefined;
-      expect(getDefaultCurrency()).toBe('USD');
+      expect(getDefaultCurrencyCode()).toBe('USD');
     });
 
     test('handles various currency values', () => {
@@ -90,7 +90,7 @@ describe('Config Utilities', () => {
 
       testCurrencies.forEach((currency) => {
         process.env.DEFAULT_CURRENCY = currency;
-        expect(getDefaultCurrency()).toBe(currency);
+        expect(getDefaultCurrencyCode()).toBe(currency);
       });
     });
   });
@@ -101,25 +101,25 @@ describe('Config Utilities', () => {
       process.env.DEFAULT_COUNTRY = 'Australia';
       process.env.DEFAULT_CURRENCY = 'AUD';
       expect(getDefaultCountry()).toBe('Australia');
-      expect(getDefaultCurrency()).toBe('AUD');
+      expect(getDefaultCurrencyCode()).toBe('AUD');
 
       // Test scenario 2: Only country set
       process.env.DEFAULT_COUNTRY = 'United Kingdom';
       delete process.env.DEFAULT_CURRENCY;
       expect(getDefaultCountry()).toBe('United Kingdom');
-      expect(getDefaultCurrency()).toBe('USD');
+      expect(getDefaultCurrencyCode()).toBe('USD');
 
       // Test scenario 3: Only currency set
       delete process.env.DEFAULT_COUNTRY;
       process.env.DEFAULT_CURRENCY = 'EUR';
       expect(getDefaultCountry()).toBe('United States');
-      expect(getDefaultCurrency()).toBe('EUR');
+      expect(getDefaultCurrencyCode()).toBe('EUR');
 
       // Test scenario 4: Neither set
       delete process.env.DEFAULT_COUNTRY;
       delete process.env.DEFAULT_CURRENCY;
       expect(getDefaultCountry()).toBe('United States');
-      expect(getDefaultCurrency()).toBe('USD');
+      expect(getDefaultCurrencyCode()).toBe('USD');
     });
   });
 });

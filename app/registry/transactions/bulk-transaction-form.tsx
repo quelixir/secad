@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { TransactionType } from '@/lib/types'
 import { TransactionReasons } from '@/lib/transaction-reasons'
 import { Currencies } from '@/lib/currencies'
-import { getDefaultCurrency } from '@/lib/config'
+import { getDefaultCurrencyCode } from '@/lib/config'
 
 const bulkTransactionSchema = z.object({
     entityId: z.string().min(1, 'Entity is required'),
@@ -99,7 +99,7 @@ interface BulkTransactionFormProps {
 
 export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransactionFormProps) {
     const [loading, setLoading] = useState(false)
-    const [securities, setSecurities] = useState<SecurityClass[]>([])
+    const [securityClasses, setSecurities] = useState<SecurityClass[]>([])
     const [members, setMembers] = useState<Member[]>([])
     const [error, setError] = useState<string | null>(null)
 
@@ -110,7 +110,7 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
             securityClassId: '',
             type: '',
             reasonCode: '',
-            currency: getDefaultCurrency(),
+            currency: getDefaultCurrencyCode(),
             transactionDate: new Date().toISOString().split('T')[0],
             reference: '',
             description: '',
@@ -138,12 +138,12 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
 
     useEffect(() => {
         if (selectedEntity) {
-            fetchSecurities(selectedEntity.id)
+            fetchSecurityClasses(selectedEntity.id)
             fetchMembers(selectedEntity.id)
         }
     }, [selectedEntity])
 
-    const fetchSecurities = async (entityId: string) => {
+    const fetchSecurityClasses = async (entityId: string) => {
         try {
             const response = await fetch(`/api/registry/securities?entityId=${entityId}`)
             const result = await response.json()
@@ -271,9 +271,9 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {securities.map((security) => (
-                                                    <SelectItem key={security.id} value={security.id}>
-                                                        {security.name} {security.symbol && `(${security.symbol})`}
+                                                {securityClasses.map((securityClass) => (
+                                                    <SelectItem key={securityClass.id} value={securityClass.id}>
+                                                        {securityClass.name} {securityClass.symbol && `(${securityClass.symbol})`}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>

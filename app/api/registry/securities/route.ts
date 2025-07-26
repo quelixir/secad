@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { ApiResponse, SecurityClassInput } from '@/lib/types';
+import { ApiResponse, SecurityInput } from '@/lib/types';
 import { AuditLogger } from '@/lib/audit';
 import { AuditTableName } from '@/lib/audit';
 import { auth } from '@/lib/auth';
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response, { status: 401 });
     }
 
-    const body: SecurityClassInput = await request.json();
+    const body: SecurityInput = await request.json();
 
     // Validate required fields
     if (!body.entityId || !body.name) {

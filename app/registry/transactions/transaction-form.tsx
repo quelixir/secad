@@ -16,7 +16,7 @@ import { TransactionType } from '@/lib/types'
 import { TransactionReasons } from '@/lib/transaction-reasons'
 import { Currencies } from '@/lib/currencies'
 import { cn } from '@/lib/utils'
-import { getDefaultCurrency } from '@/lib/config'
+import { getDefaultCurrencyCode } from '@/lib/config'
 
 const transactionFormSchema = z.object({
     entityId: z.string().min(1, 'Entity is required'),
@@ -138,7 +138,7 @@ interface TransactionFormProps {
 
 export function TransactionForm({ selectedEntity, transaction, onSaved }: TransactionFormProps) {
     const [loading, setLoading] = useState(false)
-    const [securities, setSecurities] = useState<SecurityClass[]>([])
+    const [securityClasses, setSecurities] = useState<SecurityClass[]>([])
     const [members, setMembers] = useState<Member[]>([])
     const [loadingSecurities, setLoadingSecurities] = useState(false)
     const [loadingMembers, setLoadingMembers] = useState(false)
@@ -158,7 +158,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
             quantity: transaction?.quantity?.toString() || '',
             paidPerSecurity: transaction?.amountPaidPerSecurity || transaction?.transferPricePerSecurity || '',
             unpaidPerSecurity: transaction?.amountUnpaidPerSecurity || '',
-            currency: getDefaultCurrency(),
+            currency: getDefaultCurrencyCode(),
             fromMemberId: transaction?.fromMember?.id || '',
             toMemberId: transaction?.toMember?.id || '',
             transactionDate: transaction?.transactionDate ? new Date(transaction.transactionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -254,7 +254,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                 return 'nil'
             }
 
-            const currencyCode = currency || getDefaultCurrency()
+            const currencyCode = currency || getDefaultCurrencyCode()
 
             if (Number.isInteger(total)) {
                 return `${total.toFixed(2)} ${currencyCode}`
@@ -270,7 +270,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
             }
 
             const total = qty * price
-            const currencyCode = currency || getDefaultCurrency()
+            const currencyCode = currency || getDefaultCurrencyCode()
 
             if (Number.isInteger(total)) {
                 return `${total.toFixed(2)} ${currencyCode}`
@@ -488,9 +488,9 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                         disabled={!selectedEntityId || loadingSecurities}
                                                     >
                                                         {field.value
-                                                            ? securities.find((security) => security.id === field.value)?.name +
-                                                            (securities.find((security) => security.id === field.value)?.symbol ?
-                                                                ` (${securities.find((security) => security.id === field.value)?.symbol})` : '')
+                                                            ? securityClasses.find((securityClass) => securityClass.id === field.value)?.name +
+                                                            (securityClasses.find((securityClass) => securityClass.id === field.value)?.symbol ?
+                                                                ` (${securityClasses.find((securityClass) => securityClass.id === field.value)?.symbol})` : '')
                                                             : !selectedEntityId
                                                                 ? "Select entity first"
                                                                 : loadingSecurities
@@ -506,25 +506,25 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                     <CommandList>
                                                         <CommandEmpty>No security class found.</CommandEmpty>
                                                         <CommandGroup>
-                                                            {securities.map((security) => (
+                                                            {securityClasses.map((securityClass) => (
                                                                 <CommandItem
-                                                                    key={security.id}
-                                                                    value={`${security.name} ${security.symbol || ''}`}
+                                                                    key={securityClass.id}
+                                                                    value={`${securityClass.name} ${securityClass.symbol || ''}`}
                                                                     onSelect={() => {
-                                                                        field.onChange(security.id)
+                                                                        field.onChange(securityClass.id)
                                                                         setSecurityClassOpen(false)
                                                                     }}
                                                                 >
                                                                     <Check
                                                                         className={cn(
                                                                             "mr-2 h-4 w-4",
-                                                                            security.id === field.value ? "opacity-100" : "opacity-0"
+                                                                            securityClass.id === field.value ? "opacity-100" : "opacity-0"
                                                                         )}
                                                                     />
                                                                     <div className="flex flex-col">
-                                                                        <span className="font-medium">{security.name}</span>
-                                                                        {security.symbol && (
-                                                                            <span className="text-xs text-muted-foreground">Symbol: {security.symbol}</span>
+                                                                        <span className="font-medium">{securityClass.name}</span>
+                                                                        {securityClass.symbol && (
+                                                                            <span className="text-xs text-muted-foreground">Symbol: {securityClass.symbol}</span>
                                                                         )}
                                                                     </div>
                                                                 </CommandItem>
@@ -620,7 +620,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                     const paid = parseFloat(paidPerSecurity || '0') || 0
                                                     if (qty === 0 || paid === 0) return 'nil'
                                                     const total = qty * paid
-                                                    const currencyCode = currency || getDefaultCurrency()
+                                                    const currencyCode = currency || getDefaultCurrencyCode()
                                                     if (Number.isInteger(total)) {
                                                         return `${total.toFixed(2)} ${currencyCode}`
                                                     } else if (total.toString().split('.')[1]?.length <= 2) {
@@ -711,7 +711,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                     const unpaid = parseFloat(unpaidPerSecurity || '0') || 0
                                                     if (qty === 0 || unpaid === 0) return 'nil'
                                                     const total = qty * unpaid
-                                                    const currencyCode = currency || getDefaultCurrency()
+                                                    const currencyCode = currency || getDefaultCurrencyCode()
                                                     if (Number.isInteger(total)) {
                                                         return `${total.toFixed(2)} ${currencyCode}`
                                                     } else if (total.toString().split('.')[1]?.length <= 2) {

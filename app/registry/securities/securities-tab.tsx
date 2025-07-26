@@ -9,10 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Plus, Search, Edit, Trash2, Shield, TrendingUp, Package, Archive, RotateCcw, Eye, EyeOff } from 'lucide-react'
-import { SecurityForm } from './security-form'
+import { SecurityForm } from './securityclass-form'
 import { useEntity } from '@/lib/entity-context'
 import Link from 'next/link'
-import type { Entity } from '@/lib/types/interfaces/Entity'
 import { getLocale, getLocaleOptions } from '@/lib/locale'
 
 interface SecuritySummary {
@@ -48,14 +47,14 @@ interface SecuritySummary {
 
 export function SecuritiesTab() {
   const { selectedEntity } = useEntity();
-  const [securities, setSecurities] = useState<SecuritySummary[]>([])
+  const [securityClasses, setSecurities] = useState<SecuritySummary[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [showArchived, setShowArchived] = useState(false)
-  const [editingSecurity, setEditingSecurity] = useState<SecuritySummary | null>(null)
+  const [editingSecurity, setEditingSecurityClass] = useState<SecuritySummary | null>(null)
   const [showAddDialog, setShowAddDialog] = useState(false)
 
-  const fetchSecurities = useCallback(async () => {
+  const fetchSecurityClasses = useCallback(async () => {
     if (!selectedEntity) {
       setSecurities([])
       setLoading(false)
@@ -80,8 +79,8 @@ export function SecuritiesTab() {
   }, [selectedEntity])
 
   useEffect(() => {
-    fetchSecurities()
-  }, [fetchSecurities])
+    fetchSecurityClasses()
+  }, [fetchSecurityClasses])
 
   const handleDelete = async (id: string) => {
     try {
@@ -91,7 +90,7 @@ export function SecuritiesTab() {
 
       const result = await response.json()
       if (result.success) {
-        await fetchSecurities()
+        await fetchSecurityClasses()
       } else {
         console.error('Error deleting security:', result.error)
       }
@@ -112,7 +111,7 @@ export function SecuritiesTab() {
 
       const result = await response.json()
       if (result.success) {
-        await fetchSecurities()
+        await fetchSecurityClasses()
       } else {
         console.error(`Error ${action}ing security:`, result.error)
       }
@@ -123,31 +122,31 @@ export function SecuritiesTab() {
 
   const handleFormSuccess = async () => {
     setShowAddDialog(false)
-    setEditingSecurity(null)
-    await fetchSecurities()
+    setEditingSecurityClass(null)
+    await fetchSecurityClasses()
   }
 
-  const filteredSecurities = securities.filter(security => {
+  const filteredSecurityClasses = securityClasses.filter(securityClass => {
     // Filter by search term
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
-      const matchesSearch = security.name.toLowerCase().includes(searchLower) ||
-        (security.symbol || '').toLowerCase().includes(searchLower) ||
-        (security.description || '').toLowerCase().includes(searchLower)
+      const matchesSearch = securityClass.name.toLowerCase().includes(searchLower) ||
+        (securityClass.symbol || '').toLowerCase().includes(searchLower) ||
+        (securityClass.description || '').toLowerCase().includes(searchLower)
       if (!matchesSearch) return false
     }
 
     // Filter by archived status
-    if (!showArchived && security.isArchived) return false
+    if (!showArchived && securityClass.isArchived) return false
 
     return true
   })
 
   // Calculate statistics
-  const activeSecurities = securities.filter(s => s.isActive && !s.isArchived).length
-  const archivedSecurities = securities.filter(s => s.isArchived).length
-  const totalSecurities = securities.reduce((sum, security) => sum + security.totalQuantity, 0)
-  const totalTranches = securities.reduce((sum, security) => sum + security.trancheCount, 0)
+  const activeSecurities = securityClasses.filter(s => s.isActive && !s.isArchived).length
+  const archivedSecurities = securityClasses.filter(s => s.isArchived).length
+  const totalSecurities = securityClasses.reduce((sum, securityClass) => sum + securityClass.totalQuantity, 0)
+  const totalTranches = securityClasses.reduce((sum, securityClass) => sum + securityClass.trancheCount, 0)
 
   if (!selectedEntity) {
     return (
@@ -225,7 +224,7 @@ export function SecuritiesTab() {
           {/* Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-muted/50 rounded-lg p-4">
-              <div className="text-2xl font-bold">{securities.length}</div>
+              <div className="text-2xl font-bold">{securityClasses.length}</div>
               <div className="text-sm text-muted-foreground">Total Securities</div>
             </div>
             <div className="bg-muted/50 rounded-lg p-4">
@@ -297,7 +296,7 @@ export function SecuritiesTab() {
                   </div>
                 </TableCell>
               </TableRow>
-            ) : filteredSecurities.length === 0 ? (
+            ) : filteredSecurityClasses.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={10} className="text-center py-8">
                   <div className="text-muted-foreground">
@@ -316,48 +315,48 @@ export function SecuritiesTab() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredSecurities.map((security) => (
-                <TableRow key={security.id}>
+              filteredSecurityClasses.map((securityClass) => (
+                <TableRow key={securityClass.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{security.name}</div>
-                      {security.description && (
+                      <div className="font-medium">{securityClass.name}</div>
+                      {securityClass.description && (
                         <div className="text-sm text-muted-foreground">
-                          {security.description}
+                          {securityClass.description}
                         </div>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
-                    {security.symbol ? (
-                      <Badge variant="outline">{security.symbol}</Badge>
+                    {securityClass.symbol ? (
+                      <Badge variant="outline">{securityClass.symbol}</Badge>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      {security.votingRights && (
+                      {securityClass.votingRights && (
                         <Badge variant="secondary" className="text-xs">Voting</Badge>
                       )}
-                      {security.dividendRights && (
+                      {securityClass.dividendRights && (
                         <Badge variant="secondary" className="text-xs">Dividend</Badge>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{security.totalQuantity.toLocaleString()}</div>
+                    <div className="font-medium">{securityClass.totalQuantity.toLocaleString()}</div>
                   </TableCell>
                   <TableCell>
-                    {security.totalAmountPaid > 0 ? (
-                      <span>${security.totalAmountPaid.toLocaleString(getLocale(), getLocaleOptions())} {security.currency}</span>
+                    {securityClass.totalAmountPaid > 0 ? (
+                      <span>${securityClass.totalAmountPaid.toLocaleString(getLocale(), getLocaleOptions())} {securityClass.currency}</span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    {security.totalAmountUnpaid > 0 ? (
-                      <span>${security.totalAmountUnpaid.toLocaleString(getLocale(), getLocaleOptions())} {security.currency}</span>
+                    {securityClass.totalAmountUnpaid > 0 ? (
+                      <span>${securityClass.totalAmountUnpaid.toLocaleString(getLocale(), getLocaleOptions())} {securityClass.currency}</span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
@@ -365,18 +364,18 @@ export function SecuritiesTab() {
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                      {security.trancheCount.toLocaleString()}
+                      {securityClass.trancheCount.toLocaleString()}
                     </div>
                   </TableCell>
                   <TableCell>
-                    {security.memberCount.toLocaleString()}
+                    {securityClass.memberCount.toLocaleString()}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Badge variant={security.isActive ? 'default' : 'secondary'}>
-                        {security.isActive ? 'Active' : 'Inactive'}
+                      <Badge variant={securityClass.isActive ? 'default' : 'secondary'}>
+                        {securityClass.isActive ? 'Active' : 'Inactive'}
                       </Badge>
-                      {security.isArchived && (
+                      {securityClass.isArchived && (
                         <Badge variant="outline" className="text-orange-600 border-orange-600">
                           Archived
                         </Badge>
@@ -390,7 +389,7 @@ export function SecuritiesTab() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setEditingSecurity(security)}
+                            onClick={() => setEditingSecurityClass(securityClass)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -413,7 +412,7 @@ export function SecuritiesTab() {
                         </DialogContent>
                       </Dialog>
 
-                      {!security.isArchived ? (
+                      {!securityClass.isArchived ? (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="sm" title="Archive">
@@ -430,7 +429,7 @@ export function SecuritiesTab() {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleArchive(security.id, 'archive')}
+                                onClick={() => handleArchive(securityClass.id, 'archive')}
                                 className="bg-orange-600 text-white hover:bg-orange-700"
                               >
                                 Archive
@@ -455,7 +454,7 @@ export function SecuritiesTab() {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleArchive(security.id, 'unarchive')}
+                                onClick={() => handleArchive(securityClass.id, 'unarchive')}
                                 className="bg-blue-600 text-white hover:bg-blue-700"
                               >
                                 Unarchive
@@ -481,7 +480,7 @@ export function SecuritiesTab() {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => handleDelete(security.id)}
+                              onClick={() => handleDelete(securityClass.id)}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
                               Delete

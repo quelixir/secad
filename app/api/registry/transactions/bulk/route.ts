@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { ApiResponse } from '@/lib/types';
 import { AuditLogger, AuditTableName } from '@/lib/audit';
 import { auth } from '@/lib/auth';
+import { getDefaultCurrencyCode } from '@/lib/config';
 
 /**
  * POST /api/registry/transactions/bulk
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
             amountPaidPerSecurity: paidPerSecurity > 0 ? paidPerSecurity : null,
             amountUnpaidPerSecurity:
               unpaidPerSecurity > 0 ? unpaidPerSecurity : null,
-            currency: body.currency || 'AUD',
+            currencyCode: body.currencyCode || getDefaultCurrencyCode(),
             totalAmountPaid: totalAmountPaid > 0 ? totalAmountPaid : null,
             totalAmountUnpaid: totalAmountUnpaid > 0 ? totalAmountUnpaid : null,
             fromMemberId: transactionData.fromMemberId || null,

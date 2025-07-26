@@ -1,5 +1,7 @@
 import { Member } from './Member';
 import { Entity } from './Entity';
+import { SecurityClass } from './Security';
+import { Currency } from '@/lib/currencies';
 
 export interface Transaction {
   id: string;
@@ -11,7 +13,7 @@ export interface Transaction {
   amountPaidPerSecurity?: number;
   amountUnpaidPerSecurity?: number;
   transferPricePerSecurity?: number;
-  currency?: string;
+  currencyCode?: string;
   fromMemberId?: string;
   toMemberId?: string;
   trancheNumber?: string;
@@ -29,6 +31,8 @@ export interface Transaction {
 
 export interface TransactionWithRelations extends Transaction {
   entity?: Entity;
+  currency?: Currency;
+  security?: SecurityClass;
   fromMember?: Member;
   toMember?: Member;
 }
@@ -42,7 +46,7 @@ export interface TransactionInput {
   amountPaidPerSecurity?: number;
   amountUnpaidPerSecurity?: number;
   transferPricePerSecurity?: number;
-  currency?: string;
+  currencyCode?: string;
   fromMemberId?: string;
   toMemberId?: string;
   trancheNumber?: string;

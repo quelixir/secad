@@ -26,7 +26,7 @@ export interface SecurityClassWithRelations extends SecurityClass {
   };
 }
 
-export interface SecurityClassInput {
+export interface SecurityInput {
   entityId: string;
   name: string;
   symbol?: string;

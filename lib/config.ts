@@ -16,6 +16,6 @@ export function getDefaultCountry(): string {
  *
  * @returns The configured default currency or 'USD' as fallback
  */
-export function getDefaultCurrency(): string {
+export function getDefaultCurrencyCode(): string {
   return process.env.DEFAULT_CURRENCY || 'USD';
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { ApiResponse, SecurityClassInput } from '@/lib/types';
+import { ApiResponse, SecurityInput } from '@/lib/types';
 import { AuditLogger } from '@/lib/audit';
 import { AuditAction, AuditTableName } from '@/lib/audit';
 import { auth } from '@/lib/auth';
@@ -94,14 +94,14 @@ export async function PUT(
       return NextResponse.json(response, { status: 401 });
     }
     const { id } = await params;
-    const body: Partial<SecurityClassInput> = await request.json();
+    const body: Partial<SecurityInput> = await request.json();
 
     // Check if security class exists
-    const existingSecurity = await prisma.securityClass.findUnique({
+    const existingSecurityClass = await prisma.securityClass.findUnique({
       where: { id },
     });
 
-    if (!existingSecurity) {
+    if (!existingSecurityClass) {
       const response: ApiResponse = {
         success: false,
         error: 'Security class not found',
@@ -110,10 +110,10 @@ export async function PUT(
     }
 
     // Check for duplicate name if being updated and within same entity
-    if (body.name && body.name !== existingSecurity.name) {
+    if (body.name && body.name !== existingSecurityClass.name) {
       const duplicate = await prisma.securityClass.findFirst({
         where: {
-          entityId: existingSecurity.entityId,
+          entityId: existingSecurityClass.entityId,
           name: body.name,
           id: { not: id },
         },
@@ -144,18 +144,19 @@ export async function PUT(
 
     // Get the old values for audit logging
     const oldValues: Record<string, any> = {};
-    if (body.name) oldValues.name = existingSecurity.name;
-    if (body.symbol !== undefined) oldValues.symbol = existingSecurity.symbol;
+    if (body.name) oldValues.name = existingSecurityClass.name;
+    if (body.symbol !== undefined)
+      oldValues.symbol = existingSecurityClass.symbol;
     if (body.description !== undefined)
-      oldValues.description = existingSecurity.description;
+      oldValues.description = existingSecurityClass.description;
     if (body.votingRights !== undefined)
-      oldValues.votingRights = existingSecurity.votingRights;
+      oldValues.votingRights = existingSecurityClass.votingRights;
     if (body.dividendRights !== undefined)
-      oldValues.dividendRights = existingSecurity.dividendRights;
+      oldValues.dividendRights = existingSecurityClass.dividendRights;
     if (body.customRights !== undefined)
-      oldValues.customRights = existingSecurity.customRights;
+      oldValues.customRights = existingSecurityClass.customRights;
     if (body.isArchived !== undefined)
-      oldValues.isArchived = existingSecurity.isArchived;
+      oldValues.isArchived = existingSecurityClass.isArchived;
 
     const securityClass = await prisma.securityClass.update({
       where: { id },
@@ -174,7 +175,7 @@ export async function PUT(
     const changedFields = AuditLogger.getChangedFields(oldValues, updateData);
     if (Object.keys(changedFields).length > 0) {
       await AuditLogger.logRecordChanges(
-        existingSecurity.entityId,
+        existingSecurityClass.entityId,
         userId, // Use actual user ID from auth
         AuditAction.UPDATE,
         AuditTableName.SECURITY_CLASS,
@@ -220,11 +221,11 @@ export async function PATCH(
     const body: { action: 'archive' | 'unarchive' } = await request.json();
 
     // Check if security class exists
-    const existingSecurity = await prisma.securityClass.findUnique({
+    const existingSecurityClass = await prisma.securityClass.findUnique({
       where: { id },
     });
 
-    if (!existingSecurity) {
+    if (!existingSecurityClass) {
       const response: ApiResponse = {
         success: false,
         error: 'Security class not found',
@@ -235,7 +236,7 @@ export async function PATCH(
     const isArchived = body.action === 'archive';
 
     // Check if already in desired state
-    if (existingSecurity.isArchived === isArchived) {
+    if (existingSecurityClass.isArchived === isArchived) {
       const response: ApiResponse = {
         success: false,
         error: `Security class is already ${
@@ -260,7 +261,7 @@ export async function PATCH(
 
     // Log the archive action
     await AuditLogger.logArchive(
-      existingSecurity.entityId,
+      existingSecurityClass.entityId,
       userId, // Use actual user ID from auth
       AuditTableName.SECURITY_CLASS,
       id,
@@ -295,7 +296,7 @@ export async function DELETE(
     const { id } = await params;
 
     // Check if security class exists and get transaction counts
-    const existingSecurity = await prisma.securityClass.findUnique({
+    const existingSecurityClass = await prisma.securityClass.findUnique({
       where: { id },
       include: {
         _count: {
@@ -306,7 +307,7 @@ export async function DELETE(
       },
     });
 
-    if (!existingSecurity) {
+    if (!existingSecurityClass) {
       const response: ApiResponse = {
         success: false,
         error: 'Security class not found',
@@ -315,7 +316,7 @@ export async function DELETE(
     }
 
     // Check if security class has transactions
-    if (existingSecurity._count.transactions > 0) {
+    if (existingSecurityClass._count.transactions > 0) {
       const response: ApiResponse = {
         success: false,
         error: 'Cannot delete security class with existing transactions',
