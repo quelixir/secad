@@ -13,8 +13,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { TransactionType } from '@/lib/types'
-import { TRANSACTION_REASONS } from '@/lib/transaction-reasons'
-import { CURRENCIES } from '@/lib/currencies'
+import { TransactionReasons } from '@/lib/transaction-reasons'
+import { Currencies } from '@/lib/currencies'
 import { getDefaultCurrency } from '@/lib/config'
 
 const bulkTransactionSchema = z.object({
@@ -326,7 +326,7 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {TRANSACTION_REASONS.map((reason) => (
+                                                {TransactionReasons.map((reason) => (
                                                     <SelectItem key={reason.code} value={reason.code}>
                                                         {reason.code} - {reason.description}
                                                     </SelectItem>
@@ -351,7 +351,7 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {CURRENCIES.map((currency) => (
+                                                {Currencies.map((currency) => (
                                                     <SelectItem key={currency.code} value={currency.code}>
                                                         {currency.code} - {currency.name}
                                                     </SelectItem>

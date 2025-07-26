@@ -13,8 +13,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Textarea } from '@/components/ui/textarea'
 import { TransactionType } from '@/lib/types'
-import { TRANSACTION_REASONS } from '@/lib/transaction-reasons'
-import { CURRENCIES } from '@/lib/currencies'
+import { TransactionReasons } from '@/lib/transaction-reasons'
+import { Currencies } from '@/lib/currencies'
 import { cn } from '@/lib/utils'
 import { getDefaultCurrency } from '@/lib/config'
 
@@ -399,8 +399,8 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                     className="w-full justify-between"
                                                 >
                                                     {field.value
-                                                        ? TRANSACTION_REASONS.find((reason) => reason.code === field.value)?.code + ' - ' +
-                                                        TRANSACTION_REASONS.find((reason) => reason.code === field.value)?.reason
+                                                        ? TransactionReasons.find((reason) => reason.code === field.value)?.code + ' - ' +
+                                                        TransactionReasons.find((reason) => reason.code === field.value)?.reason
                                                         : "Select reason code..."}
                                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                 </Button>
@@ -412,7 +412,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                 <CommandList>
                                                     <CommandEmpty>No reason code found.</CommandEmpty>
                                                     <CommandGroup>
-                                                        {TRANSACTION_REASONS.map((reason) => (
+                                                        {TransactionReasons.map((reason) => (
                                                             <CommandItem
                                                                 key={reason.code}
                                                                 value={`${reason.code} ${reason.reason} ${reason.description}`}
@@ -573,7 +573,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                                         className="w-32 justify-between"
                                                                     >
                                                                         {currencyField.value
-                                                                            ? CURRENCIES.find((currency) => currency.code === currencyField.value)?.code
+                                                                            ? Currencies.find((currency) => currency.code === currencyField.value)?.code
                                                                             : "Select currency..."}
                                                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                                     </Button>
@@ -585,7 +585,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                                     <CommandList>
                                                                         <CommandEmpty>No currency found.</CommandEmpty>
                                                                         <CommandGroup>
-                                                                            {CURRENCIES.map((currency) => (
+                                                                            {Currencies.map((currency) => (
                                                                                 <CommandItem
                                                                                     key={currency.code}
                                                                                     value={`${currency.code} ${currency.name} ${currency.symbol}`}
@@ -664,7 +664,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                                         className="w-32 justify-between"
                                                                     >
                                                                         {currencyField.value
-                                                                            ? CURRENCIES.find((currency) => currency.code === currencyField.value)?.code
+                                                                            ? Currencies.find((currency) => currency.code === currencyField.value)?.code
                                                                             : "Select currency..."}
                                                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                                     </Button>
@@ -676,7 +676,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                                     <CommandList>
                                                                         <CommandEmpty>No currency found.</CommandEmpty>
                                                                         <CommandGroup>
-                                                                            {CURRENCIES.map((currency) => (
+                                                                            {Currencies.map((currency) => (
                                                                                 <CommandItem
                                                                                     key={currency.code}
                                                                                     value={`${currency.code} ${currency.name} ${currency.symbol}`}
@@ -761,7 +761,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                                     className="w-full justify-between pl-4"
                                                                 >
                                                                     {currencyField.value
-                                                                        ? CURRENCIES.find((currency) => currency.code === currencyField.value)?.code
+                                                                        ? Currencies.find((currency) => currency.code === currencyField.value)?.code
                                                                         : "Select currency..."}
                                                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                                 </Button>
@@ -773,7 +773,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                                                 <CommandList>
                                                                     <CommandEmpty>No currency found.</CommandEmpty>
                                                                     <CommandGroup>
-                                                                        {CURRENCIES.map((currency) => (
+                                                                        {Currencies.map((currency) => (
                                                                             <CommandItem
                                                                                 key={currency.code}
                                                                                 value={`${currency.code} ${currency.name} ${currency.symbol}`}

@@ -4,7 +4,7 @@ export interface Currency {
   symbol: string;
 }
 
-export const CURRENCIES: Currency[] = [
+export const Currencies: Currency[] = [
   { code: 'AED', name: 'UAE Dirham', symbol: 'د.إ' },
   { code: 'AFN', name: 'Afghan Afghani', symbol: '؋' },
   { code: 'ALL', name: 'Albanian Lek', symbol: 'L' },
@@ -178,7 +178,7 @@ export const CURRENCIES: Currency[] = [
 
 // Helper function to find a currency by its code
 export const findCurrencyByCode = (code: string): Currency | undefined => {
-  return CURRENCIES.find((currency) => currency.code === code);
+  return Currencies.find((currency) => currency.code === code);
 };
 
 // Helper function to get currency symbol by code

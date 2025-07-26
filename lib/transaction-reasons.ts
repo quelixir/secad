@@ -4,7 +4,7 @@ export interface TransactionReason {
   description: string;
 }
 
-export const TRANSACTION_REASONS: TransactionReason[] = [
+export const TransactionReasons: TransactionReason[] = [
   {
     code: 'ADJ',
     reason: 'Adjustment',
