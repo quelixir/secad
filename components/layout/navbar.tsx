@@ -155,16 +155,21 @@ export function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
-                    <span className="hidden sm:inline">{user.name || user.username || user.email}</span>
+                    <span className="hidden sm:inline">My Account</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuLabel className="flex flex-col items-start">
+                    <span className="text-sm font-medium">{user.name}</span>
+                    <span className="text-xs text-muted-foreground">{user.email}</span>
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {/*
                   <DropdownMenuItem>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </DropdownMenuItem>
+                  */}
                   <DropdownMenuItem>
                     <Palette className="mr-2 h-4 w-4" />
                     <span>Theme</span>
