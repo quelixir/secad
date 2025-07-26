@@ -127,7 +127,7 @@ export default function ViewEntityPage() {
                 updatedAt: new Date(entity.updatedAt)
             }
             setSelectedEntity(transformedEntity)
-            router.push('/associates') // Redirect to a default module
+            window.location.reload() // Stay on the view entity page
         }
     }
 
