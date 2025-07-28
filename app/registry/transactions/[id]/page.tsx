@@ -13,6 +13,9 @@ import { ArrowLeft, TrendingUp, TrendingDown, ArrowRightLeft, Building2, Calenda
 import Link from 'next/link'
 import { TransactionWithRelations } from '@/lib/types/interfaces/Transaction'
 import { getFormattedMemberName } from '@/lib/types/interfaces/Member'
+import { getDefaultCurrencyCode } from '@/lib/config'
+import { getLocale, getLocaleOptions } from '@/lib/locale'
+import { MemberType, TransactionStatus } from '@/lib/types'
 
 export default function ViewTransactionPage() {
     const params = useParams()
@@ -80,7 +83,7 @@ export default function ViewTransactionPage() {
 
     const formatCurrency = (amount: string | undefined) => {
         if (!amount) return 'N/A'
-        return `$${parseFloat(amount).toLocaleString()}`
+        return `$${parseFloat(amount).toLocaleString(getLocale(), getLocaleOptions())}`
     }
 
     const formatDate = (date: Date | string) => {
@@ -91,6 +94,21 @@ export default function ViewTransactionPage() {
             day: 'numeric'
         })
     }
+
+    const formatFullDateTime = (date: Date | string) => {
+        const dateObj = typeof date === 'string' ? new Date(date) : date
+        return dateObj.toLocaleString(getLocale(), {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZoneName: 'short'
+        })
+    }
+
+
 
     const copyToClipboard = async (text: string) => {
         try {
@@ -198,7 +216,7 @@ export default function ViewTransactionPage() {
                                 {transaction.transactionType}
                             </div>
                         </Badge>
-                        <Badge variant="outline">{transaction.status}</Badge>
+                        <Badge variant="outline" className={transaction.status === TransactionStatus.COMPLETED ? 'bg-green-100' : (transaction.status === TransactionStatus.PENDING ? 'bg-yellow-100' : 'bg-red-100')}>{transaction.status}</Badge>
 
                         <Link href={`/registry/transactions/${transaction.id}/edit`}>
                             <Button variant="outline" size="sm">
@@ -264,7 +282,14 @@ export default function ViewTransactionPage() {
                             <Hash className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{transaction.quantity.toLocaleString()}</div>
+                            <div className="text-2xl font-bold">
+                                {transaction.quantity.toLocaleString(getLocale(), getLocaleOptions())}{' '}
+                                {transaction.securityClass?.symbol && (
+                                    <span className="text-sm text-muted-foreground font-medium">
+                                        {transaction.securityClass.symbol}
+                                    </span>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -275,8 +300,8 @@ export default function ViewTransactionPage() {
                         </CardHeader>
                         <CardContent className="pt-0">
                             {(() => {
-                                const pricePerSecurity = Number(transaction.transferPricePerSecurity || transaction.amountPaidPerSecurity);
-                                const currencyCode = transaction.currencyCode || transaction.currency?.code || 'USD';
+                                const pricePerSecurity = Number(transaction.amountPaidPerSecurity);
+                                const currencyCode = transaction.currencyCode || transaction.currency?.code || getDefaultCurrencyCode();
                                 const securitySymbol = transaction.securityClass?.symbol || 'SEC';
 
                                 if (pricePerSecurity && !isNaN(pricePerSecurity) && transaction.quantity) {
@@ -284,7 +309,7 @@ export default function ViewTransactionPage() {
                                     return (
                                         <>
                                             <div className="text-sm text-muted-foreground mb-0 -mt-3">
-                                                ${pricePerSecurity.toFixed(2)} ({currencyCode}) &times; {transaction.quantity.toLocaleString()} {securitySymbol}
+                                                ${pricePerSecurity.toFixed(2)} ({currencyCode}) &times; {transaction.quantity.toLocaleString(getLocale(), getLocaleOptions())} {securitySymbol}
                                             </div>
                                             <div className="text-2xl font-bold">
                                                 {formatCurrency(total.toString())}
@@ -300,7 +325,7 @@ export default function ViewTransactionPage() {
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Transaction Date</CardTitle>
+                            <CardTitle className="text-sm font-medium">Settlement Date</CardTitle>
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
@@ -338,15 +363,17 @@ export default function ViewTransactionPage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-sm font-medium text-muted-foreground">Transaction Date</label>
+                                    <label className="text-sm font-medium text-muted-foreground">Settlement Date</label>
                                     <p className="text-sm">{formatDate(transaction.settlementDate)}</p>
                                 </div>
-                                {transaction.settlementDate && (
-                                    <div>
-                                        <label className="text-sm font-medium text-muted-foreground">Settlement Date</label>
-                                        <p className="text-sm">{formatDate(transaction.settlementDate)}</p>
-                                    </div>
-                                )}
+
+                                <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Posted Date</label>
+                                    <p className="text-sm cursor-help" title={formatFullDateTime(transaction.postedDate)}>
+                                        {formatDate(transaction.postedDate)}
+                                    </p>
+                                </div>
+
                             </div>
                         </CardContent>
                     </Card>
@@ -369,11 +396,13 @@ export default function ViewTransactionPage() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm font-medium text-muted-foreground">Quantity</label>
-                                    <p className="text-sm font-mono">{transaction.quantity.toLocaleString()}</p>
+                                    <p className="text-sm font-mono">{transaction.quantity.toLocaleString(getLocale(), getLocaleOptions())}</p>
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-muted-foreground">Status</label>
-                                    <Badge variant="outline" className="text-xs">{transaction.status}</Badge>
+                                    <p>
+                                        <Badge variant="outline" className={transaction.status === TransactionStatus.COMPLETED ? 'bg-green-100' : (transaction.status === TransactionStatus.PENDING ? 'bg-yellow-100' : 'bg-red-100')}>{transaction.status}</Badge>
+                                    </p>
                                 </div>
                             </div>
                         </CardContent>
@@ -415,15 +444,15 @@ export default function ViewTransactionPage() {
                                     )}
                                 </>
                             ) : (
-                                transaction.transferPricePerSecurity && (
+                                transaction.amountPaidPerSecurity && (
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="text-sm font-medium text-muted-foreground">Price per Security</label>
-                                            <p className="text-sm font-mono">{formatCurrency(transaction.transferPricePerSecurity.toString())}</p>
+                                            <p className="text-sm font-mono">{formatCurrency(transaction.amountPaidPerSecurity.toString())}</p>
                                         </div>
                                         <div>
                                             <label className="text-sm font-medium text-muted-foreground">Total Amount</label>
-                                            <p className="text-sm font-mono">{formatCurrency((transaction.transferPricePerSecurity * transaction.quantity).toString())}</p>
+                                            <p className="text-sm font-mono">{formatCurrency((transaction.amountPaidPerSecurity * transaction.quantity).toString())}</p>
                                         </div>
                                     </div>
                                 )
@@ -441,8 +470,8 @@ export default function ViewTransactionPage() {
                             {transaction.fromMember && (
                                 <div>
                                     <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                                        <User className="h-3 w-3" />
-                                        From Member
+                                        {transaction.fromMember.memberType === MemberType.INDIVIDUAL ? <User className="h-3 w-3" /> : (transaction.fromMember.memberType === MemberType.JOINT ? <Users className="h-3 w-3" /> : <Building2 className="h-3 w-3" />)}
+                                        FROM
                                     </label>
                                     <p className="text-sm font-medium">{formatMemberName(transaction.fromMember)}</p>
                                     <p className="text-xs text-muted-foreground">{transaction.fromMember.memberType}</p>
@@ -452,8 +481,8 @@ export default function ViewTransactionPage() {
                             {transaction.toMember && (
                                 <div>
                                     <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                                        <Users className="h-3 w-3" />
-                                        To Member
+                                        {transaction.toMember.memberType === MemberType.INDIVIDUAL ? <User className="h-3 w-3" /> : (transaction.toMember.memberType === MemberType.JOINT ? <Users className="h-3 w-3" /> : <Building2 className="h-3 w-3" />)}
+                                        TO
                                     </label>
                                     <p className="text-sm font-medium">{formatMemberName(transaction.toMember)}</p>
                                     <p className="text-xs text-muted-foreground">{transaction.toMember.memberType}</p>
@@ -467,26 +496,6 @@ export default function ViewTransactionPage() {
                     </Card>
                 </div>
 
-                {/* Actions */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Actions</CardTitle>
-                        <CardDescription>Available actions for this transaction</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex gap-2">
-                            <Button variant="outline" onClick={() => router.back()}>
-                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                Back to Transactions
-                            </Button>
-                            <Link href="/registry/transactions">
-                                <Button variant="outline">
-                                    View All Transactions
-                                </Button>
-                            </Link>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </MainLayout>
     )

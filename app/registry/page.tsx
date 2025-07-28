@@ -17,6 +17,7 @@ import {
 import { useEntity } from '@/lib/entity-context'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { getLocale, getLocaleOptions } from '@/lib/locale'
 
 interface RegistrySummary {
     totalMembers: number
@@ -189,7 +190,7 @@ export default function RegistryPage() {
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className="font-medium">{transaction.quantity.toLocaleString()}</div>
+                                                        <div className="font-medium">{transaction.quantity.toLocaleString(getLocale(), getLocaleOptions())}</div>
                                                         <div className="text-sm text-muted-foreground capitalize">
                                                             {transaction.status.toLowerCase()}
                                                         </div>

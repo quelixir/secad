@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { Member, MemberStatus, MemberType, calculateMemberHoldings } from '@/lib/types'
 import { MainLayout } from '@/components/layout/main-layout'
 import { TransactionWithRelations } from '@/lib/types/interfaces/Transaction'
+import { getLocale, getLocaleOptions } from '@/lib/locale'
 
 export default function MembersPage() {
     const { selectedEntity, entities } = useEntity()
@@ -199,7 +200,7 @@ export default function MembersPage() {
                                 <div className="text-sm text-muted-foreground">Active Members</div>
                             </div>
                             <div className="bg-muted/50 rounded-lg p-4">
-                                <div className="text-2xl font-bold">{totalHoldings.toLocaleString()}</div>
+                                <div className="text-2xl font-bold">{totalHoldings.toLocaleString(getLocale(), getLocaleOptions())}</div>
                                 <div className="text-sm text-muted-foreground">Total Holdings</div>
                             </div>
                         </div>
@@ -339,7 +340,7 @@ export default function MembersPage() {
                                                                         {holding.securityClass.symbol && (
                                                                             <div className="text-xs text-muted-foreground">Symbol: {holding.securityClass.symbol}</div>
                                                                         )}
-                                                                        <div className="text-xs text-muted-foreground">Balance: {holding.balance.toLocaleString()} shares</div>
+                                                                        <div className="text-xs text-muted-foreground">Balance: {holding.balance.toLocaleString(getLocale(), getLocaleOptions())} shares</div>
                                                                     </PopoverContent>
                                                                 </Popover>
                                                             );

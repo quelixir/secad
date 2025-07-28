@@ -27,6 +27,7 @@ const bulkTransactionSchema = z.object({
     type: z.string().min(1, 'Transaction type is required'),
     reasonCode: z.string().min(1, 'Reason code is required'),
     currency: z.string().min(1, 'Currency is required'),
+    settlementDate: z.string().optional(),
     postedDate: z.string().optional(),
     reference: z.string().optional(),
     description: z.string().optional(),
@@ -75,6 +76,7 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
             type: '',
             reasonCode: '',
             currency: getDefaultCurrencyCode(),
+            settlementDate: new Date().toISOString().split('T')[0],
             postedDate: new Date().toISOString().split('T')[0],
             reference: '',
             description: '',
@@ -326,10 +328,10 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
 
                             <FormField
                                 control={form.control}
-                                name="postedDate"
+                                name="settlementDate"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Transaction Date</FormLabel>
+                                        <FormLabel>Settlement date</FormLabel>
                                         <FormControl>
                                             <Input type="date" {...field} />
                                         </FormControl>
@@ -454,7 +456,7 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
                                             name={`transactions.${index}.fromMemberId`}
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>From Member</FormLabel>
+                                                    <FormLabel>FROM</FormLabel>
                                                     <Select onValueChange={field.onChange} value={field.value}>
                                                         <FormControl>
                                                             <SelectTrigger>
@@ -481,7 +483,7 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
                                             name={`transactions.${index}.toMemberId`}
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>To Member</FormLabel>
+                                                    <FormLabel>TO</FormLabel>
                                                     <Select onValueChange={field.onChange} value={field.value}>
                                                         <FormControl>
                                                             <SelectTrigger>
@@ -508,7 +510,7 @@ export function BulkTransactionForm({ selectedEntity, onSaved }: BulkTransaction
                                             name={`transactions.${index}.fromMemberId`}
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>From Member</FormLabel>
+                                                    <FormLabel>FROM</FormLabel>
                                                     <Select onValueChange={field.onChange} value={field.value}>
                                                         <FormControl>
                                                             <SelectTrigger>

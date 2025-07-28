@@ -12,7 +12,6 @@ export interface Transaction {
   quantity: number;
   amountPaidPerSecurity?: number;
   amountUnpaidPerSecurity?: number;
-  transferPricePerSecurity?: number;
   currencyCode?: string;
   fromMemberId?: string;
   toMemberId?: string;
@@ -44,7 +43,6 @@ export interface TransactionInput {
   quantity: number;
   amountPaidPerSecurity?: number;
   amountUnpaidPerSecurity?: number;
-  transferPricePerSecurity?: number;
   currencyCode?: string;
   fromMemberId?: string;
   toMemberId?: string;

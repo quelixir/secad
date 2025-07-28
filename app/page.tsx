@@ -10,6 +10,8 @@ import Link from 'next/link'
 import { useEntity } from '@/lib/entity-context'
 import { compliancePackRegistration } from '@/lib/compliance'
 import { Member, getFormattedMemberName } from '@/lib/types/interfaces/Member'
+import { getLocale, getLocaleOptions } from '@/lib/locale'
+import { TransactionType } from '@/lib/types'
 
 interface DashboardStats {
   members: number
@@ -98,9 +100,9 @@ export default function Dashboard() {
 
   const getTransactionTypeColor = (type: string) => {
     switch (type) {
-      case 'ISSUE': return 'bg-green-100 text-green-800'
-      case 'TRANSFER': return 'bg-blue-100 text-blue-800'
-      case 'REDEMPTION': return 'bg-red-100 text-red-800'
+      case TransactionType.ISSUE: return 'bg-green-100 text-green-800'
+      case TransactionType.TRANSFER: return 'bg-blue-100 text-blue-800'
+      case TransactionType.REDEMPTION: return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -212,7 +214,7 @@ export default function Dashboard() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{loading ? '...' : stats.totalHoldings.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{loading ? '...' : stats.totalHoldings.toLocaleString(getLocale(), getLocaleOptions())}</div>
               <p className="text-xs text-muted-foreground">
                 Securities issued
               </p>

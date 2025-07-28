@@ -508,7 +508,7 @@ export default function ViewEntityPage() {
                                                                 </div>
                                                             </TableCell>
                                                             <TableCell className="text-right">
-                                                                {totalQuantity.toLocaleString()}
+                                                                {totalQuantity.toLocaleString(getLocale(), getLocaleOptions())}
                                                             </TableCell>
                                                             <TableCell className="text-right">
                                                                 {totalAmountPaid > 0 ? `$${totalAmountPaid.toLocaleString(getLocale(), getLocaleOptions())}` : '-'}

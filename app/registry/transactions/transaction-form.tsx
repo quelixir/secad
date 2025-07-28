@@ -34,6 +34,7 @@ const transactionFormSchema = z.object({
     currency: z.string().min(1, 'Currency is required'),
     fromMemberId: z.string().optional(),
     toMemberId: z.string().optional(),
+    settlementDate: z.string().optional(),
     postedDate: z.string().optional(),
     reference: z.string().optional(),
     description: z.string().optional()
@@ -51,23 +52,18 @@ const transactionFormSchema = z.object({
     message: 'Invalid member selection for transaction type',
     path: ['toMemberId']
 }).refine((data) => {
-    // Validate transaction date is not before entity incorporation date
+    // Validate postedDate is not before entity incorporation/formation date
     if (data.postedDate) {
         const postedDate = new Date(data.postedDate)
         const today = new Date()
-        const maxBackdate = new Date()
-        maxBackdate.setFullYear(today.getFullYear() - 10) // Allow backdating up to 10 years
 
         if (postedDate > today) {
-            return false // Cannot date in the future
-        }
-        if (postedDate < maxBackdate) {
-            return false // Cannot backdate more than 10 years
+            return false // Cannot future-date
         }
     }
     return true
 }, {
-    message: 'Transaction date cannot be in the future or more than 10 years in the past',
+    message: 'Transaction date cannot be in the future',
     path: ['transactionDate']
 })
 
@@ -99,7 +95,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
             type: transaction?.transactionType || '',
             reasonCode: '',
             quantity: transaction?.quantity !== undefined ? transaction.quantity.toString() : '',
-            paidPerSecurity: transaction?.amountPaidPerSecurity !== undefined ? transaction.amountPaidPerSecurity.toString() : (transaction?.transferPricePerSecurity !== undefined ? transaction.transferPricePerSecurity.toString() : ''),
+            paidPerSecurity: transaction?.amountPaidPerSecurity !== undefined ? transaction.amountPaidPerSecurity.toString() : '',
             unpaidPerSecurity: transaction?.amountUnpaidPerSecurity !== undefined ? transaction.amountUnpaidPerSecurity.toString() : '',
             currency: getDefaultCurrencyCode(),
             fromMemberId: transaction?.fromMember?.id || '',
@@ -767,7 +763,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                     name="fromMemberId"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>From Member *</FormLabel>
+                                            <FormLabel>FROM *</FormLabel>
                                             <Popover>
                                                 <PopoverTrigger asChild>
                                                     <FormControl>
@@ -828,7 +824,7 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                                     name="toMemberId"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>To Member *</FormLabel>
+                                            <FormLabel>TO *</FormLabel>
                                             <Popover>
                                                 <PopoverTrigger asChild>
                                                     <FormControl>
@@ -893,15 +889,15 @@ export function TransactionForm({ selectedEntity, transaction, onSaved }: Transa
                     <div className="grid grid-cols-2 gap-4">
                         <FormField
                             control={form.control}
-                            name="postedDate"
+                            name="settlementDate"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Transaction Date</FormLabel>
+                                    <FormLabel>Settlement Date</FormLabel>
                                     <FormControl>
                                         <Input type="date" {...field} />
                                     </FormControl>
                                     <FormDescription>
-                                        Date when the transaction occurred
+                                        Date when the transaction occurred (can be backdated)
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>

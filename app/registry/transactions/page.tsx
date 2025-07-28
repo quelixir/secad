@@ -13,6 +13,7 @@ import { MainLayout } from '@/components/layout/main-layout'
 import { useEntity } from '@/lib/entity-context'
 import { TransactionWithRelations } from '@/lib/types/interfaces/Transaction'
 import { getFormattedMemberName } from '@/lib/types/interfaces/Member'
+import { getLocale, getLocaleOptions } from '@/lib/locale'
 
 export default function TransactionsPage() {
     const { selectedEntity } = useEntity()
@@ -92,7 +93,7 @@ export default function TransactionsPage() {
 
     const formatCurrency = (amount: string | undefined) => {
         if (!amount) return 'N/A'
-        return `$${parseFloat(amount).toLocaleString()}`
+        return `$${parseFloat(amount).toLocaleString(getLocale(), getLocaleOptions())}`
     }
 
     const getTransactionsByType = (type: string) => {
@@ -291,7 +292,7 @@ export default function TransactionsPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <span className="font-mono font-medium">
-                                                        {transaction.quantity.toLocaleString()}
+                                                        {transaction.quantity.toLocaleString(getLocale(), getLocaleOptions())}
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>

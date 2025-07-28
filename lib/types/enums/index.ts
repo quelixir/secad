@@ -6,6 +6,7 @@ export const EntityStatus = {
 
 export const MemberType = {
   INDIVIDUAL: 'INDIVIDUAL',
+  JOINT: 'JOINT',
   COMPANY: 'COMPANY',
   OTHER_NON_INDIVIDUAL: 'OTHER_NON_INDIVIDUAL',
 } as const;

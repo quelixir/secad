@@ -82,11 +82,6 @@ export async function PUT(
         ? new Decimal(body.amountUnpaidPerSecurity)
         : null;
     }
-    if (body.transferPricePerSecurity !== undefined) {
-      updateData.transferPricePerSecurity = body.transferPricePerSecurity
-        ? new Decimal(body.transferPricePerSecurity)
-        : null;
-    }
     if (body.fromMemberId !== undefined)
       updateData.fromMemberId = body.fromMemberId;
     if (body.toMemberId !== undefined) updateData.toMemberId = body.toMemberId;
@@ -138,24 +133,6 @@ export async function PUT(
 
       updateData.totalAmountUnpaid = amountUnpaidPerSecurity
         ? new Decimal(amountUnpaidPerSecurity).mul(quantity)
-        : null;
-    }
-
-    if (
-      body.quantity !== undefined ||
-      body.transferPricePerSecurity !== undefined
-    ) {
-      const quantity =
-        body.quantity !== undefined
-          ? body.quantity
-          : existingTransaction.quantity;
-      const transferPricePerSecurity =
-        body.transferPricePerSecurity !== undefined
-          ? body.transferPricePerSecurity
-          : existingTransaction.transferPricePerSecurity?.toNumber();
-
-      updateData.totalTransferAmount = transferPricePerSecurity
-        ? new Decimal(transferPricePerSecurity).mul(quantity)
         : null;
     }
 

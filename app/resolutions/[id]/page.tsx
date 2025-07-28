@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { ResolutionForm } from '../resolution-form'
 import { Resolution } from '@/lib/types/interfaces'
+import { getLocale, getLocaleOptions } from '@/lib/locale'
 
 // Standard directors' resolutions with their legislative sections and descriptions
 const STANDARD_DIRECTORS_RESOLUTIONS = [
@@ -421,7 +422,7 @@ export default function ResolutionDetailPage() {
                                                 <div className="flex-1">
                                                     <p className="text-sm font-medium">Resolution Created</p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        {new Date(resolution.createdAt).toLocaleString()}
+                                                        {new Date(resolution.createdAt).toLocaleString(getLocale(), getLocaleOptions())}
                                                         {resolution.createdBy && ` by ${resolution.createdBy}`}
                                                     </p>
                                                 </div>
@@ -433,7 +434,7 @@ export default function ResolutionDetailPage() {
                                                     <div className="flex-1">
                                                         <p className="text-sm font-medium">Resolution Updated</p>
                                                         <p className="text-xs text-muted-foreground">
-                                                            {new Date(resolution.updatedAt).toLocaleString()}
+                                                            {new Date(resolution.updatedAt).toLocaleString(getLocale(), getLocaleOptions())}
                                                         </p>
                                                     </div>
                                                 </div>

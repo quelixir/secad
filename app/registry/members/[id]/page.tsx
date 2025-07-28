@@ -13,6 +13,7 @@ import { ArrowLeft, User, FileUser, Landmark, Mail, Phone, MapPin, Shield, Trend
 import Link from 'next/link'
 import { MemberWithRelations, TransactionDirection } from '@/lib/types/interfaces'
 import { getDefaultCurrencyCode } from '@/lib/config'
+import { getLocale, getLocaleOptions } from '@/lib/locale'
 
 interface SecurityClassesSummary {
     securityClassId: string
@@ -469,7 +470,7 @@ export default function MemberViewPage() {
                                         </div>
                                         <div className="bg-muted/50 rounded-lg p-4">
                                             <div className="text-2xl font-bold">
-                                                {securitiesSummary.reduce((sum, s) => sum + s.totalQuantity, 0).toLocaleString()}
+                                                {securitiesSummary.reduce((sum, s) => sum + s.totalQuantity, 0).toLocaleString(getLocale(), getLocaleOptions())}
                                             </div>
                                             <div className="text-sm text-muted-foreground">Total Securities</div>
                                         </div>
@@ -517,7 +518,7 @@ export default function MemberViewPage() {
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <div className="font-medium">{securityClass.totalQuantity.toLocaleString()}</div>
+                                                        <div className="font-medium">{securityClass.totalQuantity.toLocaleString(getLocale(), getLocaleOptions())}</div>
                                                     </TableCell>
                                                     <TableCell>
                                                         {securityClass.totalAmountPaid > 0 ? (
@@ -655,7 +656,7 @@ export default function MemberViewPage() {
                                                             <div className="font-bold">
                                                                 <span className={transaction.direction === TransactionDirection.IN ? 'text-green-800' : 'text-red-800'}>
                                                                     {transaction.direction === TransactionDirection.OUT && '('}
-                                                                    {transaction.quantity.toLocaleString()}
+                                                                    {transaction.quantity.toLocaleString(getLocale(), getLocaleOptions())}
                                                                     {transaction.direction === TransactionDirection.OUT && ')'}
                                                                 </span>
                                                             </div>

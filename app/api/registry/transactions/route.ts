@@ -86,7 +86,6 @@ export async function POST(request: NextRequest) {
       quantity,
       amountPaidPerSecurity,
       amountUnpaidPerSecurity,
-      transferPricePerSecurity,
       currencyCode: currency,
       fromMemberId,
       toMemberId,
@@ -220,9 +219,6 @@ export async function POST(request: NextRequest) {
     const totalAmountUnpaid = amountUnpaidPerSecurity
       ? new Decimal(amountUnpaidPerSecurity).mul(quantity)
       : null;
-    const totalTransferAmount = transferPricePerSecurity
-      ? new Decimal(transferPricePerSecurity).mul(quantity)
-      : null;
 
     const transaction = await prisma.transaction.create({
       data: {
@@ -237,13 +233,9 @@ export async function POST(request: NextRequest) {
         amountUnpaidPerSecurity: amountUnpaidPerSecurity
           ? new Decimal(amountUnpaidPerSecurity)
           : null,
-        transferPricePerSecurity: transferPricePerSecurity
-          ? new Decimal(transferPricePerSecurity)
-          : null,
         currencyCode: currency || getDefaultCurrencyCode(),
         totalAmountPaid,
         totalAmountUnpaid,
-        totalTransferAmount,
         fromMemberId,
         toMemberId,
         trancheNumber,
