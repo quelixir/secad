@@ -209,6 +209,47 @@ describe('AuditLogger', () => {
       });
     });
 
+    it('should create audit log entry for certificate generation', async () => {
+      const mockCreate = mockPrisma.eventLog.create as jest.Mock;
+      mockCreate.mockResolvedValue({ id: 'log-123' });
+
+      const auditData = {
+        entityId: 'entity-123',
+        userId: 'user-456',
+        action: AuditAction.CERTIFICATE_GENERATED,
+        tableName: AuditTableName.TRANSACTION,
+        recordId: 'transaction-789',
+        fieldName: 'certificate',
+        oldValue: null,
+        newValue: {
+          templateId: 'template-123',
+          templateScope: 'GLOBAL',
+          fileFormat: 'PDF',
+          certificateNumber: '2024-0001',
+          generatedFor: 'member-456',
+          securityClassId: 'security-789',
+          notes: 'Certificate generated successfully'
+        },
+        metadata: { ip: '127.0.0.1', userAgent: 'Mozilla/5.0' },
+      };
+
+      await AuditLogger.logFieldChange(auditData);
+
+      expect(mockCreate).toHaveBeenCalledWith({
+        data: {
+          entityId: 'entity-123',
+          userId: 'user-456',
+          action: AuditAction.CERTIFICATE_GENERATED,
+          tableName: AuditTableName.TRANSACTION,
+          recordId: 'transaction-789',
+          fieldName: 'certificate',
+          oldValue: null,
+          newValue: JSON.stringify(auditData.newValue),
+          metadata: { ip: '127.0.0.1', userAgent: 'Mozilla/5.0' },
+        },
+      });
+    });
+
     it('should handle null values correctly', async () => {
       const mockCreate = mockPrisma.eventLog.create as jest.Mock;
       mockCreate.mockResolvedValue({ id: 'log-123' });

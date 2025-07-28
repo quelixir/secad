@@ -132,6 +132,8 @@ export default function EventsPage() {
                 return 'bg-yellow-100 text-yellow-800'
             case AuditAction.UNARCHIVE:
                 return 'bg-purple-100 text-purple-800'
+            case AuditAction.CERTIFICATE_GENERATED:
+                return 'bg-indigo-100 text-indigo-800'
             default:
                 return 'bg-gray-100 text-gray-800'
         }
@@ -267,6 +269,7 @@ export default function EventsPage() {
                                         <SelectItem value={AuditAction.DELETE}>Delete</SelectItem>
                                         <SelectItem value={AuditAction.ARCHIVE}>Archive</SelectItem>
                                         <SelectItem value={AuditAction.UNARCHIVE}>Unarchive</SelectItem>
+                                        <SelectItem value={AuditAction.CERTIFICATE_GENERATED}>Certificate Generated</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -375,6 +378,11 @@ export default function EventsPage() {
                                                     {event.action === AuditAction.UNARCHIVE && (
                                                         <div className="text-sm">
                                                             <span className="text-purple-600">Unarchived</span>
+                                                        </div>
+                                                    )}
+                                                    {event.action === AuditAction.CERTIFICATE_GENERATED && (
+                                                        <div className="text-sm">
+                                                            <span className="text-indigo-600">Certificate Generated</span>
                                                         </div>
                                                     )}
                                                 </TableCell>

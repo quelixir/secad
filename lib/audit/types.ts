@@ -4,6 +4,7 @@ export enum AuditAction {
   DELETE = 'DELETE',
   ARCHIVE = 'ARCHIVE',
   UNARCHIVE = 'UNARCHIVE',
+  CERTIFICATE_GENERATED = 'CERTIFICATE_GENERATED',
 }
 
 export enum AuditTableName {
