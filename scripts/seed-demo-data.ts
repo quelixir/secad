@@ -149,6 +149,10 @@ async function createDemoEntities() {
       entity = await prisma.entity.create({
         data: {
           ...entityDataWithoutIdentifiers,
+          entitySettings: {
+            certificatesEnabled: true,
+            certificateSettings: {},
+          },
           identifiers: {
             create: identifiers.map((id) => ({
               ...id,
