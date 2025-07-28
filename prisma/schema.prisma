@@ -105,6 +105,7 @@ model Entity {
   userEntityAccess     UserEntityAccess[]
   invitations          Invitation[]
   eventLogs            EventLog[]
+  entitySettings       EntitySettings?
 
   @@map("entities")
 }
@@ -348,4 +349,35 @@ model EventLog {
   @@index([tableName, recordId])
   @@index([userId, timestamp])
   @@map("event_logs")
+}
+
+model CertificateTemplate {
+  id           String   @id @default(cuid(2))
+  name         String   @db.VarChar(100)
+  description  String?
+  templateHtml String   @db.Text
+  templateCss  String?  @db.Text
+  scope        String   @db.VarChar(20) // 'GLOBAL', 'USER', 'ENTITY'
+  scopeId      String?  // NULL for GLOBAL, user_id for USER, entity_id for ENTITY
+  isDefault    Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  createdBy    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([scope, scopeId, isDefault])
+  @@index([scope, scopeId])
+  @@map("certificate_templates")
+}
+
+model EntitySettings {
+  id                   String   @id @default(cuid(2))
+  entityId             String   @unique
+  certificatesEnabled  Boolean  @default(false)
+  certificateSettings  Json?    // Additional certificate-specific settings
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  entity               Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@map("entity_settings")
 }
