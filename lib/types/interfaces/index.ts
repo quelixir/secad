@@ -1,4 +1,5 @@
 export * from './ApiResponse';
+export * from './CertificateTemplate';
 export * from './Entity';
 export * from './EntityIdentifier';
 export * from './EntitySettings';
