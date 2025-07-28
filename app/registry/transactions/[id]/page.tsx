@@ -88,7 +88,7 @@ export default function ViewTransactionPage() {
 
     const formatDate = (date: Date | string) => {
         const dateObj = typeof date === 'string' ? new Date(date) : date
-        return dateObj.toLocaleDateString('en-US', {
+        return dateObj.toLocaleDateString(getLocale(), {
             year: 'numeric',
             month: 'long',
             day: 'numeric'

@@ -172,14 +172,14 @@ export default function MemberViewPage() {
     }
 
     const formatCurrency = (amount: number, currency: string) => {
-        return new Intl.NumberFormat('en-AU', {
+        return new Intl.NumberFormat(getLocale(), {
             style: 'currency',
             currency: currency || getDefaultCurrencyCode()
         }).format(amount)
     }
 
     const formatDate = (dateInput: string | Date) => {
-        return new Date(dateInput).toLocaleDateString('en-AU', {
+        return new Date(dateInput).toLocaleDateString(getLocale(), {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
