@@ -1,6 +1,7 @@
 export * from './ApiResponse';
 export * from './Entity';
 export * from './EntityIdentifier';
+export * from './EntitySettings';
 export * from './EntityType';
 export * from './Member';
 export * from './Security';

@@ -17,6 +17,7 @@ import { getLocale, getLocaleOptions } from '@/lib/locale'
 import { getCountryByName } from '@/lib/Countries'
 import { CollaboratorsTab } from '../../registry/collaborators/collaborators-tab'
 import { useEntityContext } from '@/lib/entity-context'
+import { CertificateSettings } from '@/components/entity/certificate-settings'
 import 'flag-icons/css/flag-icons.min.css'
 import { MemberType } from '@/lib/types'
 
@@ -543,19 +544,7 @@ export default function ViewEntityPage() {
 
                     {selectedEntity?.id === entity.id && (
                         <TabsContent value="settings" className="space-y-4">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Settings</CardTitle>
-                                    <CardDescription>
-                                        Configure entity-specific settings and preferences
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-center py-8 text-muted-foreground">
-                                        Settings configuration will be implemented here.
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <CertificateSettings entityId={entity.id} />
                         </TabsContent>
                     )}
                 </Tabs>

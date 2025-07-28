@@ -1,24 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { auth } from '@/lib/auth';
-
-interface EntitySettingsResponse {
-  success: boolean;
-  data?: {
-    id: string;
-    entityId: string;
-    certificatesEnabled: boolean;
-    certificateSettings?: any;
-    createdAt: Date;
-    updatedAt: Date;
-  };
-  error?: string;
-}
-
-interface EntitySettingsUpdateRequest {
-  certificatesEnabled?: boolean;
-  certificateSettings?: any;
-}
+import {
+  EntitySettingsResponse,
+  EntitySettingsUpdateRequest,
+} from '@/lib/types/interfaces';
 
 export async function GET(
   request: NextRequest,
