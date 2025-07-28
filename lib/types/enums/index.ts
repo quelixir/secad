@@ -1,9 +1,3 @@
-export const EntityStatus = {
-  ACTIVE: 'Active',
-  INACTIVE: 'Inactive',
-  DISSOLVED: 'Dissolved',
-} as const;
-
 export const AssociateType = {
   OFFICEHOLDER_DIRECTOR: 'officeholder_director',
   OFFICEHOLDER_SECRETARY: 'officeholder_secretary',

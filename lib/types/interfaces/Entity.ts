@@ -4,6 +4,12 @@ import { SecurityClass } from './Security';
 import { Transaction } from './Transaction';
 import { EntityIdentifier } from './EntityIdentifier';
 
+export enum EntityStatus {
+  ACTIVE = 'Active',
+  INACTIVE = 'Inactive',
+  DISSOLVED = 'Dissolved',
+}
+
 export interface Entity {
   id: string;
   name: string;
