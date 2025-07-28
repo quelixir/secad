@@ -12,6 +12,7 @@ import {
   validateTemplateHtml,
   validateDefaultTemplateConstraint,
 } from '@/lib/certificate-templates/scope-validation';
+import { TemplateValidationService } from '@/lib/certificate-templates/template-validation';
 
 // GET /api/registry/certificate-templates
 export async function GET(request: NextRequest) {
@@ -116,11 +117,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate template HTML using helper function
-    const htmlValidation = validateTemplateHtml(body.templateHtml);
-    if (!htmlValidation.isValid) {
+    // Validate template using comprehensive validation service
+    const validationService = new TemplateValidationService();
+    const templateForValidation = {
+      id: 'temp',
+      name: body.name,
+      description: body.description || '',
+      templateHtml: body.templateHtml,
+      templateCss: body.templateCss || '',
+      scope: body.scope,
+      scopeId: body.scopeId || null,
+      isDefault: body.isDefault || false,
+      isActive: body.isActive !== false,
+      createdBy: userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const validationResult = validationService.validateTemplate(
+      templateForValidation
+    );
+
+    if (!validationResult.isValid) {
+      const errorMessages =
+        validationService.formatValidationErrors(validationResult);
       return NextResponse.json(
-        { success: false, error: htmlValidation.error },
+        {
+          success: false,
+          error: 'Template validation failed',
+          details: errorMessages,
+          warnings:
+            validationService.formatValidationWarnings(validationResult),
+        },
         { status: 400 }
       );
     }

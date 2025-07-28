@@ -10,6 +10,7 @@ import {
   validateTemplateHtml,
   validateDefaultTemplateConstraint,
 } from '@/lib/certificate-templates/scope-validation';
+import { TemplateValidationService } from '@/lib/certificate-templates/template-validation';
 
 // PUT /api/registry/certificate-templates/[templateId]
 export async function PUT(
@@ -56,12 +57,30 @@ export async function PUT(
       );
     }
 
-    // Validate template HTML if provided using helper function
+    // Validate template using comprehensive validation service if HTML is provided
     if (body.templateHtml) {
-      const htmlValidation = validateTemplateHtml(body.templateHtml);
-      if (!htmlValidation.isValid) {
+      const validationService = new TemplateValidationService();
+      const templateForValidation = {
+        ...existingTemplate,
+        templateHtml: body.templateHtml,
+        templateCss: body.templateCss || existingTemplate.templateCss,
+      };
+
+      const validationResult = validationService.validateTemplate(
+        templateForValidation
+      );
+
+      if (!validationResult.isValid) {
+        const errorMessages =
+          validationService.formatValidationErrors(validationResult);
         return NextResponse.json(
-          { success: false, error: htmlValidation.error },
+          {
+            success: false,
+            error: 'Template validation failed',
+            details: errorMessages,
+            warnings:
+              validationService.formatValidationWarnings(validationResult),
+          },
           { status: 400 }
         );
       }
