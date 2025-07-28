@@ -210,6 +210,9 @@ export default function ViewEntityPage() {
                                 <TabsTrigger value="securities">Securities ({entity._count?.securityClasses || 0})</TabsTrigger>
                             </>
                         )}
+                        {selectedEntity?.id === entity.id && (
+                            <TabsTrigger value="settings">Settings</TabsTrigger>
+                        )}
                     </TabsList>
 
                     <TabsContent value="overview" className="space-y-4">
@@ -533,6 +536,24 @@ export default function ViewEntityPage() {
                                             </TableBody>
                                         </Table>
                                     )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    )}
+
+                    {selectedEntity?.id === entity.id && (
+                        <TabsContent value="settings" className="space-y-4">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Settings</CardTitle>
+                                    <CardDescription>
+                                        Configure entity-specific settings and preferences
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        Settings configuration will be implemented here.
+                                    </div>
                                 </CardContent>
                             </Card>
                         </TabsContent>
