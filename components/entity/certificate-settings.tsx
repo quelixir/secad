@@ -30,7 +30,7 @@ export function CertificateSettings({ entityId }: CertificateSettingsProps) {
             setLoading(true)
             setError(null)
 
-            const response = await fetch(`/api/registry/entities/${entityId}/settings`)
+            const response = await fetch(`/api/entities/${entityId}/settings`)
             const result: EntitySettingsResponse = await response.json()
 
             if (result.success && result.data) {
@@ -52,7 +52,7 @@ export function CertificateSettings({ entityId }: CertificateSettingsProps) {
             setError(null)
             setSuccess(null)
 
-            const response = await fetch(`/api/registry/entities/${entityId}/settings`, {
+            const response = await fetch(`/api/entities/${entityId}/settings`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

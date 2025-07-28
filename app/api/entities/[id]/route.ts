@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { EntityInput } from '@/lib/types';
 import { compliancePackRegistration } from '@/lib/compliance';
+
+interface EntityIdentifierInput {
+  type: string;
+  value: string;
+  country: string;
+}
 
 export async function GET(
   request: NextRequest,
@@ -13,18 +20,7 @@ export async function GET(
       include: {
         identifiers: true,
         members: true,
-        securityClasses: {
-          include: {
-            transactions: {
-              select: {
-                id: true,
-                totalAmountPaid: true,
-                totalAmountUnpaid: true,
-                quantity: true,
-              },
-            },
-          },
-        },
+        securityClasses: true,
         transactions: true,
         associates: true,
         _count: {
@@ -70,30 +66,80 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const entityUpdateData = await request.json();
+    const body: Partial<EntityInput> & {
+      identifiers?: EntityIdentifierInput[];
+    } = await request.json();
 
-    // Validate entity type if being updated
-    if (entityUpdateData.entityTypeId) {
-      const entityType = compliancePackRegistration.getEntityType(
-        entityUpdateData.incorporationCountry || 'Australia',
-        entityUpdateData.entityTypeId
-      );
-
-      if (!entityType) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Invalid entity type',
-          },
-          { status: 400 }
+    // Validate identifiers
+    if (body.identifiers) {
+      for (const identifier of body.identifiers) {
+        const isValid = compliancePackRegistration.validateIdentifier(
+          identifier.country,
+          identifier.type,
+          identifier.value
         );
+        if (!isValid) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Invalid ${identifier.type} value: ${identifier.value}`,
+            },
+            { status: 400 }
+          );
+        }
+      }
+
+      // Check for duplicate identifiers across other entities
+      for (const identifier of body.identifiers) {
+        const existing = await prisma.entityIdentifier.findFirst({
+          where: {
+            type: identifier.type,
+            value: identifier.value,
+            country: identifier.country,
+            isActive: true,
+            entity: {
+              id: { not: id },
+            },
+          },
+        });
+
+        if (existing) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `${identifier.type} ${identifier.value} is already in use`,
+            },
+            { status: 409 }
+          );
+        }
       }
     }
 
-    // Update entity
+    const { identifiers = [], ...updateData } = body;
+
+    // Prepare update data
+    const entityUpdateData: any = { ...updateData };
+    if (body.incorporationDate !== undefined) {
+      entityUpdateData.incorporationDate = body.incorporationDate
+        ? new Date(body.incorporationDate)
+        : null;
+    }
+
+    // Update entity and replace identifiers
     const entity = await prisma.entity.update({
       where: { id },
-      data: entityUpdateData,
+      data: {
+        ...entityUpdateData,
+        identifiers: {
+          deleteMany: {},
+          create: identifiers.map((identifier) => ({
+            type: identifier.type,
+            value: identifier.value,
+            country: identifier.country,
+            isActive: true,
+          })),
+        },
+      },
       include: {
         identifiers: true,
       },
@@ -106,6 +152,18 @@ export async function PUT(
     });
   } catch (error) {
     console.error('Error updating entity:', error);
+    if (
+      error instanceof Error &&
+      error.message.includes('Record to update not found')
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Entity not found',
+        },
+        { status: 404 }
+      );
+    }
     return NextResponse.json(
       {
         success: false,

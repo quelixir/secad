@@ -1,7 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { compliancePackRegistration } from '@/lib/compliance';
-import { getDefaultCountry } from '@/lib/config';
 
 export async function GET() {
   try {
@@ -38,31 +37,33 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
+    const body = await request.json();
 
     // Basic validation
     if (!body.name || !body.entityTypeId) {
-      return new Response(
-        JSON.stringify({
+      return NextResponse.json(
+        {
+          success: false,
           error: 'Name and entity type are required',
-        }),
+        },
         { status: 400 }
       );
     }
 
     // Get entity type from compliance registry
     const entityType = compliancePackRegistration.getEntityType(
-      body.incorporationCountry || getDefaultCountry(),
+      body.incorporationCountry || 'Australia',
       body.entityTypeId
     );
 
     if (!entityType) {
-      return new Response(
-        JSON.stringify({
+      return NextResponse.json(
+        {
+          success: false,
           error: 'Invalid entity type',
-        }),
+        },
         { status: 400 }
       );
     }
@@ -74,6 +75,9 @@ export async function POST(req: Request) {
           ...body,
           status: 'Active',
         },
+        include: {
+          identifiers: true,
+        },
       });
 
       // Entity settings will be handled by default values in the JSON column
@@ -81,13 +85,18 @@ export async function POST(req: Request) {
       return createdEntity;
     });
 
-    return new Response(JSON.stringify(entity));
+    return NextResponse.json({
+      success: true,
+      data: entity,
+      message: 'Entity created successfully',
+    });
   } catch (error) {
     console.error('Error creating entity:', error);
-    return new Response(
-      JSON.stringify({
+    return NextResponse.json(
+      {
+        success: false,
         error: 'Failed to create entity',
-      }),
+      },
       { status: 500 }
     );
   }
