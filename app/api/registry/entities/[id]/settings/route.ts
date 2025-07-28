@@ -22,7 +22,7 @@ interface EntitySettingsUpdateRequest {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ entityId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Validate user authentication
@@ -37,7 +37,7 @@ export async function GET(
       return NextResponse.json(response, { status: 401 });
     }
 
-    const { entityId } = await params;
+    const { id: entityId } = await params;
 
     // Check user has access to entity via UserEntityAccess table
     const userAccess = await prisma.userEntityAccess.findUnique({
@@ -101,7 +101,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ entityId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Validate user authentication
@@ -116,7 +116,7 @@ export async function PATCH(
       return NextResponse.json(response, { status: 401 });
     }
 
-    const { entityId } = await params;
+    const { id: entityId } = await params;
 
     // Check user has access to entity via UserEntityAccess table
     const userAccess = await prisma.userEntityAccess.findUnique({
