@@ -140,6 +140,18 @@ export function CertificateSettings({ entityId }: CertificateSettingsProps) {
                         <div className="text-sm text-muted-foreground">
                             Allow generation of certificates for securities transactions
                         </div>
+                        <div className="text-sm text-muted-foreground">
+                            Certificates are currently{' '}
+                            <span className={cn(
+                                'font-medium',
+                                settings?.certificatesEnabled
+                                    ? 'text-green-600'
+                                    : 'text-red-600'
+                            )}>
+                                {settings?.certificatesEnabled ? 'enabled' : 'disabled'}
+                            </span>
+                            {' '}for this entity.
+                        </div>
                     </div>
                     <Switch
                         id="certificates-enabled"
@@ -155,45 +167,13 @@ export function CertificateSettings({ entityId }: CertificateSettingsProps) {
                         <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div className="space-y-2">
                             <h4 className="font-medium">About Certificates</h4>
-                            <div className="text-sm text-muted-foreground space-y-1">
+                            <div className="text-sm text-muted-foreground">
                                 <p>
                                     Certificates are official documents that serve as proof of ownership for securities.
-                                    When enabled, certificates can be generated for:
-                                </p>
-                                <ul className="list-disc list-inside space-y-1 ml-2">
-                                    <li>Securities issuance transactions</li>
-                                    <li>Securities transfer transactions</li>
-                                    <li>Other qualifying securities events</li>
-                                </ul>
-                                <p className="mt-2">
-                                    Certificates are generated on-demand when requested by users with appropriate access permissions.
+                                    When enabled, certificates can be generated for securities transactions and are available on-demand to users with appropriate access permissions.
                                 </p>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                {/* Current Status */}
-                <div className="rounded-lg border p-4">
-                    <h4 className="font-medium mb-2">Current Status</h4>
-                    <div className="text-sm text-muted-foreground">
-                        <p>
-                            Certificates are currently{' '}
-                            <span className={cn(
-                                'font-medium',
-                                settings?.certificatesEnabled
-                                    ? 'text-green-600'
-                                    : 'text-red-600'
-                            )}>
-                                {settings?.certificatesEnabled ? 'enabled' : 'disabled'}
-                            </span>
-                            {' '}for this entity.
-                        </p>
-                        {settings?.certificatesEnabled && (
-                            <p className="mt-1">
-                                Users with access to this entity can generate certificates for qualifying transactions.
-                            </p>
-                        )}
                     </div>
                 </div>
             </CardContent>
