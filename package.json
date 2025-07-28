@@ -17,7 +17,9 @@
     "commit:check": "commitlint --from HEAD~1 --to HEAD --verbose",
     "commit": "cz",
     "seed:reset-db": "npx prisma db push --force-reset && npx prisma db push",
-    "seed:demo": "tsx scripts/seed-demo-data.ts"
+    "seed:demo": "tsx scripts/seed-demo-data.ts",
+    "seed:default-certificate-template": "tsx scripts/seed-default-certificate-template.ts",
+    "seed:dev": "npx prisma db push --force-reset && npx prisma db push && tsx scripts/seed-demo-data.ts && tsx scripts/seed-default-certificate-template.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
