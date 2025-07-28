@@ -1,10 +1,6 @@
 export interface EntitySettings {
-  id: string;
-  entityId: string;
   certificatesEnabled: boolean;
   certificateSettings?: any;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface EntitySettingsUpdateRequest {

@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import {
   EntitySettingsResponse,
   EntitySettingsUpdateRequest,
+  EntitySettings,
 } from '@/lib/types/interfaces';
 
 export async function GET(
@@ -40,9 +41,10 @@ export async function GET(
       return NextResponse.json(response, { status: 403 });
     }
 
-    // Check if entity exists
+    // Check if entity exists and get its settings
     const entity = await prisma.entity.findUnique({
       where: { id: entityId },
+      select: { entitySettings: true },
     });
 
     if (!entity) {
@@ -53,25 +55,15 @@ export async function GET(
       return NextResponse.json(response, { status: 404 });
     }
 
-    // Get entity settings or create default if not exists
-    let entitySettings = await prisma.entitySettings.findUnique({
-      where: { entityId },
-    });
-
-    if (!entitySettings) {
-      // Create default settings
-      entitySettings = await prisma.entitySettings.create({
-        data: {
-          entityId,
-          certificatesEnabled: false,
-          certificateSettings: {},
-        },
-      });
-    }
+    // Return settings or default if none exist
+    const settings: EntitySettings = (entity.entitySettings as any) || {
+      certificatesEnabled: false,
+      certificateSettings: {},
+    };
 
     const response: EntitySettingsResponse = {
       success: true,
-      data: entitySettings,
+      data: settings,
     };
 
     return NextResponse.json(response);
@@ -122,6 +114,7 @@ export async function PATCH(
     // Check if entity exists
     const entity = await prisma.entity.findUnique({
       where: { id: entityId },
+      select: { entitySettings: true },
     });
 
     if (!entity) {
@@ -147,24 +140,33 @@ export async function PATCH(
       return NextResponse.json(response, { status: 400 });
     }
 
-    // Update or create entity settings
-    const entitySettings = await prisma.entitySettings.upsert({
-      where: { entityId },
-      update: {
-        certificatesEnabled: updateData.certificatesEnabled,
-        certificateSettings: updateData.certificateSettings,
+    // Get current settings or use defaults
+    const currentSettings: EntitySettings = (entity.entitySettings as any) || {
+      certificatesEnabled: false,
+      certificateSettings: {},
+    };
+
+    // Merge current settings with update data
+    const updatedSettings: EntitySettings = {
+      certificatesEnabled:
+        updateData.certificatesEnabled ?? currentSettings.certificatesEnabled,
+      certificateSettings:
+        updateData.certificateSettings ?? currentSettings.certificateSettings,
+    };
+
+    // Update entity with new settings
+    const updatedEntity = await prisma.entity.update({
+      where: { id: entityId },
+      data: {
+        entitySettings: updatedSettings as any,
         updatedAt: new Date(),
       },
-      create: {
-        entityId,
-        certificatesEnabled: updateData.certificatesEnabled ?? false,
-        certificateSettings: updateData.certificateSettings ?? {},
-      },
+      select: { entitySettings: true },
     });
 
     const response: EntitySettingsResponse = {
       success: true,
-      data: entitySettings,
+      data: updatedEntity.entitySettings as any,
     };
 
     return NextResponse.json(response);

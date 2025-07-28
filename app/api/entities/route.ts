@@ -76,14 +76,7 @@ export async function POST(req: Request) {
         },
       });
 
-      // Create default entity settings with certificates enabled
-      await tx.entitySettings.create({
-        data: {
-          entityId: createdEntity.id,
-          certificatesEnabled: true,
-          certificateSettings: {},
-        },
-      });
+      // Entity settings will be handled by default values in the JSON column
 
       return createdEntity;
     });

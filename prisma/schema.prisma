@@ -94,6 +94,7 @@ model Entity {
   email                String?
   phone                String?
   website              String?
+  entitySettings       Json?              // JSON object containing entity-specific settings
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   associates           Associate[]
@@ -105,7 +106,6 @@ model Entity {
   userEntityAccess     UserEntityAccess[]
   invitations          Invitation[]
   eventLogs            EventLog[]
-  entitySettings       EntitySettings?
 
   @@map("entities")
 }
@@ -370,14 +370,4 @@ model CertificateTemplate {
   @@map("certificate_templates")
 }
 
-model EntitySettings {
-  id                   String   @id @default(cuid(2))
-  entityId             String   @unique
-  certificatesEnabled  Boolean  @default(false)
-  certificateSettings  Json?    // Additional certificate-specific settings
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  entity               Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
 
-  @@map("entity_settings")
-}
