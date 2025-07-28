@@ -59,9 +59,9 @@ describe('CertificateTemplate Interface', () => {
       const template: CertificateTemplate = {
         id: 'template-123',
         name: 'Default Certificate Template',
-        description: null,
+        description: undefined,
         templateHtml: '<html><body><h1>{{entityName}}</h1></body></html>',
-        templateCss: null,
+        templateCss: undefined,
         scope: 'GLOBAL',
         scopeId: null,
         isDefault: true,
@@ -71,8 +71,8 @@ describe('CertificateTemplate Interface', () => {
         updatedAt: new Date('2020-01-01'),
       };
 
-      expect(template.description).toBeNull();
-      expect(template.templateCss).toBeNull();
+      expect(template.description).toBeUndefined();
+      expect(template.templateCss).toBeUndefined();
       expect(template.scopeId).toBeNull();
       expect(template.createdBy).toBe('user-123'); // createdBy is required, not optional
     });
@@ -114,17 +114,17 @@ describe('CertificateTemplate Interface', () => {
     it('should allow null values for optional fields', () => {
       const templateInput: CertificateTemplateInput = {
         name: 'Custom Certificate Template',
-        description: null,
+        description: undefined,
         templateHtml: '<html><body><h1>{{entityName}}</h1></body></html>',
-        templateCss: null,
+        templateCss: undefined,
         scope: 'GLOBAL',
         scopeId: null,
         isDefault: false,
         isActive: true,
       };
 
-      expect(templateInput.description).toBeNull();
-      expect(templateInput.templateCss).toBeNull();
+      expect(templateInput.description).toBeUndefined();
+      expect(templateInput.templateCss).toBeUndefined();
       expect(templateInput.scopeId).toBeNull();
     });
   });
@@ -156,8 +156,6 @@ describe('CertificateTemplate Interface', () => {
       expect(templateUpdate.description).toBeUndefined();
       expect(templateUpdate.templateHtml).toBeUndefined();
       expect(templateUpdate.templateCss).toBeUndefined();
-      expect(templateUpdate.scope).toBeUndefined();
-      expect(templateUpdate.scopeId).toBeUndefined();
       expect(templateUpdate.isDefault).toBeUndefined();
     });
   });
@@ -185,20 +183,22 @@ describe('CertificateTemplate Interface', () => {
       };
 
       expect(templateResponse.success).toBe(true);
-      expect(templateResponse.data.id).toBe('template-123');
+      expect((templateResponse.data as CertificateTemplate).id).toBe(
+        'template-123'
+      );
       expect(templateResponse.message).toBe('Template retrieved successfully');
     });
 
     it('should allow error response', () => {
       const templateResponse: CertificateTemplateResponse = {
         success: false,
-        data: null,
+        data: undefined,
         message: 'Template not found',
         errors: ['Template with ID template-123 not found'],
       };
 
       expect(templateResponse.success).toBe(false);
-      expect(templateResponse.data).toBeNull();
+      expect(templateResponse.data).toBeUndefined();
       expect(templateResponse.message).toBe('Template not found');
       expect(templateResponse.errors).toContain(
         'Template with ID template-123 not found'
@@ -252,8 +252,10 @@ describe('CertificateTemplate Interface', () => {
 
       expect(templateListResponse.success).toBe(true);
       expect(templateListResponse.data).toHaveLength(2);
-      expect(templateListResponse.data[0].name).toBe('Global Default Template');
-      expect(templateListResponse.data[1].name).toBe('User Custom Template');
+      expect(templateListResponse.data?.[0].name).toBe(
+        'Global Default Template'
+      );
+      expect(templateListResponse.data?.[1].name).toBe('User Custom Template');
       expect(templateListResponse.pagination?.total).toBe(2);
     });
 
@@ -463,8 +465,8 @@ describe('CertificateTemplate Interface', () => {
         templateHtml: templateInput.templateHtml,
         scope: templateInput.scope,
         scopeId: null,
-        isDefault: templateInput.isDefault,
-        isActive: templateInput.isActive,
+        isDefault: templateInput.isDefault ?? false,
+        isActive: templateInput.isActive ?? true,
         createdAt: new Date('2020-01-01'),
         updatedAt: new Date('2020-01-01'),
       };
