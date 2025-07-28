@@ -211,9 +211,7 @@ export default function ViewEntityPage() {
                                 <TabsTrigger value="securities">Securities ({entity._count?.securityClasses || 0})</TabsTrigger>
                             </>
                         )}
-                        {selectedEntity?.id === entity.id && (
-                            <TabsTrigger value="settings">Settings</TabsTrigger>
-                        )}
+                        <TabsTrigger value="settings">Settings</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="overview" className="space-y-4">
@@ -542,11 +540,9 @@ export default function ViewEntityPage() {
                         </TabsContent>
                     )}
 
-                    {selectedEntity?.id === entity.id && (
-                        <TabsContent value="settings" className="space-y-4">
-                            <CertificateSettings entityId={entity.id} />
-                        </TabsContent>
-                    )}
+                    <TabsContent value="settings" className="space-y-4">
+                        <CertificateSettings entityId={entity.id} />
+                    </TabsContent>
                 </Tabs>
             </div>
         </MainLayout>
