@@ -18,6 +18,7 @@ import { getCountryByName } from '@/lib/Countries'
 import { CollaboratorsTab } from '../../registry/collaborators/collaborators-tab'
 import { useEntityContext } from '@/lib/entity-context'
 import 'flag-icons/css/flag-icons.min.css'
+import { MemberType } from '@/lib/types'
 
 export default function ViewEntityPage() {
     const params = useParams()
@@ -425,9 +426,9 @@ export default function ViewEntityPage() {
                                             </TableHeader>
                                             <TableBody>
                                                 {entity.members.map((member) => {
-                                                    const memberName = member.memberType === 'INDIVIDUAL'
+                                                    const memberName = member.memberType === MemberType.INDIVIDUAL
                                                         ? `${member.givenNames || ''} ${member.familyName || ''}`.trim()
-                                                        : member.memberType === 'JOINT'
+                                                        : member.memberType === MemberType.JOINT
                                                             ? (member.jointPersons && member.jointPersons.length > 0
                                                                 ? member.jointPersons.map((p: any) =>
                                                                     p.entityName || `${p.givenNames} ${p.familyName}`.trim()

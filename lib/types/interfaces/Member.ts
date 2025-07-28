@@ -2,6 +2,19 @@ import { Entity } from './Entity';
 import { TransactionWithRelations, TransactionType } from './Transaction';
 import { SecurityClass } from './Security';
 
+export enum MemberType {
+  INDIVIDUAL = 'INDIVIDUAL',
+  JOINT = 'JOINT',
+  COMPANY = 'COMPANY',
+  OTHER_NON_INDIVIDUAL = 'OTHER_NON_INDIVIDUAL',
+}
+
+export enum MemberStatus {
+  ACTIVE = 'Active',
+  INACTIVE = 'Inactive',
+  RESIGNED = 'Resigned',
+}
+
 export interface MemberContact {
   id: string;
   memberId: string;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { ApiResponse, MemberInput } from '@/lib/types';
+import { ApiResponse, MemberInput, MemberType } from '@/lib/types';
 
 // GET /api/members - List all members (optionally filtered by entity)
 export async function GET(request: NextRequest) {
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     // Validate member type specific fields
     if (
-      body.memberType === 'Individual' &&
+      body.memberType === MemberType.INDIVIDUAL &&
       (!body.givenNames || !body.familyName)
     ) {
       const response: ApiResponse = {
@@ -86,8 +86,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (
-      body.memberType !== 'Individual' &&
-      body.memberType !== 'Joint' &&
+      body.memberType !== MemberType.INDIVIDUAL &&
+      body.memberType !== MemberType.JOINT &&
       !body.entityName
     ) {
       const response: ApiResponse = {

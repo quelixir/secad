@@ -4,19 +4,6 @@ export const EntityStatus = {
   DISSOLVED: 'Dissolved',
 } as const;
 
-export const MemberType = {
-  INDIVIDUAL: 'INDIVIDUAL',
-  JOINT: 'JOINT',
-  COMPANY: 'COMPANY',
-  OTHER_NON_INDIVIDUAL: 'OTHER_NON_INDIVIDUAL',
-} as const;
-
-export const MemberStatus = {
-  ACTIVE: 'Active',
-  INACTIVE: 'Inactive',
-  RESIGNED: 'Resigned',
-} as const;
-
 export const AssociateType = {
   OFFICEHOLDER_DIRECTOR: 'officeholder_director',
   OFFICEHOLDER_SECRETARY: 'officeholder_secretary',
