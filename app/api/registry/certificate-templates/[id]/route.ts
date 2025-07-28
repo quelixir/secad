@@ -5,6 +5,11 @@ import {
   CertificateTemplateUpdateInput,
   CertificateTemplateResponse,
 } from '@/lib/types/interfaces';
+import {
+  validateTemplateAccess,
+  validateTemplateHtml,
+  validateDefaultTemplateConstraint,
+} from '@/lib/certificate-templates/scope-validation';
 
 // PUT /api/registry/certificate-templates/[templateId]
 export async function PUT(
@@ -37,78 +42,41 @@ export async function PUT(
       );
     }
 
-    // Check authorization based on scope
-    if (existingTemplate.scope === 'GLOBAL') {
-      // Only allow global template updates by admin users (you might want to add admin check here)
+    // Check authorization using helper function
+    const accessValidation = await validateTemplateAccess(userId, {
+      scope: existingTemplate.scope as 'GLOBAL' | 'USER' | 'ENTITY',
+      scopeId: existingTemplate.scopeId,
+      createdBy: existingTemplate.createdBy,
+    });
+
+    if (!accessValidation.hasAccess) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Insufficient permissions to update global template',
-        },
+        { success: false, error: accessValidation.accessError },
         { status: 403 }
       );
     }
 
-    if (
-      existingTemplate.scope === 'USER' &&
-      existingTemplate.scopeId !== userId
-    ) {
-      return NextResponse.json(
-        { success: false, error: 'Access denied to user template' },
-        { status: 403 }
-      );
-    }
-
-    if (existingTemplate.scope === 'ENTITY') {
-      // Check if user has access to the entity
-      const userAccess = await prisma.userEntityAccess.findUnique({
-        where: {
-          userId_entityId: {
-            userId,
-            entityId: existingTemplate.scopeId!,
-          },
-        },
-      });
-
-      if (!userAccess) {
+    // Validate template HTML if provided using helper function
+    if (body.templateHtml) {
+      const htmlValidation = validateTemplateHtml(body.templateHtml);
+      if (!htmlValidation.isValid) {
         return NextResponse.json(
-          { success: false, error: 'Access denied to entity template' },
-          { status: 403 }
+          { success: false, error: htmlValidation.error },
+          { status: 400 }
         );
       }
     }
 
-    // Validate template HTML if provided
-    if (
-      body.templateHtml &&
-      (!body.templateHtml.includes('{{') || !body.templateHtml.includes('}}'))
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Template HTML must contain template variables ({{variable}})',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Check for default template constraint if setting as default
+    // Check for default template constraint if setting as default using helper function
     if (body.isDefault) {
-      const existingDefault = await prisma.certificateTemplate.findFirst({
-        where: {
-          scope: existingTemplate.scope,
-          scopeId: existingTemplate.scopeId,
-          isDefault: true,
-          id: { not: id }, // Exclude current template
-        },
-      });
-
-      if (existingDefault) {
+      const defaultValidation = await validateDefaultTemplateConstraint(
+        existingTemplate.scope as 'GLOBAL' | 'USER' | 'ENTITY',
+        existingTemplate.scopeId,
+        id
+      );
+      if (!defaultValidation.isValid) {
         return NextResponse.json(
-          {
-            success: false,
-            error: 'Only one default template allowed per scope',
-          },
+          { success: false, error: defaultValidation.error },
           { status: 400 }
         );
       }
@@ -175,45 +143,18 @@ export async function DELETE(
       );
     }
 
-    // Check authorization based on scope
-    if (existingTemplate.scope === 'GLOBAL') {
-      // Only allow global template deletion by admin users
+    // Check authorization using helper function
+    const accessValidation = await validateTemplateAccess(userId, {
+      scope: existingTemplate.scope as 'GLOBAL' | 'USER' | 'ENTITY',
+      scopeId: existingTemplate.scopeId,
+      createdBy: existingTemplate.createdBy,
+    });
+
+    if (!accessValidation.hasAccess) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Insufficient permissions to delete global template',
-        },
+        { success: false, error: accessValidation.accessError },
         { status: 403 }
       );
-    }
-
-    if (
-      existingTemplate.scope === 'USER' &&
-      existingTemplate.scopeId !== userId
-    ) {
-      return NextResponse.json(
-        { success: false, error: 'Access denied to user template' },
-        { status: 403 }
-      );
-    }
-
-    if (existingTemplate.scope === 'ENTITY') {
-      // Check if user has access to the entity
-      const userAccess = await prisma.userEntityAccess.findUnique({
-        where: {
-          userId_entityId: {
-            userId,
-            entityId: existingTemplate.scopeId!,
-          },
-        },
-      });
-
-      if (!userAccess) {
-        return NextResponse.json(
-          { success: false, error: 'Access denied to entity template' },
-          { status: 403 }
-        );
-      }
     }
 
     // Prevent deletion of default templates

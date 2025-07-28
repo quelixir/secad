@@ -6,6 +6,12 @@ import {
   CertificateTemplateListResponse,
   CertificateTemplateResponse,
 } from '@/lib/types/interfaces';
+import {
+  getAvailableTemplates,
+  validateTemplateScope,
+  validateTemplateHtml,
+  validateDefaultTemplateConstraint,
+} from '@/lib/certificate-templates/scope-validation';
 
 // GET /api/registry/certificate-templates
 export async function GET(request: NextRequest) {
@@ -28,72 +34,9 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = (page - 1) * limit;
 
-    // Build where clause for scope filtering
-    const whereClause: any = {
-      isActive: true,
-    };
-
-    // Always include GLOBAL templates
-    const globalTemplates = await prisma.certificateTemplate.findMany({
-      where: {
-        scope: 'GLOBAL',
-        isActive: true,
-      },
-      orderBy: { name: 'asc' },
-    });
-
-    // Include USER templates for the current user
-    const userTemplates = await prisma.certificateTemplate.findMany({
-      where: {
-        scope: 'USER',
-        scopeId: userId,
-        isActive: true,
-      },
-      orderBy: { name: 'asc' },
-    });
-
-    // Include ENTITY templates if user has access to the entity
-    let entityTemplates: any[] = [];
-    if (scopeId) {
-      // Check if user has access to this entity
-      const userAccess = await prisma.userEntityAccess.findUnique({
-        where: {
-          userId_entityId: {
-            userId,
-            entityId: scopeId,
-          },
-        },
-      });
-
-      if (userAccess) {
-        entityTemplates = await prisma.certificateTemplate.findMany({
-          where: {
-            scope: 'ENTITY',
-            scopeId,
-            isActive: true,
-          },
-          orderBy: { name: 'asc' },
-        });
-      }
-    } else {
-      // Get all entity templates for entities the user has access to
-      const userEntities = await prisma.userEntityAccess.findMany({
-        where: { userId },
-        select: { entityId: true },
-      });
-
-      if (userEntities.length > 0) {
-        const entityIds = userEntities.map((uea) => uea.entityId);
-        entityTemplates = await prisma.certificateTemplate.findMany({
-          where: {
-            scope: 'ENTITY',
-            scopeId: { in: entityIds },
-            isActive: true,
-          },
-          orderBy: { name: 'asc' },
-        });
-      }
-    }
+    // Get available templates using scope validation helper
+    const { globalTemplates, userTemplates, entityTemplates } =
+      await getAvailableTemplates(userId, scopeId || undefined);
 
     // Combine all templates
     const allTemplates = [
@@ -153,84 +96,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate scope
-    if (!['GLOBAL', 'USER', 'ENTITY'].includes(body.scope)) {
+    // Validate scope and permissions using helper function
+    const scopeValidation = await validateTemplateScope(
+      userId,
+      body.scope,
+      body.scopeId
+    );
+    if (!scopeValidation.isValid) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid scope. Must be GLOBAL, USER, or ENTITY',
-        },
+        { success: false, error: scopeValidation.error },
         { status: 400 }
       );
     }
 
-    // Validate scope-specific requirements
-    if (body.scope === 'USER' && body.scopeId && body.scopeId !== userId) {
+    if (!scopeValidation.hasAccess) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'User can only create templates for themselves',
-        },
+        { success: false, error: scopeValidation.accessError },
         { status: 403 }
       );
     }
 
-    if (body.scope === 'ENTITY') {
-      if (!body.scopeId) {
-        return NextResponse.json(
-          { success: false, error: 'Entity ID is required for ENTITY scope' },
-          { status: 400 }
-        );
-      }
-
-      // Check if user has access to the entity
-      const userAccess = await prisma.userEntityAccess.findUnique({
-        where: {
-          userId_entityId: {
-            userId,
-            entityId: body.scopeId,
-          },
-        },
-      });
-
-      if (!userAccess) {
-        return NextResponse.json(
-          { success: false, error: 'Access denied to entity' },
-          { status: 403 }
-        );
-      }
-    }
-
-    // Validate template HTML (basic validation)
-    if (
-      !body.templateHtml.includes('{{') ||
-      !body.templateHtml.includes('}}')
-    ) {
+    // Validate template HTML using helper function
+    const htmlValidation = validateTemplateHtml(body.templateHtml);
+    if (!htmlValidation.isValid) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Template HTML must contain template variables ({{variable}})',
-        },
+        { success: false, error: htmlValidation.error },
         { status: 400 }
       );
     }
 
-    // Check for default template constraint
+    // Check for default template constraint using helper function
     if (body.isDefault) {
-      const existingDefault = await prisma.certificateTemplate.findFirst({
-        where: {
-          scope: body.scope,
-          scopeId: body.scopeId || null,
-          isDefault: true,
-        },
-      });
-
-      if (existingDefault) {
+      const defaultValidation = await validateDefaultTemplateConstraint(
+        body.scope,
+        body.scopeId
+      );
+      if (!defaultValidation.isValid) {
         return NextResponse.json(
-          {
-            success: false,
-            error: 'Only one default template allowed per scope',
-          },
+          { success: false, error: defaultValidation.error },
           { status: 400 }
         );
       }
