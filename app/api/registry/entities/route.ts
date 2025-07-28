@@ -68,15 +68,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create entity
-    const entity = await prisma.entity.create({
-      data: {
-        ...body,
-        status: 'Active',
-      },
-      include: {
-        identifiers: true,
-      },
+    // Create entity with default settings
+    const entity = await prisma.$transaction(async (tx) => {
+      const createdEntity = await tx.entity.create({
+        data: {
+          ...body,
+          status: 'Active',
+        },
+        include: {
+          identifiers: true,
+        },
+      });
+
+      // Create default entity settings with certificates enabled
+      await tx.entitySettings.create({
+        data: {
+          entityId: createdEntity.id,
+          certificatesEnabled: true,
+          certificateSettings: {},
+        },
+      });
+
+      return createdEntity;
     });
 
     return NextResponse.json({

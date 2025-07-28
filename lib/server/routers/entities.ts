@@ -243,6 +243,15 @@ export const entitiesRouter = createTRPCRouter({
             },
           });
 
+          // Create default entity settings with certificates enabled
+          await tx.entitySettings.create({
+            data: {
+              entityId: entity.id,
+              certificatesEnabled: true,
+              certificateSettings: {},
+            },
+          });
+
           return entity;
         });
       }
