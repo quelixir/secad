@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -14,9 +14,22 @@ import { Entity } from '@/lib/types/interfaces'
 import { CountrySelect } from '@/components/ui/country-select'
 import { StateSelect } from '@/components/ui/state-select'
 
+const jointPersonSchema = z.object({
+  givenNames: z.string().optional(),
+  familyName: z.string().optional(),
+  entityName: z.string().optional(),
+  order: z.number(),
+}).refine((data) => {
+  // Either individual names OR entity name must be provided
+  return (data.givenNames && data.familyName) || data.entityName;
+}, {
+  message: 'Either individual names (given names and family name) or entity name is required',
+  path: ['givenNames']
+});
+
 const memberFormSchema = z.object({
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  givenNames: z.string().optional(),
+  familyName: z.string().optional(),
   entityName: z.string().optional(),
   memberType: z.string().min(1, 'Member type is required'),
   designation: z.string().optional(),
@@ -32,15 +45,19 @@ const memberFormSchema = z.object({
   tfn: z.string().optional(),
   abn: z.string().optional(),
   entityId: z.string().min(1, 'Entity is required'),
+  jointPersons: z.array(jointPersonSchema).optional(),
 }).refine((data) => {
-  if (data.memberType === 'Individual') {
-    return data.firstName && data.lastName
+  if (data.memberType === MemberType.INDIVIDUAL) {
+    return data.givenNames && data.familyName
+  } else if (data.memberType === MemberType.JOINT) {
+    // Joint members require at least 2 persons
+    return data.jointPersons && data.jointPersons.length >= 2
   } else {
     return data.entityName
   }
 }, {
-  message: 'For individuals, given names and last name are required. For other types, entity name is required.',
-  path: ['firstName']
+  message: 'For individuals, given names and family name are required. For joint members, at least 2 persons are required. For other types, entity name is required.',
+  path: ['givenNames']
 })
 
 type MemberFormValues = z.infer<typeof memberFormSchema>
@@ -59,8 +76,8 @@ export function MemberForm({ entities, selectedEntity, member, onSaved, disableS
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(memberFormSchema),
     defaultValues: {
-      firstName: member?.firstName || '',
-      lastName: member?.lastName || '',
+      givenNames: member?.givenNames || '',
+      familyName: member?.familyName || '',
       entityName: member?.entityName || '',
       memberType: member?.memberType || '',
       designation: member?.designation || '',
@@ -75,12 +92,27 @@ export function MemberForm({ entities, selectedEntity, member, onSaved, disableS
       memberNumber: member?.memberNumber || '',
       tfn: member?.tfn || '',
       abn: member?.abn || '',
-      entityId: member?.entityId || selectedEntity?.id || ''
+      entityId: member?.entityId || selectedEntity?.id || '',
+      jointPersons: member?.jointPersons || []
     }
   })
 
   const selectedMemberType = form.watch('memberType')
   const selectedCountry = form.watch('country')
+
+  // Initialize joint persons when member type is set to Joint
+  useEffect(() => {
+    if (selectedMemberType === MemberType.JOINT) {
+      const currentPersons = form.getValues('jointPersons') || [];
+      if (currentPersons.length === 0) {
+        // Initialize with 2 empty persons
+        form.setValue('jointPersons', [
+          { givenNames: '', familyName: '', entityName: '', order: 0 },
+          { givenNames: '', familyName: '', entityName: '', order: 1 }
+        ]);
+      }
+    }
+  }, [selectedMemberType, form]);
 
   const onSubmit = async (values: MemberFormValues) => {
     try {
@@ -200,15 +232,16 @@ export function MemberForm({ entities, selectedEntity, member, onSaved, disableS
           {/* Personal/Entity Details */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">
-              {selectedMemberType === 'Individual' ? 'Personal Details' : 'Entity Details'}
+              {selectedMemberType === MemberType.INDIVIDUAL ? 'Personal Details' :
+                selectedMemberType === MemberType.JOINT ? 'Joint Member Details' : 'Entity Details'}
             </h3>
 
-            {selectedMemberType === 'Individual' ? (
+            {selectedMemberType === MemberType.INDIVIDUAL ? (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="firstName"
+                    name="givenNames"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Given Names *</FormLabel>
@@ -222,10 +255,10 @@ export function MemberForm({ entities, selectedEntity, member, onSaved, disableS
 
                   <FormField
                     control={form.control}
-                    name="lastName"
+                    name="familyName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name *</FormLabel>
+                        <FormLabel>Family Name *</FormLabel>
                         <FormControl>
                           <Input placeholder="Smith" {...field} />
                         </FormControl>
@@ -274,6 +307,150 @@ export function MemberForm({ entities, selectedEntity, member, onSaved, disableS
                     </FormItem>
                   )}
                 />
+              </>
+            ) : selectedMemberType === MemberType.JOINT ? (
+              <>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium">Joint Members</h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const currentPersons = form.getValues('jointPersons') || [];
+                        form.setValue('jointPersons', [
+                          ...currentPersons,
+                          {
+                            givenNames: '',
+                            familyName: '',
+                            entityName: '',
+                            order: currentPersons.length
+                          }
+                        ]);
+                      }}
+                    >
+                      Add Person
+                    </Button>
+                  </div>
+
+                  {(form.watch('jointPersons') || []).map((person, index) => (
+                    <div key={index} className="border rounded-lg p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-sm font-medium">Person {index + 1}</h5>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentPersons = form.getValues('jointPersons') || [];
+                              form.setValue('jointPersons', currentPersons.filter((_, i) => i !== index));
+                            }}
+                            disabled={(form.watch('jointPersons') || []).length <= 2}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`jointPersons.${index}.givenNames`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Given Names</FormLabel>
+                              <FormControl>
+                                <Input placeholder="John" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                Required if entity name not provided
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name={`jointPersons.${index}.familyName`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Family Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Smith" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                Required if entity name not provided
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name={`jointPersons.${index}.entityName`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Entity Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="ABC Pty Ltd" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Alternative to individual names for non-individual joint persons
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+
+                    </div>
+                  ))}
+
+                  <FormField
+                    control={form.control}
+                    name="designation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Designation</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., <SMITH FAMILY S/F A/C>" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Account designation for non-beneficial holdings (optional)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="beneficiallyHeld"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="mt-1"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Beneficially Held</FormLabel>
+                          <FormDescription>
+                            Check if the member holds these securities for their own benefit
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </>
             ) : (
               <>
@@ -480,7 +657,7 @@ export function MemberForm({ entities, selectedEntity, member, onSaved, disableS
                 )}
               />
 
-              {selectedMemberType !== 'Individual' && (
+              {selectedMemberType !== MemberType.INDIVIDUAL && (
                 <FormField
                   control={form.control}
                   name="abn"

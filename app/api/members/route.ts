@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
       },
       orderBy: [
         { entity: { name: 'asc' } },
-        { lastName: 'asc' },
-        { firstName: 'asc' },
+        { familyName: 'asc' },
+        { givenNames: 'asc' },
         { entityName: 'asc' },
       ],
     });
@@ -64,16 +64,32 @@ export async function POST(request: NextRequest) {
     // Validate member type specific fields
     if (
       body.memberType === 'Individual' &&
-      (!body.firstName || !body.lastName)
+      (!body.givenNames || !body.familyName)
     ) {
       const response: ApiResponse = {
         success: false,
-        error: 'Given names and last name are required for individual members',
+        error:
+          'Given names and family name are required for individual members',
       };
       return NextResponse.json(response, { status: 400 });
     }
 
-    if (body.memberType !== 'Individual' && !body.entityName) {
+    if (
+      body.memberType === 'Joint' &&
+      (!body.jointPersons || body.jointPersons.length < 2)
+    ) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'For joint members, at least 2 persons are required',
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
+
+    if (
+      body.memberType !== 'Individual' &&
+      body.memberType !== 'Joint' &&
+      !body.entityName
+    ) {
       const response: ApiResponse = {
         success: false,
         error: 'Entity name is required for non-individual members',
@@ -102,8 +118,8 @@ export async function POST(request: NextRequest) {
     const member = await prisma.member.create({
       data: {
         entityId: body.entityId,
-        firstName: body.firstName || null,
-        lastName: body.lastName || null,
+        givenNames: body.givenNames || null,
+        familyName: body.familyName || null,
         entityName: body.entityName || null,
         memberType: body.memberType,
         email: body.email || null,

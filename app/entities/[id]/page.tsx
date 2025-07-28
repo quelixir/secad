@@ -425,10 +425,15 @@ export default function ViewEntityPage() {
                                             </TableHeader>
                                             <TableBody>
                                                 {entity.members.map((member) => {
-                                                    // Determine member name based on type
                                                     const memberName = member.memberType === 'INDIVIDUAL'
-                                                        ? `${member.firstName || ''} ${member.lastName || ''}`.trim()
-                                                        : member.entityName;
+                                                        ? `${member.givenNames || ''} ${member.familyName || ''}`.trim()
+                                                        : member.memberType === 'JOINT'
+                                                            ? (member.jointPersons && member.jointPersons.length > 0
+                                                                ? member.jointPersons.map((p: any) =>
+                                                                    p.entityName || `${p.givenNames} ${p.familyName}`.trim()
+                                                                ).join(' & ')
+                                                                : member.entityName || 'Joint Members')
+                                                            : member.entityName;
 
                                                     return (
                                                         <TableRow key={member.id}>

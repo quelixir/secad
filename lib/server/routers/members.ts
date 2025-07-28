@@ -6,8 +6,8 @@ import { getDefaultCountry } from '@/lib/config';
 
 const memberInputSchema = z.object({
   entityId: z.string(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  givenNames: z.string().optional(),
+  familyName: z.string().optional(),
   entityName: z.string().optional(),
   memberType: z.string().min(1, 'Member type is required'),
   designation: z.string().optional(),
@@ -68,8 +68,8 @@ export const membersRouter = createTRPCRouter({
             },
           },
           orderBy: [
-            { lastName: 'asc' },
-            { firstName: 'asc' },
+            { familyName: 'asc' },
+            { givenNames: 'asc' },
             { entityName: 'asc' },
           ],
         });
@@ -140,8 +140,8 @@ export const membersRouter = createTRPCRouter({
         const member = await prisma.member.create({
           data: {
             entityId: input.entityId,
-            firstName: input.firstName || null,
-            lastName: input.lastName || null,
+            givenNames: input.givenNames || null,
+            familyName: input.familyName || null,
             entityName: input.entityName || null,
             memberType: input.memberType,
             designation: input.designation || null,

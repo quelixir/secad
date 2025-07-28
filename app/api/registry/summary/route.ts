@@ -60,15 +60,15 @@ export async function GET(request: NextRequest) {
         description: true,
         fromMember: {
           select: {
-            firstName: true,
-            lastName: true,
+            givenNames: true,
+            familyName: true,
             entityName: true,
           },
         },
         toMember: {
           select: {
-            firstName: true,
-            lastName: true,
+            givenNames: true,
+            familyName: true,
             entityName: true,
           },
         },
@@ -93,13 +93,13 @@ export async function GET(request: NextRequest) {
       reference: tx.reference,
       description: tx.description,
       fromMember: tx.fromMember
-        ? tx.fromMember.firstName && tx.fromMember.lastName
-          ? `${tx.fromMember.firstName} ${tx.fromMember.lastName}`
+        ? tx.fromMember.givenNames && tx.fromMember.familyName
+          ? `${tx.fromMember.givenNames} ${tx.fromMember.familyName}`
           : tx.fromMember.entityName
         : null,
       toMember: tx.toMember
-        ? tx.toMember.firstName && tx.toMember.lastName
-          ? `${tx.toMember.firstName} ${tx.toMember.lastName}`
+        ? tx.toMember.givenNames && tx.toMember.familyName
+          ? `${tx.toMember.givenNames} ${tx.toMember.familyName}`
           : tx.toMember.entityName
         : null,
       securityClass: tx.securityClass.name,

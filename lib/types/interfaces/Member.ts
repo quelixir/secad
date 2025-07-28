@@ -14,11 +14,22 @@ export interface MemberContact {
   updatedAt: Date;
 }
 
+export interface JointMemberPerson {
+  id: string;
+  memberId: string;
+  givenNames?: string | null;
+  familyName?: string | null;
+  entityName?: string | null;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Member {
   id: string;
   entityId: string;
-  firstName?: string | null;
-  lastName?: string | null;
+  givenNames?: string | null;
+  familyName?: string | null;
   entityName?: string | null;
   memberType: string;
   email?: string | null;
@@ -41,11 +52,12 @@ export interface Member {
   updatedBy?: string | null;
   transactions?: Array<{ quantity: number }>;
   contacts?: MemberContact[];
+  jointPersons?: JointMemberPerson[];
 }
 
 export function getFormattedMemberName(member: Member): string {
   if (member.entityName) return member.entityName;
-  return `${member.firstName || ''} ${member.lastName || ''}`.trim();
+  return `${member.givenNames || ''} ${member.familyName || ''}`.trim();
 }
 
 // Utility function to add getFormattedName method to any Member object
@@ -153,8 +165,8 @@ export function calculateMemberHoldings(
 
 export interface MemberInput {
   entityId: string;
-  firstName?: string;
-  lastName?: string;
+  givenNames?: string;
+  familyName?: string;
   entityName?: string;
   memberType: string;
   designation?: string;
@@ -170,6 +182,7 @@ export interface MemberInput {
   tfn?: string;
   abn?: string;
   contacts?: MemberContactInput[];
+  jointPersons?: JointMemberPersonInput[];
 }
 
 export interface MemberContactInput {
@@ -178,4 +191,11 @@ export interface MemberContactInput {
   phone?: string;
   role?: string;
   isPrimary?: boolean;
+}
+
+export interface JointMemberPersonInput {
+  givenNames?: string;
+  familyName?: string;
+  entityName?: string;
+  order?: number;
 }

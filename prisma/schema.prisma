@@ -127,8 +127,8 @@ model EntityIdentifier {
 model Member {
   id               String        @id @default(cuid(2))
   entityId         String
-  firstName        String?
-  lastName         String?
+  givenNames       String?
+  familyName       String?
   entityName       String?
   memberType       String
   email            String?
@@ -153,6 +153,7 @@ model Member {
   transactionsFrom Transaction[] @relation("TransactionFromMember")
   transactionsTo   Transaction[] @relation("TransactionToMember")
   contacts         MemberContact[]
+  jointPersons     JointMemberPerson[]
 
   @@unique([entityId, memberNumber])
   @@map("members")
@@ -313,6 +314,20 @@ model MemberContact {
   member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@map("member_contacts")
+}
+
+model JointMemberPerson {
+  id          String   @id @default(cuid(2))
+  memberId    String
+  givenNames  String?
+  familyName  String?
+  entityName  String?
+  order       Int      @default(0) // For ordering persons within the joint member
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("joint_member_persons")
 }
 
 model EventLog {

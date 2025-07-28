@@ -25,8 +25,8 @@ export async function GET(
                 fromMember: {
                   select: {
                     id: true,
-                    firstName: true,
-                    lastName: true,
+                    givenNames: true,
+                    familyName: true,
                     entityName: true,
                     memberType: true,
                     memberNumber: true,
@@ -35,8 +35,8 @@ export async function GET(
                 toMember: {
                   select: {
                     id: true,
-                    firstName: true,
-                    lastName: true,
+                    givenNames: true,
+                    familyName: true,
                     entityName: true,
                     memberType: true,
                     memberNumber: true,

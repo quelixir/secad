@@ -180,8 +180,8 @@ export const registryRouter = createTRPCRouter({
             },
           },
           orderBy: [
-            { lastName: 'asc' },
-            { firstName: 'asc' },
+            { familyName: 'asc' },
+            { givenNames: 'asc' },
             { entityName: 'asc' },
           ],
         });

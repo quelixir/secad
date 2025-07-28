@@ -129,17 +129,32 @@ export async function PUT(
     if (body.memberType) {
       if (
         body.memberType === 'Individual' &&
-        (!body.firstName || !body.lastName)
+        (!body.givenNames || !body.familyName)
       ) {
         const response: ApiResponse = {
           success: false,
           error:
-            'Given names and last name are required for individual members',
+            'Given names and family name are required for individual members',
         };
         return NextResponse.json(response, { status: 400 });
       }
 
-      if (body.memberType !== 'Individual' && !body.entityName) {
+      if (
+        body.memberType === 'Joint' &&
+        (!body.jointPersons || body.jointPersons.length < 2)
+      ) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'For joint members, at least 2 persons are required',
+        };
+        return NextResponse.json(response, { status: 400 });
+      }
+
+      if (
+        body.memberType !== 'Individual' &&
+        body.memberType !== 'Joint' &&
+        !body.entityName
+      ) {
         const response: ApiResponse = {
           success: false,
           error: 'Entity name is required for non-individual members',
@@ -150,10 +165,10 @@ export async function PUT(
 
     // Build update data object
     const updateData: any = {};
-    if (body.firstName !== undefined)
-      updateData.firstName = body.firstName || null;
-    if (body.lastName !== undefined)
-      updateData.lastName = body.lastName || null;
+    if (body.givenNames !== undefined)
+      updateData.givenNames = body.givenNames || null;
+    if (body.familyName !== undefined)
+      updateData.familyName = body.familyName || null;
     if (body.entityName !== undefined)
       updateData.entityName = body.entityName || null;
     if (body.memberType) updateData.memberType = body.memberType;
@@ -178,10 +193,10 @@ export async function PUT(
 
     // Get the old values for audit logging
     const oldValues: Record<string, any> = {};
-    if (body.firstName !== undefined)
-      oldValues.firstName = existingMember.firstName;
-    if (body.lastName !== undefined)
-      oldValues.lastName = existingMember.lastName;
+    if (body.givenNames !== undefined)
+      oldValues.givenNames = existingMember.givenNames;
+    if (body.familyName !== undefined)
+      oldValues.familyName = existingMember.familyName;
     if (body.entityName !== undefined)
       oldValues.entityName = existingMember.entityName;
     if (body.memberType) oldValues.memberType = existingMember.memberType;

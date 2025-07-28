@@ -65,7 +65,13 @@ export default function EditMemberPage() {
 
     const getMemberDisplayName = (member: Member) => {
         if (member.memberType === 'Individual') {
-            return `${member.firstName || ''} ${member.lastName || ''}`.trim()
+            return `${member.givenNames || ''} ${member.familyName || ''}`.trim()
+        }
+        if (member.memberType === 'Joint') {
+            if (member.givenNames && member.familyName) {
+                return `${member.givenNames} ${member.familyName}`.trim()
+            }
+            return member.entityName || ''
         }
         return member.entityName || ''
     }

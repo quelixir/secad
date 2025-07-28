@@ -21,8 +21,8 @@ export async function GET(request: NextRequest) {
                 fromMember: {
                   select: {
                     id: true,
-                    firstName: true,
-                    lastName: true,
+                    givenNames: true,
+                    familyName: true,
                     entityName: true,
                     memberType: true,
                   },
@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
                 toMember: {
                   select: {
                     id: true,
-                    firstName: true,
-                    lastName: true,
+                    givenNames: true,
+                    familyName: true,
                     entityName: true,
                     memberType: true,
                   },

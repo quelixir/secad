@@ -422,7 +422,7 @@ export default function ResolutionDetailPage() {
                                                 <div className="flex-1">
                                                     <p className="text-sm font-medium">Resolution Created</p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        {new Date(resolution.createdAt).toLocaleString(getLocale(), getLocaleOptions())}
+                                                        {new Date(resolution.createdAt).toLocaleString(getLocale())}
                                                         {resolution.createdBy && ` by ${resolution.createdBy}`}
                                                     </p>
                                                 </div>
@@ -434,7 +434,7 @@ export default function ResolutionDetailPage() {
                                                     <div className="flex-1">
                                                         <p className="text-sm font-medium">Resolution Updated</p>
                                                         <p className="text-xs text-muted-foreground">
-                                                            {new Date(resolution.updatedAt).toLocaleString(getLocale(), getLocaleOptions())}
+                                                            {new Date(resolution.updatedAt).toLocaleString(getLocale())}
                                                         </p>
                                                     </div>
                                                 </div>

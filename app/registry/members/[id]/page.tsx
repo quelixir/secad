@@ -14,6 +14,7 @@ import Link from 'next/link'
 import { MemberWithRelations, TransactionDirection } from '@/lib/types/interfaces'
 import { getDefaultCurrencyCode } from '@/lib/config'
 import { getLocale, getLocaleOptions } from '@/lib/locale'
+import { MemberType } from '@/lib/types'
 
 interface SecurityClassesSummary {
     securityClassId: string
@@ -156,10 +157,18 @@ export default function MemberViewPage() {
         })
 
     const getMemberDisplayName = (member: any) => {
-        if (member.memberType === 'INDIVIDUAL') {
-            return `${member.firstName || ''} ${member.lastName || ''}`.trim()
+        if (member.memberType === MemberType.INDIVIDUAL) {
+            return `${member.givenNames || ''} ${member.familyName || ''}`.trim()
         }
-        return member.entityName || ''
+        if (member.memberType === MemberType.JOINT) {
+            if (member.jointPersons && member.jointPersons.length > 0) {
+                return member.jointPersons.map((p: any) =>
+                    p.entityName || `${p.givenNames} ${p.familyname}`.trim()
+                ).join(' & ')
+            }
+            return member.entityName || 'Joint Members'
+        }
+        return member.entityName || 'Member'
     }
 
     const formatCurrency = (amount: number, currency: string) => {
@@ -262,6 +271,19 @@ export default function MemberViewPage() {
                                                 <span className="text-muted-foreground">Name:</span>
                                                 <span className="font-medium">{getMemberDisplayName(member)}</span>
                                             </div>
+                                            {member.memberType === 'JOINT' && member.jointPersons && member.jointPersons.length > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span className="text-muted-foreground">Joint Members:</span>
+                                                    <span className="font-medium">
+                                                        {member.jointPersons?.map((p: any, index: number) => (
+                                                            <span key={p.id}>
+                                                                {p.entityName || `${p.givenNames} ${p.familyName}`.trim()}
+                                                                {index < (member.jointPersons?.length || 0) - 1 && ' & '}
+                                                            </span>
+                                                        ))}
+                                                    </span>
+                                                </div>
+                                            )}
                                             {member.designation && (
                                                 <div className="flex justify-between">
                                                     <span className="text-muted-foreground">Designation:</span>

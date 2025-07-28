@@ -176,8 +176,8 @@ async function createDemoMembers(entityId: string) {
 
   const memberData = [
     {
-      firstName: 'James',
-      lastName: 'Bond',
+      givenNames: 'James',
+      familyName: 'Bond',
       memberType: MemberType.INDIVIDUAL,
       beneficiallyHeld: true,
       email: 'james.bond@mi6.gov.uk',
@@ -210,8 +210,8 @@ async function createDemoMembers(entityId: string) {
       ],
     },
     {
-      firstName: 'Alec',
-      lastName: 'Trevelyan',
+      givenNames: 'Alec',
+      familyName: 'Trevelyan',
       memberType: MemberType.INDIVIDUAL,
       beneficiallyHeld: false,
       email: 'alec.trevelyan@janus.com',
@@ -271,8 +271,56 @@ async function createDemoMembers(entityId: string) {
       ],
     },
     {
-      firstName: 'Natalya',
-      lastName: 'Simonova',
+      givenNames: 'John',
+      familyName: 'Smith',
+      entityName: 'John & Jane Smith',
+      memberType: MemberType.JOINT,
+      beneficiallyHeld: true,
+      email: 'john.smith@example.com',
+      phone: '+61 400 123 456',
+      memberNumber: 'M004',
+      address: '123 Joint Street',
+      city: 'Brisbane',
+      state: 'QLD',
+      postcode: '4000',
+      country: 'Australia',
+      joinDate: new Date('1997-08-25'),
+      status: MemberStatus.ACTIVE,
+      tfn: '123456789',
+      createdBy: 'system',
+      contacts: [
+        {
+          name: 'John Smith',
+          email: 'john.smith@example.com',
+          phone: '+61 400 123 456',
+          role: 'Primary Contact',
+          isPrimary: true,
+        },
+        {
+          name: 'Jane Smith',
+          email: 'jane.smith@example.com',
+          phone: '+61 400 123 457',
+          role: 'Joint Contact',
+          isPrimary: false,
+        },
+      ],
+      jointPersons: [
+        {
+          givenNames: 'John',
+          familyName: 'Smith',
+          order: 0,
+        },
+        {
+          givenNames: 'Jane',
+          familyName: 'Smith',
+          order: 1,
+        },
+      ],
+    },
+
+    {
+      givenNames: 'Natalya',
+      familyName: 'Simonova',
       memberType: MemberType.INDIVIDUAL,
       beneficiallyHeld: true,
       email: 'natalya.simonova@severnaya.com',
@@ -326,7 +374,7 @@ async function createDemoMembers(entityId: string) {
   ];
 
   for (const data of memberData) {
-    const { contacts, ...memberDataWithoutContacts } = data;
+    const { contacts, jointPersons, ...memberDataWithoutContacts } = data;
 
     const member = await prisma.member.upsert({
       where: {
@@ -340,6 +388,11 @@ async function createDemoMembers(entityId: string) {
         ...memberDataWithoutContacts,
         entityId,
         country: 'Australia',
+        jointPersons: jointPersons
+          ? {
+              create: jointPersons,
+            }
+          : undefined,
       },
     });
 
@@ -622,8 +675,8 @@ async function createDemoEventLogs(entityId: string) {
       fieldName: null,
       oldValue: null,
       newValue: JSON.stringify({
-        firstName: members[0].firstName,
-        lastName: members[0].lastName,
+        givenNames: members[0].givenNames,
+        familyName: members[0].familyName,
         memberType: members[0].memberType,
         beneficiallyHeld: members[0].beneficiallyHeld,
       }),
@@ -642,8 +695,8 @@ async function createDemoEventLogs(entityId: string) {
       fieldName: null,
       oldValue: null,
       newValue: JSON.stringify({
-        firstName: members[1].firstName,
-        lastName: members[1].lastName,
+        givenNames: members[1].givenNames,
+        familyName: members[1].familyName,
         memberType: members[1].memberType,
         beneficiallyHeld: members[1].beneficiallyHeld,
       }),

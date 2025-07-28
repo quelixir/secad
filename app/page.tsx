@@ -26,8 +26,8 @@ interface RecentTransaction {
   quantity: number
   entity: { name: string }
   securityClass: { name: string }
-  fromMember?: { firstName?: string; lastName?: string; entityName?: string }
-  toMember?: { firstName?: string; lastName?: string; entityName?: string }
+  fromMember?: { givenNames?: string; familyName?: string; entityName?: string }
+  toMember?: { givenNames?: string; familyName?: string; entityName?: string }
   settlementDate: string
 }
 

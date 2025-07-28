@@ -104,7 +104,7 @@ export default function MembersPage() {
         if (!searchTerm) return true
 
         const searchLower = searchTerm.toLowerCase()
-        const fullName = `${member.firstName || ''} ${member.lastName || ''}`.toLowerCase()
+        const fullName = `${member.givenNames || ''} ${member.familyName || ''}`.toLowerCase()
         const entityName = (member.entityName || '').toLowerCase()
         const memberNumber = (member.memberNumber || '').toLowerCase()
         const email = (member.email || '').toLowerCase()
@@ -271,8 +271,14 @@ export default function MembersPage() {
                                                 <div>
                                                     <div className="font-medium">
                                                         {member.memberType == MemberType.INDIVIDUAL
-                                                            ? `${member.firstName} ${member.lastName}`.trim()
-                                                            : member.entityName
+                                                            ? `${member.givenNames} ${member.familyName}`.trim()
+                                                            : member.memberType == MemberType.JOINT
+                                                                ? (member.jointPersons && member.jointPersons.length > 0
+                                                                    ? member.jointPersons.map(p =>
+                                                                        p.entityName || `${p.givenNames} ${p.familyName}`.trim()
+                                                                    ).join(' & ')
+                                                                    : member.entityName || 'Joint Members')
+                                                                : member.entityName
                                                         }
                                                     </div>
                                                     {member.designation && (
@@ -288,7 +294,11 @@ export default function MembersPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-center">
-                                                <Badge variant={member.memberType == MemberType.INDIVIDUAL ? 'default' : 'secondary'}>
+                                                <Badge variant={
+                                                    member.memberType == MemberType.INDIVIDUAL ? 'default' :
+                                                        member.memberType == MemberType.JOINT ? 'outline' :
+                                                            'secondary'
+                                                }>
                                                     {member.memberType}
                                                 </Badge>
                                             </TableCell>
