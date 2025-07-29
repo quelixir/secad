@@ -11,7 +11,8 @@ import {
     FileText,
     Download,
     Filter,
-    Activity
+    Activity,
+    Copy
 } from 'lucide-react'
 import { useEntity } from '@/lib/entity-context'
 import { useEffect, useState } from 'react'
@@ -154,6 +155,15 @@ export default function EventsPage() {
         }
     }
 
+    const copyToClipboard = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text)
+            // You could add a toast notification here if you have a toast system
+        } catch (error) {
+            console.error('Failed to copy to clipboard:', error)
+        }
+    }
+
     if (!selectedEntity) {
         return (
             <MainLayout>
@@ -270,6 +280,7 @@ export default function EventsPage() {
                                         <SelectItem value={AuditAction.ARCHIVE}>Archive</SelectItem>
                                         <SelectItem value={AuditAction.UNARCHIVE}>Unarchive</SelectItem>
                                         <SelectItem value={AuditAction.CERTIFICATE_GENERATED}>Certificate Generated</SelectItem>
+                                        <SelectItem value={AuditAction.CERTIFICATE_DOWNLOADED}>Certificate Downloaded</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -344,7 +355,17 @@ export default function EventsPage() {
                                                     {getTableNameLabel(event.tableName)}
                                                 </TableCell>
                                                 <TableCell className="font-mono text-sm">
-                                                    {event.recordId}
+                                                    <div className="flex items-center gap-2">
+                                                        <code className="text-xs bg-muted px-2 rounded">{event.recordId}</code>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => copyToClipboard(event.recordId)}
+                                                            className="h-6 w-6 p-0"
+                                                        >
+                                                            <Copy className="h-3 w-3 text-muted-foreground" />
+                                                        </Button>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell>
                                                     <code className="text-xs bg-muted px-2 rounded">{event.fieldName || '-'}</code>
