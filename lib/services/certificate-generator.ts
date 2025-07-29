@@ -6,14 +6,28 @@ import { getDefaultCurrencyCode } from '@/lib/config';
 export interface CertificateData {
   entityId: string;
   entityName: string;
+  entityAddress: string;
+  entityPhone: string;
+  entityType: string;
+  entityContact: string;
+  entityEmail: string;
   transactionId: string;
   transactionDate: Date;
+  transactionType: string;
+  transactionReason: string;
+  transactionDescription: string;
   securityClass: string;
+  securityName: string;
+  securitySymbol: string;
   quantity: number;
   totalAmount: number;
+  unitPrice: number;
+  totalValue: number;
   currency: string;
   memberName: string;
   memberId: string;
+  memberType: string;
+  memberAddress: string;
   certificateNumber: string;
   issueDate: Date;
   [key: string]: any; // Allow additional dynamic properties
@@ -114,18 +128,38 @@ export class CertificateGenerator {
     const variables = {
       '{{entityName}}': data.entityName,
       '{{entityId}}': data.entityId,
+      '{{entityAddress}}': data.entityAddress,
+      '{{entityPhone}}': data.entityPhone,
+      '{{entityType}}': data.entityType,
+      '{{entityContact}}': data.entityContact,
+      '{{entityEmail}}': data.entityEmail,
       '{{transactionId}}': data.transactionId,
       '{{transactionDate}}': data.transactionDate.toLocaleDateString(
         getLocale()
       ),
+      '{{transactionType}}': data.transactionType,
+      '{{transactionReason}}': data.transactionReason,
+      '{{transactionDescription}}': data.transactionDescription,
       '{{securityClass}}': data.securityClass,
+      '{{securityName}}': data.securityName,
+      '{{securitySymbol}}': data.securitySymbol,
       '{{quantity}}': data.quantity.toLocaleString(),
       '{{totalAmount}}': data.totalAmount.toLocaleString(getLocale(), {
         style: 'currency',
         currency: data.currency,
       }),
+      '{{unitPrice}}': data.unitPrice.toLocaleString(getLocale(), {
+        style: 'currency',
+        currency: data.currency,
+      }),
+      '{{totalValue}}': data.totalValue.toLocaleString(getLocale(), {
+        style: 'currency',
+        currency: data.currency,
+      }),
       '{{memberName}}': data.memberName,
       '{{memberId}}': data.memberId,
+      '{{memberType}}': data.memberType,
+      '{{memberAddress}}': data.memberAddress,
       '{{certificateNumber}}': data.certificateNumber,
       '{{issueDate}}': data.issueDate.toLocaleDateString(getLocale()),
       '{{currentDate}}': new Date().toLocaleDateString(getLocale()),
@@ -203,14 +237,56 @@ export class CertificateGenerator {
       : 0;
     const totalAmount = totalAmountPaid + totalAmountUnpaid;
 
+    // Calculate unit price and total value
+    const amountPaidPerSecurity = transaction.amountPaidPerSecurity
+      ? Number(transaction.amountPaidPerSecurity)
+      : 0;
+    const amountUnpaidPerSecurity = transaction.amountUnpaidPerSecurity
+      ? Number(transaction.amountUnpaidPerSecurity)
+      : 0;
+    const unitPrice = amountPaidPerSecurity + amountUnpaidPerSecurity;
+    const totalValue = unitPrice * transaction.quantity;
+
+    // Build entity address
+    const entityAddressParts = [
+      transaction.entity.address,
+      transaction.entity.city,
+      transaction.entity.state,
+      transaction.entity.postcode,
+      transaction.entity.country,
+    ].filter(Boolean);
+    const entityAddress = entityAddressParts.join(', ');
+
+    // Build member address
+    const memberAddressParts = [
+      transaction.toMember.address,
+      transaction.toMember.city,
+      transaction.toMember.state,
+      transaction.toMember.postcode,
+      transaction.toMember.country,
+    ].filter(Boolean);
+    const memberAddress = memberAddressParts.join(', ');
+
     return {
       entityId: transaction.entity.id,
       entityName: transaction.entity.name,
+      entityAddress: entityAddress || 'Not specified',
+      entityPhone: transaction.entity.phone || 'Not specified',
+      entityType: transaction.entity.entityTypeId || 'Not specified',
+      entityContact: transaction.entity.name, // Use entity name as contact
+      entityEmail: transaction.entity.email || 'Not specified',
       transactionId: transaction.id,
       transactionDate: transaction.createdAt, // Use createdAt as transaction date
+      transactionType: transaction.transactionType,
+      transactionReason: transaction.reasonCode,
+      transactionDescription: transaction.description || 'Not specified',
       securityClass: transaction.securityClass.name,
+      securityName: transaction.securityClass.name,
+      securitySymbol: transaction.securityClass.symbol || 'Not specified',
       quantity: transaction.quantity,
       totalAmount,
+      unitPrice,
+      totalValue,
       currency: transaction.currencyCode || getDefaultCurrencyCode(),
       memberName:
         transaction.toMember.entityName ||
@@ -218,6 +294,8 @@ export class CertificateGenerator {
           transaction.toMember.familyName || ''
         }`.trim(),
       memberId: transaction.toMember.id,
+      memberType: transaction.toMember.memberType,
+      memberAddress: memberAddress || 'Not specified',
       certificateNumber,
       issueDate: new Date(),
     };
@@ -230,13 +308,27 @@ export class CertificateGenerator {
     const requiredFields = [
       'entityId',
       'entityName',
+      'entityAddress',
+      'entityPhone',
+      'entityType',
+      'entityContact',
+      'entityEmail',
       'transactionId',
       'transactionDate',
+      'transactionType',
+      'transactionReason',
+      'transactionDescription',
       'securityClass',
+      'securityName',
+      'securitySymbol',
       'quantity',
       'totalAmount',
+      'unitPrice',
+      'totalValue',
       'memberName',
       'memberId',
+      'memberType',
+      'memberAddress',
       'certificateNumber',
       'issueDate',
     ];
