@@ -15,11 +15,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { AboutDialog } from '@/components/ui/about-dialog'
 import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@/components/ui/toggle-group'
-import { Menu, BriefcaseBusiness, Building2, LayoutDashboard, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft, LogOut, User, ArrowLeftRight, Settings, Palette, Moon, Sun, SunMoon, FileSearch } from 'lucide-react'
+import { Menu, BriefcaseBusiness, Building2, LayoutDashboard, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft, LogOut, User, ArrowLeftRight, Settings, Palette, Moon, Sun, SunMoon, FileSearch, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 import { useAuth } from '@/lib/auth-context'
@@ -207,6 +208,15 @@ export function Navbar() {
                     </div>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <AboutDialog
+                    trigger={
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Info className="mr-2 h-4 w-4" />
+                        <span>About</span>
+                      </DropdownMenuItem>
+                    }
+                  />
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={signOut}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign out</span>
@@ -286,6 +296,11 @@ export function Navbar() {
                     </Button>
                   </div>
                 )}
+
+                {/* About - Mobile */}
+                <div className="mb-4 border-b pb-4">
+                  <AboutDialog />
+                </div>
 
                 <div className="flex flex-col gap-2">
                   <NavItems />
