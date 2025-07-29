@@ -1,6 +1,7 @@
 import { pdfGenerator, PDFOptions } from './pdf-generator';
 import { prisma } from '@/lib/db';
-import { CertificateTemplate } from '@/lib/types/interfaces/CertificateTemplate';
+import { getLocale } from '@/lib/locale';
+import { getDefaultCurrencyCode } from '@/lib/config';
 
 export interface CertificateData {
   entityId: string;
@@ -10,6 +11,7 @@ export interface CertificateData {
   securityClass: string;
   quantity: number;
   totalAmount: number;
+  currency: string;
   memberName: string;
   memberId: string;
   certificateNumber: string;
@@ -113,18 +115,20 @@ export class CertificateGenerator {
       '{{entityName}}': data.entityName,
       '{{entityId}}': data.entityId,
       '{{transactionId}}': data.transactionId,
-      '{{transactionDate}}': data.transactionDate.toLocaleDateString(),
+      '{{transactionDate}}': data.transactionDate.toLocaleDateString(
+        getLocale()
+      ),
       '{{securityClass}}': data.securityClass,
       '{{quantity}}': data.quantity.toLocaleString(),
-      '{{totalAmount}}': data.totalAmount.toLocaleString('en-US', {
+      '{{totalAmount}}': data.totalAmount.toLocaleString(getLocale(), {
         style: 'currency',
-        currency: 'USD',
+        currency: data.currency,
       }),
       '{{memberName}}': data.memberName,
       '{{memberId}}': data.memberId,
       '{{certificateNumber}}': data.certificateNumber,
-      '{{issueDate}}': data.issueDate.toLocaleDateString(),
-      '{{currentDate}}': new Date().toLocaleDateString(),
+      '{{issueDate}}': data.issueDate.toLocaleDateString(getLocale()),
+      '{{currentDate}}': new Date().toLocaleDateString(getLocale()),
       '{{currentYear}}': new Date().getFullYear().toString(),
     };
 
@@ -207,6 +211,7 @@ export class CertificateGenerator {
       securityClass: transaction.securityClass.name,
       quantity: transaction.quantity,
       totalAmount,
+      currency: transaction.currencyCode || getDefaultCurrencyCode(),
       memberName:
         transaction.toMember.entityName ||
         `${transaction.toMember.givenNames || ''} ${

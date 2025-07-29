@@ -3,6 +3,7 @@ import {
   CertificateData,
   CertificateNumberingConfig,
 } from './certificate-generator';
+import { getLocale } from '@/lib/locale';
 
 // Mock the PDF generator
 jest.mock('./pdf-generator', () => ({
@@ -112,6 +113,8 @@ describe('CertificateGenerator', () => {
         </html>
       `;
 
+      const certificateIssueDate = new Date('2024-01-15');
+
       const data: CertificateData = {
         entityId: 'entity123',
         entityName: 'Test Entity Ltd',
@@ -120,10 +123,11 @@ describe('CertificateGenerator', () => {
         securityClass: 'Ordinary Shares',
         quantity: 1000,
         totalAmount: 50000,
+        currency: 'AUD',
         memberName: 'John Doe',
         memberId: 'member123',
         certificateNumber: 'CERT2024000001',
-        issueDate: new Date('2024-01-15'),
+        issueDate: certificateIssueDate,
       };
 
       const result = certificateGenerator['replaceTemplateVariables'](
@@ -136,7 +140,9 @@ describe('CertificateGenerator', () => {
       expect(result).toContain('John Doe');
       expect(result).toContain('1,000');
       expect(result).toContain('$50,000.00');
-      expect(result).toContain('1/15/2024');
+      expect(result).toContain(
+        certificateIssueDate.toLocaleDateString(getLocale())
+      );
     });
 
     it('should handle dynamic properties', () => {
@@ -157,6 +163,7 @@ describe('CertificateGenerator', () => {
         securityClass: 'Shares',
         quantity: 100,
         totalAmount: 1000,
+        currency: 'AUD',
         memberName: 'John Doe',
         memberId: 'member123',
         certificateNumber: 'CERT001',
@@ -183,6 +190,7 @@ describe('CertificateGenerator', () => {
         quantity: 1000,
         totalAmountPaid: 50000,
         totalAmountUnpaid: 0,
+        currencyCode: 'AUD',
         createdAt: new Date('2024-01-01'),
         entity: {
           id: 'entity123',
@@ -265,6 +273,7 @@ describe('CertificateGenerator', () => {
         securityClass: 'Shares',
         quantity: 100,
         totalAmount: 1000,
+        currency: 'AUD',
         memberName: 'John Doe',
         memberId: 'member123',
         certificateNumber: 'CERT001',
@@ -285,6 +294,7 @@ describe('CertificateGenerator', () => {
         securityClass: 'Shares',
         quantity: 100,
         totalAmount: 1000,
+        currency: 'AUD',
         memberName: 'John Doe',
         memberId: 'member123',
         certificateNumber: 'CERT001',
@@ -305,6 +315,7 @@ describe('CertificateGenerator', () => {
         securityClass: 'Shares',
         quantity: 0, // Invalid
         totalAmount: 1000,
+        currency: 'AUD',
         memberName: 'John Doe',
         memberId: 'member123',
         certificateNumber: 'CERT001',
@@ -325,6 +336,7 @@ describe('CertificateGenerator', () => {
         securityClass: 'Shares',
         quantity: 100,
         totalAmount: -100, // Invalid
+        currency: 'AUD',
         memberName: 'John Doe',
         memberId: 'member123',
         certificateNumber: 'CERT001',
