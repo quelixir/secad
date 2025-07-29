@@ -1,0 +1,54 @@
+codecov:
+  require_ci_to_pass: true
+  notify:
+    wait_for_ci: true
+
+coverage:
+  precision: 2
+  round: down
+  range: "80...100"
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 5%
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
+
+ignore:
+  - "docs/**/*"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "jest.setup.js"
+  - "jest.config.js"
+  - "next.config.ts"
+  - "postcss.config.mjs"
+  - "tailwind.config.ts"
+  - "components.json"
+  - "commitlint.config.js"
+  - "eslint.config.mjs"
+  - "tsconfig.json"
+  - "package.json"
+  - "yarn.lock"
+  - ".env*"
+  - "prisma/schema.prisma"
+  - "prisma/migrations/**/*"
+  - "scripts/**/*"
+  - "spec/**/*"
