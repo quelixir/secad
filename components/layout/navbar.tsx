@@ -305,7 +305,9 @@ export function Navbar() {
             <div className="hidden md:flex items-center space-x-1 ml-[calc(theme(spacing.16)+theme(spacing.6))]">
               {navigation.find(item => item.name === 'Registry')?.subNav?.map((subItem) => {
                 const isActive = pathname === subItem.href ||
-                  (subItem.name === 'Transactions' && pathname.startsWith('/registry/transactions'))
+                  (subItem.name === 'Transactions' && pathname.startsWith('/registry/transactions')) ||
+                  (subItem.name === 'Members' && pathname.startsWith('/registry/members')) ||
+                  (subItem.name === 'Securities' && pathname.startsWith('/registry/securities'))
                 const SubIcon = subItem.icon
 
                 return (
