@@ -32,15 +32,19 @@ jest.mock('@/lib/db', () => ({
 describe('CertificateGenerator', () => {
   let certificateGenerator: CertificateGenerator;
   let mockPrisma: any;
+  let originalConsoleError: typeof console.error;
 
   beforeEach(() => {
     certificateGenerator = new CertificateGenerator();
     mockPrisma = require('@/lib/db').prisma;
+    originalConsoleError = console.error;
+    console.error = jest.fn();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
     certificateGenerator.clearCache();
+    console.error = originalConsoleError;
   });
 
   describe('Certificate Numbering', () => {

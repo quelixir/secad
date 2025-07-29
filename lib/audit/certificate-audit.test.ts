@@ -21,8 +21,16 @@ jest.mock('../db', () => ({
 import { prisma } from '../db';
 
 describe('Certificate Audit Integration', () => {
+  let originalConsoleError: typeof console.error;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    originalConsoleError = console.error;
+    console.error = jest.fn();
+  });
+
+  afterEach(() => {
+    console.error = originalConsoleError;
   });
 
   describe('Certificate Generation Logging', () => {
