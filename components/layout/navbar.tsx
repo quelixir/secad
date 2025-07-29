@@ -19,7 +19,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@/components/ui/toggle-group'
-import { Menu, BriefcaseBusiness, Building2, LayoutDashboard, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft, LogOut, User, ArrowLeftRight, Settings, Palette, Moon, Sun, SunMoon } from 'lucide-react'
+import { Menu, BriefcaseBusiness, Building2, LayoutDashboard, Layers, Network, ScrollText, Database, BookUser, ArrowRightLeft, LogOut, User, ArrowLeftRight, Settings, Palette, Moon, Sun, SunMoon, FileSearch } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 import { useAuth } from '@/lib/auth-context'
@@ -55,6 +55,12 @@ const navigation = [
       { name: 'Members', href: '/registry/members', icon: BookUser },
       { name: 'Transactions', href: '/registry/transactions', icon: ArrowRightLeft }
     ]
+  },
+  {
+    name: 'Audit',
+    href: '/events',
+    icon: FileSearch,
+    description: 'View system events and audit logs'
   }
 ]
 
@@ -74,9 +80,10 @@ export function Navbar() {
           return null
         }
 
-        const isActive = pathname === item.href ||
+        const isActive = pathname && (pathname === item.href ||
           (item.href.startsWith('/registry') && pathname.startsWith('/registry')) ||
-          (item.href === '/entities' && pathname.startsWith('/entities'))
+          (item.href === '/entities' && pathname.startsWith('/entities')) ||
+          (item.href === '/events' && pathname.startsWith('/events')))
         const Icon = item.icon
 
         return (
@@ -294,7 +301,7 @@ export function Navbar() {
         <div
           className={cn(
             "border-b bg-muted/30 backdrop-blur supports-[backdrop-filter]:bg-muted/30 overflow-hidden transition-all duration-300 ease-in-out",
-            (hoveredItem === 'Registry' || pathname.startsWith('/registry'))
+            (hoveredItem === 'Registry' || (pathname && pathname.startsWith('/registry')))
               ? 'h-12 opacity-100 translate-y-0'
               : 'h-0 opacity-0 -translate-y-2'
           )}
@@ -304,10 +311,10 @@ export function Navbar() {
           <div className="flex h-12 items-center px-4">
             <div className="hidden md:flex items-center space-x-1 ml-[calc(theme(spacing.16)+theme(spacing.6))]">
               {navigation.find(item => item.name === 'Registry')?.subNav?.map((subItem) => {
-                const isActive = pathname === subItem.href ||
+                const isActive = pathname && (pathname === subItem.href ||
                   (subItem.name === 'Transactions' && pathname.startsWith('/registry/transactions')) ||
                   (subItem.name === 'Members' && pathname.startsWith('/registry/members')) ||
-                  (subItem.name === 'Securities' && pathname.startsWith('/registry/securities'))
+                  (subItem.name === 'Securities' && pathname.startsWith('/registry/securities')))
                 const SubIcon = subItem.icon
 
                 return (
