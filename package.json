@@ -16,6 +16,7 @@
     "prepare": "husky",
     "commit:check": "commitlint --from HEAD~1 --to HEAD --verbose",
     "commit": "cz",
+    "docs": "cd docs && yarn start",
     "seed:reset-db": "npx prisma db push --force-reset && npx prisma db push",
     "seed:demo": "tsx scripts/seed-demo-data.ts",
     "seed:default-certificate-template": "tsx scripts/seed-default-certificate-template.ts",
