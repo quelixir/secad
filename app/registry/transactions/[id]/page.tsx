@@ -3,13 +3,20 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { MainLayout } from '@/components/layout/main-layout'
+import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
-import { ArrowLeft, TrendingUp, TrendingDown, ArrowRightLeft, Building2, Calendar, Hash, FileText, User, Users, Copy, Check, Edit, Trash2 } from 'lucide-react'
+import { ArrowLeft, TrendingUp, TrendingDown, ArrowRightLeft, Building2, Calendar, Hash, FileText, User, Users, Copy, Check, Edit, Trash2, ChevronDown, Download } from 'lucide-react'
 import Link from 'next/link'
 import { TransactionWithRelations } from '@/lib/types/interfaces/Transaction'
 import { getFormattedMemberName } from '@/lib/types/interfaces/Member'
@@ -20,12 +27,14 @@ import { MemberType, TransactionStatus } from '@/lib/types'
 export default function ViewTransactionPage() {
     const params = useParams()
     const router = useRouter()
+    const { user } = useAuth()
     const [transaction, setTransaction] = useState<TransactionWithRelations | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [copied, setCopied] = useState(false)
     const [deleteConfirmText, setDeleteConfirmText] = useState('')
     const [isDeleting, setIsDeleting] = useState(false)
+    const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false)
 
     useEffect(() => {
         const fetchTransaction = async () => {
@@ -144,6 +153,71 @@ export default function ViewTransactionPage() {
         }
     }
 
+    const handleDownloadCertificate = async () => {
+        if (!transaction) return
+
+        if (!user) {
+            setError('You must be logged in to generate certificates')
+            return
+        }
+
+        try {
+            setIsGeneratingCertificate(true)
+
+            // Get available certificate templates for the entity
+            const templateResponse = await fetch(`/api/registry/certificate-templates?scopeId=${transaction.entityId}`)
+            const templateResult = await templateResponse.json()
+
+            if (!templateResult.success || !templateResult.data || !templateResult.data.templates || templateResult.data.templates.length === 0) {
+                setError('No certificate templates available for this entity')
+                return
+            }
+
+            // Find the best template (prefer default, then first available)
+            const templates = templateResult.data.templates
+            const defaultTemplate = templates.find((t: any) => t.isDefault)
+            const template = defaultTemplate || templates[0]
+
+            // Generate and download the certificate
+            const response = await fetch(`/api/certificates/${transaction.id}/download`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    transactionId: transaction.id,
+                    templateId: template.id,
+                    format: 'PDF',
+                    userId: user?.id || 'anonymous',
+                }),
+            })
+
+            if (!response.ok) {
+                const errorResult = await response.json()
+                throw new Error(errorResult.error || 'Failed to generate certificate')
+            }
+
+            // Get the blob from the response
+            const blob = await response.blob()
+
+            // Create a download link
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `certificate-${transaction.id}.pdf`
+            document.body.appendChild(a)
+            a.click()
+            window.URL.revokeObjectURL(url)
+            document.body.removeChild(a)
+
+        } catch (error) {
+            console.error('Error generating certificate:', error)
+            setError(error instanceof Error ? error.message : 'Failed to generate certificate')
+        } finally {
+            setIsGeneratingCertificate(false)
+        }
+    }
+
     if (loading) {
         return (
             <MainLayout>
@@ -217,6 +291,30 @@ export default function ViewTransactionPage() {
                             </div>
                         </Badge>
                         <Badge variant="outline" className={transaction.status === TransactionStatus.COMPLETED ? 'bg-green-100' : (transaction.status === TransactionStatus.PENDING ? 'bg-yellow-100' : 'bg-red-100')}>{transaction.status}</Badge>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" disabled={isGeneratingCertificate || !user}>
+                                    {isGeneratingCertificate ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                                            Generating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Generate Certificate
+                                            <ChevronDown className="ml-2 h-4 w-4" />
+                                        </>
+                                    )}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={handleDownloadCertificate}>
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Download PDF...
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
 
                         <Link href={`/registry/transactions/${transaction.id}/edit`}>
                             <Button variant="outline" size="sm">
