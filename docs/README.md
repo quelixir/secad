@@ -6,7 +6,7 @@ This folder contains the Docusaurus documentation site for SECAD.
 
 ### Prerequisites
 
-- Node.js 18.0 or above
+- Node.js 20.0 or above
 - Yarn package manager
 
 ### Getting Started
