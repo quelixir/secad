@@ -410,4 +410,186 @@ export class AuditLogger {
       .map((row) => row.map((cell) => `"${cell}"`).join(','))
       .join('\n');
   }
+
+  /**
+   * Log certificate generation event
+   */
+  static async logCertificateGenerated(
+    entityId: string,
+    userId: string,
+    transactionId: string,
+    templateId: string,
+    format: 'PDF' | 'DOCX',
+    certificateNumber: string,
+    fileSize: number,
+    checksum: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    try {
+      await prisma.eventLog.create({
+        data: {
+          entityId,
+          userId,
+          action: AuditAction.CERTIFICATE_GENERATED,
+          tableName: AuditTableName.TRANSACTION,
+          recordId: transactionId,
+          fieldName: 'certificate',
+          oldValue: null,
+          newValue: JSON.stringify({
+            templateId,
+            format,
+            certificateNumber,
+            fileSize,
+            checksum,
+            generatedAt: new Date(),
+          }),
+          metadata: {
+            templateId,
+            format,
+            certificateNumber,
+            fileSize,
+            checksum,
+            ...metadata,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Failed to log certificate generation:', error);
+      // Don't throw - audit logging should not break the main application flow
+    }
+  }
+
+  /**
+   * Log certificate download event
+   */
+  static async logCertificateDownloaded(
+    entityId: string,
+    userId: string,
+    transactionId: string,
+    certificateNumber: string,
+    format: 'PDF' | 'DOCX',
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    try {
+      await prisma.eventLog.create({
+        data: {
+          entityId,
+          userId,
+          action: AuditAction.CERTIFICATE_DOWNLOADED,
+          tableName: AuditTableName.TRANSACTION,
+          recordId: transactionId,
+          fieldName: 'certificate',
+          oldValue: null,
+          newValue: JSON.stringify({
+            certificateNumber,
+            format,
+            downloadedAt: new Date(),
+          }),
+          metadata: {
+            certificateNumber,
+            format,
+            ...metadata,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Failed to log certificate download:', error);
+      // Don't throw - audit logging should not break the main application flow
+    }
+  }
+
+  /**
+   * Log certificate access event
+   */
+  static async logCertificateAccessed(
+    entityId: string,
+    userId: string,
+    transactionId: string,
+    certificateNumber: string,
+    format: 'PDF' | 'DOCX',
+    accessType: 'view' | 'download' | 'generate',
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    try {
+      await prisma.eventLog.create({
+        data: {
+          entityId,
+          userId,
+          action: AuditAction.CERTIFICATE_ACCESSED,
+          tableName: AuditTableName.TRANSACTION,
+          recordId: transactionId,
+          fieldName: 'certificate',
+          oldValue: null,
+          newValue: JSON.stringify({
+            certificateNumber,
+            format,
+            accessType,
+            accessedAt: new Date(),
+          }),
+          metadata: {
+            certificateNumber,
+            format,
+            accessType,
+            ...metadata,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Failed to log certificate access:', error);
+      // Don't throw - audit logging should not break the main application flow
+    }
+  }
+
+  /**
+   * Get certificate-specific audit logs
+   */
+  static async getCertificateAuditLogs(
+    entityId: string,
+    options: AuditLogOptions = {}
+  ): Promise<EventLogResponse> {
+    const certificateActions = [
+      AuditAction.CERTIFICATE_GENERATED,
+      AuditAction.CERTIFICATE_DOWNLOADED,
+      AuditAction.CERTIFICATE_ACCESSED,
+    ];
+
+    return this.getAuditLogs(entityId, {
+      ...options,
+      action: certificateActions.join(','),
+    });
+  }
+
+  /**
+   * Get certificate generation logs for a specific transaction
+   */
+  static async getTransactionCertificateLogs(
+    entityId: string,
+    transactionId: string,
+    options: AuditLogOptions = {}
+  ): Promise<EventLogResponse> {
+    return this.getAuditLogs(entityId, {
+      ...options,
+      recordId: transactionId,
+      action: [
+        AuditAction.CERTIFICATE_GENERATED,
+        AuditAction.CERTIFICATE_DOWNLOADED,
+        AuditAction.CERTIFICATE_ACCESSED,
+      ].join(','),
+    });
+  }
+
+  /**
+   * Get certificate template audit logs
+   */
+  static async getCertificateTemplateLogs(
+    entityId: string,
+    templateId: string,
+    options: AuditLogOptions = {}
+  ): Promise<EventLogResponse> {
+    return this.getAuditLogs(entityId, {
+      ...options,
+      tableName: AuditTableName.CERTIFICATE_TEMPLATE,
+      recordId: templateId,
+    });
+  }
 }

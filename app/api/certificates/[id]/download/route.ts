@@ -128,31 +128,36 @@ export async function POST(
       Expires: '0',
     });
 
-    // Log certificate generation and download through audit system
-    await AuditLogger.logFieldChange({
-      entityId: transaction.entityId,
+    // Log certificate generation event
+    await AuditLogger.logCertificateGenerated(
+      transaction.entityId,
       userId,
-      action: AuditAction.CERTIFICATE_GENERATED,
-      tableName: AuditTableName.TRANSACTION,
-      recordId: transactionId,
-      fieldName: 'certificate',
-      oldValue: null,
-      newValue: {
-        templateId,
-        format,
-        certificateNumber: result.data.metadata.certificateNumber,
-        fileSize: result.data.metadata.fileSize,
-        checksum: result.data.metadata.checksum,
-        generatedAt: result.data.metadata.generatedAt,
-      },
-      metadata: {
+      transactionId,
+      templateId,
+      format,
+      result.data.metadata.certificateNumber,
+      result.data.metadata.fileSize,
+      result.data.metadata.checksum,
+      {
         ip: identifier,
         userAgent: request.headers.get('user-agent'),
-        format,
         templateName: template.name,
-        certificateNumber: result.data.metadata.certificateNumber,
-      },
-    });
+      }
+    );
+
+    // Log certificate download event
+    await AuditLogger.logCertificateDownloaded(
+      transaction.entityId,
+      userId,
+      transactionId,
+      result.data.metadata.certificateNumber,
+      format,
+      {
+        ip: identifier,
+        userAgent: request.headers.get('user-agent'),
+        templateName: template.name,
+      }
+    );
 
     // Log successful generation
     console.log(
