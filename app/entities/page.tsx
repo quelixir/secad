@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Plus, Search, Edit, Trash2, Building2, Users, Shield, Play } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Building2, Users, Play } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEntities, useDeleteEntity } from '@/lib/hooks/use-trpc'
@@ -20,7 +20,7 @@ import { ProtectedRoute } from '@/components/auth/protected-route'
 export default function EntitiesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [transformedEntities, setTransformedEntities] = useState<Entity[]>([])
-  const { data: entitiesData, isLoading, refetch, error } = useEntities()
+  const { data: entitiesData, isLoading, refetch, error } = useEntities({ include: 'details' })
   const deleteEntityMutation = useDeleteEntity()
   const { setSelectedEntity } = useEntityContext()
   const router = useRouter()
@@ -166,12 +166,11 @@ export default function EntitiesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[25%]">Entity</TableHead>
-                      <TableHead className="w-[20%]">Entity Type</TableHead>
-                      <TableHead className="w-[10%]">Status</TableHead>
-                      <TableHead className="w-[8%]">Members</TableHead>
-                      <TableHead className="w-[8%]">Securities</TableHead>
-                      <TableHead className="w-[29%] text-center">Actions</TableHead>
+                      <TableHead className="w-[30%]">Entity</TableHead>
+                      <TableHead className="w-[25%]">Entity Type</TableHead>
+                      <TableHead className="w-[15%]">Status</TableHead>
+                      <TableHead className="w-[10%]">Members</TableHead>
+                      <TableHead className="w-[20%] text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -207,12 +206,6 @@ export default function EntitiesPage() {
                           <div className="flex items-center gap-1">
                             <Users className="h-3 w-3 text-muted-foreground" />
                             <span className="text-sm">{entity._count?.members || 0}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Shield className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-sm">{entity._count?.securityClasses || 0}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
