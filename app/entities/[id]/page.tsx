@@ -441,7 +441,9 @@ export default function ViewEntityPage() {
                                                     return (
                                                         <TableRow key={member.id}>
                                                             <TableCell>
-                                                                {memberName}{' '}{member.designation || ''}
+                                                                <Link href={`/registry/members/${member.id}`} className="hover:underline">
+                                                                    {memberName}{' '}{member.designation || ''}
+                                                                </Link>
                                                             </TableCell>
                                                             <TableCell className="text-right">
                                                                 <Button
