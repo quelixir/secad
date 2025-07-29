@@ -18,7 +18,7 @@ import { useEntity } from '@/lib/entity-context'
 import { useEffect, useState } from 'react'
 import { EventLog, EventLogResponse, AuditAction, AuditTableName } from '@/lib/audit'
 
-export default function EventsPage() {
+export default function AuditPage() {
     const { selectedEntity } = useEntity()
     const [events, setEvents] = useState<EventLog[]>([])
     const [loading, setLoading] = useState(true)
@@ -57,7 +57,7 @@ export default function EventsPage() {
                 ),
             })
 
-            const response = await fetch(`/api/events?${params}`)
+            const response = await fetch(`/api/audit?${params}`)
             const result = await response.json()
 
             if (result.success) {
@@ -87,7 +87,7 @@ export default function EventsPage() {
                 ),
             })
 
-            const response = await fetch(`/api/events?${params}`)
+            const response = await fetch(`/api/audit?${params}`)
             const blob = await response.blob()
 
             const url = window.URL.createObjectURL(blob)
@@ -185,7 +185,7 @@ export default function EventsPage() {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Audit Events</h1>
+                        <h1 className="text-2xl font-bold tracking-tight">Audit Log</h1>
                         <p className="text-muted-foreground">
                             View and export audit logs for {selectedEntity.name}
                         </p>
@@ -296,7 +296,7 @@ export default function EventsPage() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Audit Events ({total} total)</CardTitle>
+                        <CardTitle>Audit Log ({total} total)</CardTitle>
                         <CardDescription>
                             Showing {events.length} events
                         </CardDescription>

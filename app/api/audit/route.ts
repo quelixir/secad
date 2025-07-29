@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AuditLogger } from '@/lib/audit';
 import { ApiResponse } from '@/lib/types';
 
-// GET /api/events - Get audit logs with filtering
+// GET /api/audit - Get audit logs with filtering
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

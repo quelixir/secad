@@ -59,7 +59,7 @@ const navigation = [
   },
   {
     name: 'Audit',
-    href: '/events',
+    href: '/audit',
     icon: FileSearch,
     description: 'View system events and audit logs'
   }
@@ -84,7 +84,7 @@ export function Navbar() {
         const isActive = pathname && (pathname === item.href ||
           (item.href.startsWith('/registry') && pathname.startsWith('/registry')) ||
           (item.href === '/entities' && pathname.startsWith('/entities')) ||
-          (item.href === '/events' && pathname.startsWith('/events')))
+          (item.href === '/audit' && pathname.startsWith('/audit')))
         const Icon = item.icon
 
         return (
