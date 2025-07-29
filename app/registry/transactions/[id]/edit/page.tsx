@@ -22,7 +22,7 @@ export default function EditTransactionPage() {
         const fetchTransaction = async () => {
             try {
                 setLoading(true)
-                const response = await fetch(`/api/registry/transactions/${params.id}`)
+                const response = await fetch(`/api/registry/transactions/${params?.id}`)
                 const result = await response.json()
 
                 if (result.success) {
@@ -38,19 +38,19 @@ export default function EditTransactionPage() {
             }
         }
 
-        if (params.id) {
+        if (params?.id) {
             fetchTransaction()
         }
-    }, [params.id])
+    }, [params?.id])
 
     const handleTransactionSaved = () => {
         // Navigate back to the transaction view page
-        router.push(`/registry/transactions/${params.id}`)
+        router.push(`/registry/transactions/${params?.id}`)
     }
 
     const handleCancel = () => {
         // Navigate back to the transaction view page
-        router.push(`/registry/transactions/${params.id}`)
+        router.push(`/registry/transactions/${params?.id}`)
     }
 
     if (!selectedEntity) {

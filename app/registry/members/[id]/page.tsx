@@ -29,7 +29,7 @@ interface SecurityClassesSummary {
 
 export default function MemberViewPage() {
     const params = useParams()
-    const memberId = params.id as string
+    const memberId = params?.id as string
 
     const [member, setMember] = useState<(MemberWithRelations & { transactionsTo?: any[], transactionsFrom?: any[] }) | null>(null)
     const [loading, setLoading] = useState(true)

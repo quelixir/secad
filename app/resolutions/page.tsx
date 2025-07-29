@@ -48,7 +48,7 @@ function ResolutionsContent() {
   const { selectedEntity } = useEntity()
 
   // Get initial section from URL params or default to 'resolutions'
-  const initialSection = searchParams.get('section') || 'resolutions'
+  const initialSection = searchParams?.get('section') || 'resolutions'
   const [activeSection, setActiveSection] = useState(initialSection)
 
   // Update URL when section changes
@@ -59,7 +59,7 @@ function ResolutionsContent() {
   }
 
   useEffect(() => {
-    const section = searchParams.get('section') || 'resolutions'
+    const section = searchParams?.get('section') || 'resolutions'
     if (section !== activeSection) {
       setActiveSection(section)
     }

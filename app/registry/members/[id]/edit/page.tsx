@@ -13,7 +13,7 @@ import Link from 'next/link'
 export default function EditMemberPage() {
     const params = useParams()
     const router = useRouter()
-    const memberId = params.id as string
+    const memberId = params?.id as string
 
     const [member, setMember] = useState<Member | null>(null)
     const [entities, setEntities] = useState<Entity[]>([])

@@ -40,7 +40,7 @@ export default function ViewTransactionPage() {
         const fetchTransaction = async () => {
             try {
                 setLoading(true)
-                const response = await fetch(`/api/registry/transactions/${params.id}`)
+                const response = await fetch(`/api/registry/transactions/${params?.id}`)
                 const result = await response.json()
 
                 if (result.success) {
@@ -56,10 +56,10 @@ export default function ViewTransactionPage() {
             }
         }
 
-        if (params.id) {
+        if (params?.id) {
             fetchTransaction()
         }
-    }, [params.id])
+    }, [params?.id])
 
     const formatMemberName = (member: TransactionWithRelations['fromMember']) => {
         if (!member) return 'N/A'

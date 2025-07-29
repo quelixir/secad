@@ -32,7 +32,7 @@ export default function ViewEntityPage() {
         const fetchEntity = async () => {
             try {
                 setLoading(true)
-                const response = await fetch(`/api/entities/${params.id}`)
+                const response = await fetch(`/api/entities/${params?.id}`)
                 const result = await response.json()
 
                 if (result.success) {
@@ -48,10 +48,10 @@ export default function ViewEntityPage() {
             }
         }
 
-        if (params.id) {
+        if (params?.id) {
             fetchEntity()
         }
-    }, [params.id])
+    }, [params?.id])
 
     const formatIdentifierValue = (identifier: EntityIdentifier) => {
         return compliancePackRegistration.formatIdentifier(identifier.country, identifier.type, identifier.value)

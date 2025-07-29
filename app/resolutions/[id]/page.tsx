@@ -184,7 +184,7 @@ export default function ResolutionDetailPage() {
     const fetchResolution = async () => {
         try {
             setLoading(true)
-            const response = await fetch(`/api/resolutions/${params.id}`)
+            const response = await fetch(`/api/resolutions/${params?.id}`)
             const result = await response.json()
 
             if (result.success) {
@@ -200,10 +200,10 @@ export default function ResolutionDetailPage() {
     }
 
     useEffect(() => {
-        if (params.id) {
+        if (params?.id) {
             fetchResolution()
         }
-    }, [params.id])
+    }, [params?.id])
 
     const handleResolutionSaved = () => {
         setShowEditDialog(false)

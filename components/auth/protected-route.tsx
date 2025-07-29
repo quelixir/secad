@@ -43,7 +43,7 @@ export function ProtectedRoute({ children, requireEntity = true }: ProtectedRout
             }
 
             // Check if this is an entity management path that doesn't require entity selection
-            const isEntityPath = isEntityManagementPath(pathname)
+            const isEntityPath = pathname ? isEntityManagementPath(pathname) : false
 
             if (requireEntity && !selectedEntity && !isEntityPath) {
                 router.push('/entities')
@@ -69,7 +69,7 @@ export function ProtectedRoute({ children, requireEntity = true }: ProtectedRout
         return null
     }
 
-    if (requireEntity && !selectedEntity && !isEntityManagementPath(pathname)) {
+    if (requireEntity && !selectedEntity && !(pathname ? isEntityManagementPath(pathname) : false)) {
         return null
     }
 
