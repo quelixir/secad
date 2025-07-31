@@ -20,6 +20,7 @@ import { useEntityContext } from '@/lib/entity-context'
 import { CertificateSettings } from '@/components/entity/certificate-settings'
 import 'flag-icons/css/flag-icons.min.css'
 import { MemberType } from '@/lib/types'
+import { getDefaultCountry } from '@/lib/config'
 
 export default function ViewEntityPage() {
     const params = useParams()
@@ -84,7 +85,7 @@ export default function ViewEntityPage() {
 
     const getEntityType = (entityTypeId: string, country?: string) => {
         const entityType = compliancePackRegistration.getEntityType(
-            country || 'Australia',
+            country || getDefaultCountry(),
             entityTypeId
         )
         return entityType

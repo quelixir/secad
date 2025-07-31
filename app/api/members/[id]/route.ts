@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, MemberInput, MemberType } from '@/lib/types';
+import { getDefaultCountry } from '@/lib/config';
 
 // GET /api/members/[id] - Get a specific member
 export async function GET(
@@ -166,7 +167,7 @@ export async function PUT(
     if (body.postcode !== undefined)
       updateData.postcode = body.postcode || null;
     if (body.country !== undefined)
-      updateData.country = body.country || 'Australia';
+      updateData.country = body.country || getDefaultCountry();
     if (body.memberNumber !== undefined)
       updateData.memberNumber = body.memberNumber || null;
     if (body.designation !== undefined)

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { ApiResponse, AssociateInput } from '@/lib/types';
+import { getDefaultCountry } from '@/lib/config';
 
 // GET /api/associates - List all associates (optionally filtered by entity)
 export async function GET(request: NextRequest) {
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
         city: body.city || null,
         state: body.state || null,
         postcode: body.postcode || null,
-        country: body.country || 'Australia',
+        country: body.country || getDefaultCountry(),
         status: status,
         appointmentDate: body.appointmentDate || new Date(),
         resignationDate: body.resignationDate || null,

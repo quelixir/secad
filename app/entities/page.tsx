@@ -16,6 +16,7 @@ import { Entity } from '@/lib/types/interfaces/Entity'
 import { compliancePackRegistration } from '@/lib/compliance'
 import { useEntityContext } from '@/lib/entity-context'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { getDefaultCountry } from '@/lib/config'
 
 export default function EntitiesPage() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -39,7 +40,7 @@ export default function EntitiesPage() {
         entities.map(async (entity: Entity) => ({
           ...entity,
           entityType: compliancePackRegistration.getEntityType(
-            entity.incorporationCountry || 'Australia',
+            entity.incorporationCountry || getDefaultCountry(),
             entity.entityTypeId
           )
         }))
@@ -80,11 +81,11 @@ export default function EntitiesPage() {
       identifier.value?.toLowerCase().includes(searchTermLower)
     );
     const entityType = compliancePackRegistration.getEntityType(
-      entity.incorporationCountry || 'Australia',
+      entity.incorporationCountry || getDefaultCountry(),
       entity.entityTypeId
     );
     console.log('Entity type lookup:', {
-      country: entity.incorporationCountry || 'Australia',
+      country: entity.incorporationCountry || getDefaultCountry(),
       entityTypeId: entity.entityTypeId,
       found: entityType?.name || 'Not found'
     });
@@ -103,8 +104,8 @@ export default function EntitiesPage() {
   }
 
   // Add debugging for available entity types
-  const availableTypes = compliancePackRegistration.getEntityTypes('Australia');
-  console.log('Available Australia entity types:', availableTypes.map(t => ({ id: t.id, name: t.name })));
+  const availableTypes = compliancePackRegistration.getEntityTypes(getDefaultCountry());
+  console.log('Available entity types for default country (', getDefaultCountry(), '):', availableTypes.map(t => ({ id: t.id, name: t.name })));
 
   return (
     <MainLayout requireEntity={false}>
@@ -192,7 +193,7 @@ export default function EntitiesPage() {
                         <TableCell>
                           <Badge variant="outline">
                             {compliancePackRegistration.getEntityType(
-                              entity.incorporationCountry || 'Australia',
+                              entity.incorporationCountry || getDefaultCountry(),
                               entity.entityTypeId
                             )?.name || 'Unknown Type'}
                           </Badge>

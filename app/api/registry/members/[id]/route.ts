@@ -4,6 +4,7 @@ import { ApiResponse, MemberInput, MemberType } from '@/lib/types';
 import { AuditLogger } from '@/lib/audit';
 import { AuditAction, AuditTableName } from '@/lib/audit';
 import { auth } from '@/lib/auth';
+import { getDefaultCountry } from '@/lib/config';
 
 // GET /api/members/[id] - Get a specific member
 export async function GET(
@@ -182,7 +183,7 @@ export async function PUT(
     if (body.postcode !== undefined)
       updateData.postcode = body.postcode || null;
     if (body.country !== undefined)
-      updateData.country = body.country || 'Australia';
+      updateData.country = body.country || getDefaultCountry();
     if (body.memberNumber !== undefined)
       updateData.memberNumber = body.memberNumber || null;
     if (body.designation !== undefined)

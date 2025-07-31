@@ -14,6 +14,7 @@ import { Plus, Trash2 } from 'lucide-react'
 import { AssociateType } from '@/lib/types'
 import { CountrySelect } from '@/components/ui/country-select'
 import { StateSelect } from '@/components/ui/state-select'
+import { getDefaultCountry } from '@/lib/config'
 
 const associateFormSchema = z.object({
   type: z.string().min(1, 'Associate type is required'),
@@ -72,7 +73,7 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
       city: associate?.city || '',
       state: associate?.state || '',
       postcode: associate?.postcode || '',
-      country: associate?.country || 'Australia',
+      country: associate?.country || getDefaultCountry(),
       appointmentDate: associate?.appointmentDate ? associate.appointmentDate.split('T')[0] : '',
       resignationDate: associate?.resignationDate ? associate.resignationDate.split('T')[0] : '',
       notes: associate?.notes || ''

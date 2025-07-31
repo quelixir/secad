@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { ApiResponse, MemberInput, MemberType } from '@/lib/types';
 import { AuditLogger, AuditTableName } from '@/lib/audit';
 import { auth } from '@/lib/auth';
+import { getDefaultCountry } from '@/lib/config';
 
 // GET /api/members - List all members (optionally filtered by entity)
 export async function GET(request: NextRequest) {
@@ -142,7 +143,7 @@ export async function POST(request: NextRequest) {
         city: body.city || null,
         state: body.state || null,
         postcode: body.postcode || null,
-        country: body.country || 'Australia',
+        country: body.country || getDefaultCountry(),
         memberNumber: body.memberNumber || null,
         designation: body.designation || null,
         tfn: body.tfn || null,

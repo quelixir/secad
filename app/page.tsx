@@ -12,6 +12,7 @@ import { compliancePackRegistration } from '@/lib/compliance'
 import { Member, getFormattedMemberName } from '@/lib/types/interfaces/Member'
 import { getLocale, getLocaleOptions } from '@/lib/locale'
 import { TransactionType } from '@/lib/types'
+import { getDefaultCountry } from '@/lib/config'
 
 interface DashboardStats {
   members: number
@@ -165,7 +166,7 @@ export default function Dashboard() {
             </CardTitle>
             <CardDescription>
               {compliancePackRegistration.getEntityType(
-                selectedEntity.incorporationCountry || 'Australia',
+                selectedEntity.incorporationCountry || getDefaultCountry(),
                 selectedEntity.entityTypeId
               )?.name || 'Unknown Type'}
               {selectedEntity.identifiers?.map((identifier: any) => {
