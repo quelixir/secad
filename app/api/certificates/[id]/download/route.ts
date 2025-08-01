@@ -164,7 +164,7 @@ export async function POST(
       `Certificate generated and downloaded: ${result.data.metadata.certificateNumber} by ${identifier}`
     );
 
-    return new NextResponse(result.data.certificateBuffer, {
+    return new NextResponse(new Uint8Array(result.data.certificateBuffer), {
       status: 200,
       headers,
     });
