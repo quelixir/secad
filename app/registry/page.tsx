@@ -58,7 +58,7 @@ export default function RegistryPage() {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/registry/summary?entityId=${selectedEntity?.id}`
+        `/api/registry/summary?entityId=${selectedEntity?.id}`,
       );
       const result = await response.json();
 
@@ -211,7 +211,7 @@ export default function RegistryPage() {
                               </div>
                               <div className="text-sm text-muted-foreground">
                                 {new Date(
-                                  transaction.settlementDate
+                                  transaction.settlementDate,
                                 ).toLocaleDateString()}
                               </div>
                             </div>
@@ -219,7 +219,7 @@ export default function RegistryPage() {
                               <div className="font-medium">
                                 {transaction.quantity.toLocaleString(
                                   getLocale(),
-                                  getLocaleOptions()
+                                  getLocaleOptions(),
                                 )}
                               </div>
                               <div className="text-sm text-muted-foreground capitalize">

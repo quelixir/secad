@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
           success: false,
           error: "Entity ID is required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error: "Failed to fetch registry summary",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

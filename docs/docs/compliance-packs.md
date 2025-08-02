@@ -69,10 +69,18 @@ export const compliancePackRegistration = new CompliancePackRegistration();
 The compliance pack registration provides a unified interface for accessing jurisdiction-specific functionality:
 
 ```typescript
-const pack = compliancePackRegistration.getByCountry('Country Name'); // Get compliance pack by country
-const isValid = compliancePackRegistration.validateIdentifier('Country Name', 'IDENTIFIER_TYPE', 'identifier_value'); // Validate an identifier
-const formatted = compliancePackRegistration.formatIdentifier('Country Name', 'IDENTIFIER_TYPE', 'identifier_value'); // Format an identifier
-const entityTypes = compliancePackRegistration.getEntityTypes('Country Name'); // Get entity types for a country
+const pack = compliancePackRegistration.getByCountry("Country Name"); // Get compliance pack by country
+const isValid = compliancePackRegistration.validateIdentifier(
+  "Country Name",
+  "IDENTIFIER_TYPE",
+  "identifier_value",
+); // Validate an identifier
+const formatted = compliancePackRegistration.formatIdentifier(
+  "Country Name",
+  "IDENTIFIER_TYPE",
+  "identifier_value",
+); // Format an identifier
+const entityTypes = compliancePackRegistration.getEntityTypes("Country Name"); // Get entity types for a country
 ```
 
 ## Components
@@ -131,6 +139,7 @@ export function formatIdentifier(identifier: string): string {
 To add a new country:
 
 1. **Create directory structure:**
+
    ```
    lib/compliance/new_country/
    ├── index.ts
@@ -140,42 +149,43 @@ To add a new country:
    ```
 
 2. **Define entity types:**
+
    ```typescript
    export const newCountryEntityTypes: EntityType[] = [
      {
-       id: 'unique-id',
-       shortCode: 'SHORT_CODE',
-       name: 'Entity Type Name',
-       category: 'COMPANY',
-       description: 'Description'
-     }
+       id: "unique-id",
+       shortCode: "SHORT_CODE",
+       name: "Entity Type Name",
+       category: "COMPANY",
+       description: "Description",
+     },
    ];
    ```
 
 3. **Define identifier types:**
+
    ```typescript
    export const newCountryIdentifierTypes: IdentifierType[] = [
      {
-       abbreviation: 'XXX',
-       name: 'Identifier Name',
-       description: 'Description',
-       formatPattern: 'XXX XXX XXX',
+       abbreviation: "XXX",
+       name: "Identifier Name",
+       description: "Description",
+       formatPattern: "XXX XXX XXX",
        validate: validateXXX,
        format: formatXXX,
-       placeholder: '123 456 789'
-     }
+       placeholder: "123 456 789",
+     },
    ];
    ```
 
 4. **Implement validation and formatting:**
+
    ```typescript
    export function validateXXX(value: string): boolean {
      // Implement validation logic
    }
-   
+
    export function formatXXX(value: string): string {
      // Implement formatting logic
    }
    ```
-
- 

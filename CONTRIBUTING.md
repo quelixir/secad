@@ -42,4 +42,4 @@ Feel free to open an issue for any questions about contributing or the project i
 
 ## License
 
-By contributing to secad, you agree that your contributions will be licensed under the same license as the project (AGPL-3.0). 
+By contributing to secad, you agree that your contributions will be licensed under the same license as the project (AGPL-3.0).

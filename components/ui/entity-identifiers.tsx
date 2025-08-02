@@ -100,7 +100,7 @@ export function EntityIdentifiers({
       ? compliancePackRegistration.validateIdentifier(
           values.country,
           values.type,
-          values.value
+          values.value,
         )
       : true;
     if (!isValid) {
@@ -113,7 +113,7 @@ export function EntityIdentifiers({
       (id, index) =>
         id.country === values.country &&
         id.type === values.type &&
-        index !== editingIndex
+        index !== editingIndex,
     );
     if (isDuplicate) {
       form.setError("type", {
@@ -169,14 +169,14 @@ export function EntityIdentifiers({
     return compliancePackRegistration.formatIdentifier(
       identifier.country,
       identifier.type,
-      identifier.value
+      identifier.value,
     );
   };
 
   const getIdentifierTypeName = (country: string, typeCode: string) => {
     const identifierType = compliancePackRegistration.getIdentifierType(
       country,
-      typeCode
+      typeCode,
     );
     return identifierType?.name || typeCode;
   };
@@ -287,7 +287,7 @@ export function EntityIdentifiers({
                       render={({ field }) => {
                         const identifierType =
                           selectedPack.identifierTypes.find(
-                            (t) => t.abbreviation === form.watch("type")
+                            (t) => t.abbreviation === form.watch("type"),
                           );
                         const currentValue = field.value;
                         const country = form.watch("country");
@@ -299,7 +299,7 @@ export function EntityIdentifiers({
                             ? compliancePackRegistration.validateIdentifier(
                                 country,
                                 type,
-                                currentValue
+                                currentValue,
                               )
                             : null;
 
@@ -453,7 +453,7 @@ export function EntityIdentifiers({
                       render={({ field }) => {
                         const identifierType =
                           selectedPack.identifierTypes.find(
-                            (t) => t.abbreviation === form.watch("type")
+                            (t) => t.abbreviation === form.watch("type"),
                           );
                         const currentValue = field.value;
                         const country = form.watch("country");
@@ -465,7 +465,7 @@ export function EntityIdentifiers({
                             ? compliancePackRegistration.validateIdentifier(
                                 country,
                                 type,
-                                currentValue
+                                currentValue,
                               )
                             : null;
 

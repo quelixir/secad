@@ -125,7 +125,7 @@ export function Navbar() {
                 "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
               )}
             >
               <Icon className="h-4 w-4" />
@@ -362,7 +362,7 @@ export function Navbar() {
             hoveredItem === "Registry" ||
               (pathname && pathname.startsWith("/registry"))
               ? "h-12 opacity-100 translate-y-0"
-              : "h-0 opacity-0 -translate-y-2"
+              : "h-0 opacity-0 -translate-y-2",
           )}
           onMouseEnter={() => setHoveredItem("Registry")}
           onMouseLeave={() => setHoveredItem(null)}
@@ -391,7 +391,7 @@ export function Navbar() {
                         "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                         isActive
                           ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
                       )}
                     >
                       <SubIcon className="h-4 w-4" />

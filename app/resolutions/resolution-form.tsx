@@ -218,7 +218,7 @@ export function ResolutionForm({
 }: ResolutionFormProps) {
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<string>(
-    resolution?.type || ""
+    resolution?.type || "",
   );
   const [formData, setFormData] = useState<FormData>({
     entityId,
@@ -242,7 +242,7 @@ export function ResolutionForm({
   useEffect(() => {
     if (selectedType && !resolution) {
       const standardResolution = STANDARD_DIRECTORS_RESOLUTIONS.find(
-        (r) => r.type === selectedType
+        (r) => r.type === selectedType,
       );
       if (standardResolution) {
         setFormData((prev: FormData) => ({
@@ -258,7 +258,7 @@ export function ResolutionForm({
 
   const generateResolutionContent = (
     resolutionInfo: any,
-    entityName: string
+    entityName: string,
   ) => {
     const currentDate = new Date().toLocaleDateString("en-AU", {
       day: "numeric",
@@ -460,7 +460,7 @@ Note: This resolution may be executed in counterparts and transmitted electronic
             onClick={() =>
               handleInputChange(
                 "resolutionDate",
-                new Date().toISOString().split("T")[0]
+                new Date().toISOString().split("T")[0],
               )
             }
             className="text-xs text-blue-600 hover:text-blue-800 underline"
@@ -483,7 +483,7 @@ Note: This resolution may be executed in counterparts and transmitted electronic
             onClick={() =>
               handleInputChange(
                 "effectiveDate",
-                new Date().toISOString().split("T")[0]
+                new Date().toISOString().split("T")[0],
               )
             }
             className="text-xs text-blue-600 hover:text-blue-800 underline"

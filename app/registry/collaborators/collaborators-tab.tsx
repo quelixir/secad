@@ -13,18 +13,18 @@ import {
 
 export function CollaboratorsTab({ entityId }: { entityId: string }) {
   const [inviteRole, setInviteRole] = useState<"Admin" | "Editor" | "Viewer">(
-    "Viewer"
+    "Viewer",
   );
   const [inviteStatus, setInviteStatus] = useState<string | null>(null);
   const [magicLink, setMagicLink] = useState<string | null>(null);
 
   const { data: collaborators, refetch } = trpc.entities.getById.useQuery(
     { id: entityId },
-    { enabled: !!entityId }
+    { enabled: !!entityId },
   );
   const { data: invitations } = trpc.invitations.list.useQuery(
     { entityId },
-    { enabled: !!entityId }
+    { enabled: !!entityId },
   );
   const inviteMutation = trpc.invitations.create.useMutation();
 
@@ -84,7 +84,7 @@ export function CollaboratorsTab({ entityId }: { entityId: string }) {
                   <TableCell>{access.user?.email || "-"}</TableCell>
                   <TableCell>{access.role}</TableCell>
                 </TableRow>
-              )
+              ),
             )}
           </TableBody>
         </Table>

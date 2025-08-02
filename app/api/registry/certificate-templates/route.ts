@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching certificate templates:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch certificate templates" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Name, template HTML, and scope are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -101,19 +101,19 @@ export async function POST(request: NextRequest) {
     const scopeValidation = await validateTemplateScope(
       userId,
       body.scope,
-      body.scopeId
+      body.scopeId,
     );
     if (!scopeValidation.isValid) {
       return NextResponse.json(
         { success: false, error: scopeValidation.error },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!scopeValidation.hasAccess) {
       return NextResponse.json(
         { success: false, error: scopeValidation.accessError },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
     };
 
     const validationResult = validationService.validateTemplate(
-      templateForValidation
+      templateForValidation,
     );
 
     if (!validationResult.isValid) {
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
           warnings:
             validationService.formatValidationWarnings(validationResult),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -157,12 +157,12 @@ export async function POST(request: NextRequest) {
     if (body.isDefault) {
       const defaultValidation = await validateDefaultTemplateConstraint(
         body.scope,
-        body.scopeId
+        body.scopeId,
       );
       if (!defaultValidation.isValid) {
         return NextResponse.json(
           { success: false, error: defaultValidation.error },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -188,13 +188,13 @@ export async function POST(request: NextRequest) {
         data: template,
         message: "Certificate template created successfully",
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error creating certificate template:", error);
     return NextResponse.json(
       { success: false, error: "Failed to create certificate template" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -9,7 +9,7 @@ import { auth } from "@/lib/auth";
 // GET /api/transactions/[id] - Get a specific transaction
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -51,7 +51,7 @@ export async function GET(
 // PUT /api/transactions/[id] - Update a transaction
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -205,7 +205,7 @@ export async function PUT(
         AuditAction.UPDATE,
         AuditTableName.TRANSACTION,
         id,
-        changedFields
+        changedFields,
       );
     }
 
@@ -229,7 +229,7 @@ export async function PUT(
 // DELETE /api/transactions/[id] - Delete a transaction
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -264,7 +264,7 @@ export async function DELETE(
       userId, // Use actual user ID from auth
       AuditTableName.TRANSACTION,
       id,
-      existingTransaction
+      existingTransaction,
     );
 
     await prisma.transaction.delete({

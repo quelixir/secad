@@ -31,33 +31,40 @@ secad helps manage the following across multiple entities:
 ### Installation
 
 1. **Clone the repository:**
+
 ```bash
 git clone git@github.com:quelixir/secad.git
 cd secad
 ```
 
 2. **Install dependencies:**
+
 ```bash
 yarn install
 ```
 
 3. **Set up environment:**
+
 ```bash
 cp .env.example .env
 ```
+
 Then edit the `.env` file and replace the placeholder values with your actual configuration.
 
 4. **Set up the database:**
+
 ```bash
 npx prisma migrate dev --name init
 ```
 
 5. **Seed with demo data:**
+
 ```bash
 yarn seed:demo
 ```
 
 6. **Start the development server:**
+
 ```bash
 yarn dev
 ```

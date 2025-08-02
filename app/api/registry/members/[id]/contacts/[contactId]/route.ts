@@ -8,7 +8,7 @@ import { auth } from "@/lib/auth";
 // GET /api/members/[id]/contacts/[contactId] - Get a specific contact
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; contactId: string }> }
+  { params }: { params: Promise<{ id: string; contactId: string }> },
 ) {
   try {
     const { contactId } = await params;
@@ -52,7 +52,7 @@ export async function GET(
 // PUT /api/members/[id]/contacts/[contactId] - Update a contact
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; contactId: string }> }
+  { params }: { params: Promise<{ id: string; contactId: string }> },
 ) {
   try {
     // Get user session from auth
@@ -141,7 +141,7 @@ export async function PUT(
         AuditAction.UPDATE,
         AuditTableName.MEMBER_CONTACT,
         contactId,
-        changedFields
+        changedFields,
       );
     }
 
@@ -165,7 +165,7 @@ export async function PUT(
 // DELETE /api/members/[id]/contacts/[contactId] - Delete a contact
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; contactId: string }> }
+  { params }: { params: Promise<{ id: string; contactId: string }> },
 ) {
   try {
     // Get user session from auth
@@ -211,7 +211,7 @@ export async function DELETE(
       userId, // Use actual user ID from auth
       AuditTableName.MEMBER_CONTACT,
       contactId,
-      existingContact
+      existingContact,
     );
 
     const response: ApiResponse = {

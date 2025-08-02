@@ -61,7 +61,7 @@ export default function MembersPage() {
   const { selectedEntity, entities } = useEntity();
   const [members, setMembers] = useState<Member[]>([]);
   const [transactions, setTransactions] = useState<TransactionWithRelations[]>(
-    []
+    [],
   );
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -81,7 +81,7 @@ export default function MembersPage() {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/registry/members?entityId=${selectedEntity.id}`
+        `/api/registry/members?entityId=${selectedEntity.id}`,
       );
       const result = await response.json();
 
@@ -105,7 +105,7 @@ export default function MembersPage() {
 
     try {
       const response = await fetch(
-        `/api/registry/transactions?entityId=${selectedEntity.id}`
+        `/api/registry/transactions?entityId=${selectedEntity.id}`,
       );
       const result = await response.json();
 
@@ -174,7 +174,7 @@ export default function MembersPage() {
       sum +
       memberHoldings.reduce(
         (memberSum, holding) => memberSum + holding.balance,
-        0
+        0,
       )
     );
   }, 0);
@@ -262,7 +262,7 @@ export default function MembersPage() {
                 <div className="text-2xl font-bold">
                   {totalHoldings.toLocaleString(
                     getLocale(),
-                    getLocaleOptions()
+                    getLocaleOptions(),
                   )}
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -333,7 +333,7 @@ export default function MembersPage() {
                 filteredMembers.map((member) => {
                   const memberHoldings = calculateMemberHoldings(
                     member.id,
-                    transactions
+                    transactions,
                   );
 
                   return (
@@ -344,17 +344,17 @@ export default function MembersPage() {
                             {member.memberType == MemberType.INDIVIDUAL
                               ? `${member.givenNames} ${member.familyName}`.trim()
                               : member.memberType == MemberType.JOINT
-                              ? member.jointPersons &&
-                                member.jointPersons.length > 0
-                                ? member.jointPersons
-                                    .map(
-                                      (p) =>
-                                        p.entityName ||
-                                        `${p.givenNames} ${p.familyName}`.trim()
-                                    )
-                                    .join(" & ")
-                                : member.entityName || "Joint Members"
-                              : member.entityName}
+                                ? member.jointPersons &&
+                                  member.jointPersons.length > 0
+                                  ? member.jointPersons
+                                      .map(
+                                        (p) =>
+                                          p.entityName ||
+                                          `${p.givenNames} ${p.familyName}`.trim(),
+                                      )
+                                      .join(" & ")
+                                  : member.entityName || "Joint Members"
+                                : member.entityName}
                           </div>
                           {member.designation && (
                             <div className="text-sm text-muted-foreground">
@@ -374,8 +374,8 @@ export default function MembersPage() {
                             member.memberType == MemberType.INDIVIDUAL
                               ? "default"
                               : member.memberType == MemberType.JOINT
-                              ? "outline"
-                              : "secondary"
+                                ? "outline"
+                                : "secondary"
                           }
                         >
                           {member.memberType}
@@ -471,7 +471,7 @@ export default function MembersPage() {
                                       Balance:{" "}
                                       {holding.balance.toLocaleString(
                                         getLocale(),
-                                        getLocaleOptions()
+                                        getLocaleOptions(),
                                       )}{" "}
                                       shares
                                     </div>

@@ -48,7 +48,7 @@ const entityFormSchema = z.object({
     .optional()
     .refine(
       (val) => !val || z.string().email().safeParse(val).success,
-      "Invalid email format"
+      "Invalid email format",
     ),
   phone: z.string().optional(),
   website: z
@@ -56,7 +56,7 @@ const entityFormSchema = z.object({
     .optional()
     .refine(
       (val) => !val || z.string().url().safeParse(val).success,
-      "Invalid website URL"
+      "Invalid website URL",
     ),
 });
 
@@ -65,7 +65,7 @@ type EntityFormValues = z.infer<typeof entityFormSchema>;
 interface EntityFormProps {
   entity?: Entity;
   onSubmit: (
-    data: EntityFormValues & { identifiers: EntityIdentifier[] }
+    data: EntityFormValues & { identifiers: EntityIdentifier[] },
   ) => Promise<void>;
   loading?: boolean;
 }
@@ -76,12 +76,12 @@ export function EntityForm({
   loading = false,
 }: EntityFormProps) {
   const [selectedCountry, setSelectedCountry] = useState(
-    entity?.country || getDefaultCountry()
+    entity?.country || getDefaultCountry(),
   );
   const [selectedIncorporationCountry, setSelectedIncorporationCountry] =
     useState(entity?.incorporationCountry || getDefaultCountry());
   const [identifiers, setIdentifiers] = useState<EntityIdentifier[]>(
-    entity?.identifiers || []
+    entity?.identifiers || [],
   );
 
   const form = useForm<EntityFormValues>({
@@ -126,7 +126,7 @@ export function EntityForm({
   const watchedIncorporationCountry = form.watch("incorporationCountry");
   if (watchedIncorporationCountry !== selectedIncorporationCountry) {
     setSelectedIncorporationCountry(
-      watchedIncorporationCountry || getDefaultCountry()
+      watchedIncorporationCountry || getDefaultCountry(),
     );
   }
 
@@ -166,17 +166,17 @@ export function EntityForm({
                       onValueChange={(value) => {
                         field.onChange(value);
                         setSelectedIncorporationCountry(
-                          value || getDefaultCountry()
+                          value || getDefaultCountry(),
                         );
                         // Reset entity type when country changes
                         const entityTypeField = form.getValues("entityTypeId");
                         if (entityTypeField) {
                           const newCountryEntityTypes =
                             compliancePackRegistration.getEntityTypes(
-                              value || getDefaultCountry()
+                              value || getDefaultCountry(),
                             );
                           const typeStillValid = newCountryEntityTypes.some(
-                            (type) => type.id === entityTypeField
+                            (type) => type.id === entityTypeField,
                           );
                           if (!typeStillValid) {
                             form.setValue("entityTypeId", "");

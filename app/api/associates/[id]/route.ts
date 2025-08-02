@@ -5,7 +5,7 @@ import { ApiResponse, AssociateInput } from "@/lib/types";
 // GET /api/associates/[id] - Get a specific associate
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -49,7 +49,7 @@ export async function GET(
 // PUT /api/associates/[id] - Update a specific associate
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -159,7 +159,7 @@ export async function PUT(
 // DELETE /api/associates/[id] - Delete a specific associate
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;

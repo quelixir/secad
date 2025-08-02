@@ -92,7 +92,7 @@ export default function MemberViewPage() {
       try {
         setLoading(true);
         const response = await fetch(
-          `/api/registry/members/${memberId}?include=transactions`
+          `/api/registry/members/${memberId}?include=transactions`,
         );
         const result = await response.json();
 
@@ -206,7 +206,7 @@ export default function MemberViewPage() {
   ].sort(
     (a, b) =>
       new Date(b.settlementDate).getTime() -
-      new Date(a.settlementDate).getTime()
+      new Date(a.settlementDate).getTime(),
   );
 
   // Filter transactions by security class
@@ -225,7 +225,8 @@ export default function MemberViewPage() {
       if (member.jointPersons && member.jointPersons.length > 0) {
         return member.jointPersons
           .map(
-            (p: any) => p.entityName || `${p.givenNames} ${p.familyname}`.trim()
+            (p: any) =>
+              p.entityName || `${p.givenNames} ${p.familyname}`.trim(),
           )
           .join(" & ");
       }
@@ -359,7 +360,7 @@ export default function MemberViewPage() {
                                       (member.jointPersons?.length || 0) - 1 &&
                                       " & "}
                                   </span>
-                                )
+                                ),
                               )}
                             </span>
                           </div>
@@ -386,7 +387,7 @@ export default function MemberViewPage() {
                                 onClick={() =>
                                   navigator.clipboard.writeText(
                                     member.memberNumber ||
-                                      "Error copying Member Number"
+                                      "Error copying Member Number",
                                   )
                                 }
                                 className="p-1 hover:bg-muted rounded transition-colors"
@@ -630,10 +631,10 @@ export default function MemberViewPage() {
                         {formatCurrency(
                           securitiesSummary.reduce(
                             (sum, s) => sum + s.totalAmountPaid,
-                            0
+                            0,
                           ),
                           securitiesSummary[0]?.currency ||
-                            getDefaultCurrencyCode()
+                            getDefaultCurrencyCode(),
                         )}
                       </div>
                       <div className="text-sm text-muted-foreground">
@@ -645,10 +646,10 @@ export default function MemberViewPage() {
                         {formatCurrency(
                           securitiesSummary.reduce(
                             (sum, s) => sum + s.totalAmountUnpaid,
-                            0
+                            0,
                           ),
                           securitiesSummary[0]?.currency ||
-                            getDefaultCurrencyCode()
+                            getDefaultCurrencyCode(),
                         )}
                       </div>
                       <div className="text-sm text-muted-foreground">
@@ -686,7 +687,7 @@ export default function MemberViewPage() {
                             <div className="font-medium">
                               {securityClass.totalQuantity.toLocaleString(
                                 getLocale(),
-                                getLocaleOptions()
+                                getLocaleOptions(),
                               )}
                             </div>
                           </TableCell>
@@ -695,7 +696,7 @@ export default function MemberViewPage() {
                               <span>
                                 {formatCurrency(
                                   securityClass.totalAmountPaid,
-                                  securityClass.currency
+                                  securityClass.currency,
                                 )}
                               </span>
                             ) : (
@@ -707,7 +708,7 @@ export default function MemberViewPage() {
                               <span>
                                 {formatCurrency(
                                   securityClass.totalAmountUnpaid,
-                                  securityClass.currency
+                                  securityClass.currency,
                                 )}
                               </span>
                             ) : (
@@ -867,7 +868,7 @@ export default function MemberViewPage() {
                                     TransactionDirection.OUT && "("}
                                   {transaction.quantity.toLocaleString(
                                     getLocale(),
-                                    getLocaleOptions()
+                                    getLocaleOptions(),
                                   )}
                                   {transaction.direction ===
                                     TransactionDirection.OUT && ")"}
@@ -889,7 +890,7 @@ export default function MemberViewPage() {
                                   {formatCurrency(
                                     transaction.amountPaidPerSecurity,
                                     transaction.currencyCode ||
-                                      getDefaultCurrencyCode()
+                                      getDefaultCurrencyCode(),
                                   )}
                                   {transaction.direction ===
                                     TransactionDirection.OUT && ")"}
@@ -913,7 +914,7 @@ export default function MemberViewPage() {
                                   {formatCurrency(
                                     transaction.totalAmountPaid,
                                     transaction.currencyCode ||
-                                      getDefaultCurrencyCode()
+                                      getDefaultCurrencyCode(),
                                   )}
                                   {transaction.direction ===
                                     TransactionDirection.OUT && ")"}
@@ -937,7 +938,7 @@ export default function MemberViewPage() {
                                   {formatCurrency(
                                     transaction.amountUnpaidPerSecurity,
                                     transaction.currencyCode ||
-                                      getDefaultCurrencyCode()
+                                      getDefaultCurrencyCode(),
                                   )}
                                   {transaction.direction ===
                                     TransactionDirection.OUT && ")"}
@@ -961,7 +962,7 @@ export default function MemberViewPage() {
                                   {formatCurrency(
                                     transaction.totalAmountUnpaid,
                                     transaction.currencyCode ||
-                                      getDefaultCurrencyCode()
+                                      getDefaultCurrencyCode(),
                                   )}
                                   {transaction.direction ===
                                     TransactionDirection.OUT && ")"}

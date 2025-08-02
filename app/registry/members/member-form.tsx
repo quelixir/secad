@@ -44,7 +44,7 @@ const jointPersonSchema = z
       message:
         "Either individual names (given names and family name) or entity name is required",
       path: ["givenNames"],
-    }
+    },
   );
 
 const memberFormSchema = z
@@ -65,7 +65,7 @@ const memberFormSchema = z
       .optional()
       .refine(
         (val) => !val || /^\d{4}$/.test(val),
-        "Postcode must be 4 digits"
+        "Postcode must be 4 digits",
       ),
     country: z.string().optional(),
     memberNumber: z.string().optional(),
@@ -89,7 +89,7 @@ const memberFormSchema = z
       message:
         "For individuals, given names and family name are required. For joint members, at least 2 persons are required. For other types, entity name is required.",
       path: ["givenNames"],
-    }
+    },
   );
 
 type MemberFormValues = z.infer<typeof memberFormSchema>;
@@ -289,8 +289,8 @@ export function MemberForm({
               {selectedMemberType === MemberType.INDIVIDUAL
                 ? "Personal Details"
                 : selectedMemberType === MemberType.JOINT
-                ? "Joint Member Details"
-                : "Entity Details"}
+                  ? "Joint Member Details"
+                  : "Entity Details"}
             </h3>
 
             {selectedMemberType === MemberType.INDIVIDUAL ? (
@@ -416,7 +416,7 @@ export function MemberForm({
                                 form.getValues("jointPersons") || [];
                               form.setValue(
                                 "jointPersons",
-                                currentPersons.filter((_, i) => i !== index)
+                                currentPersons.filter((_, i) => i !== index),
                               );
                             }}
                             disabled={
@@ -782,8 +782,8 @@ export function MemberForm({
               {loading
                 ? "Saving..."
                 : member
-                ? "Update Member"
-                : "Create Member"}
+                  ? "Update Member"
+                  : "Create Member"}
             </Button>
           </div>
         </form>

@@ -13,7 +13,6 @@ It is designed to help manage the following across multiple entities:
 - **Resolutions**: Record and track corporate resolutions and decisions
 - **Associates**: Manage relationships between entities and their associates
 
-
 ## Getting Started
 
 ```bash

@@ -49,7 +49,7 @@ const associateFormSchema = z
       .optional()
       .refine(
         (val) => !val || /^\d{4}$/.test(val),
-        "Postcode must be 4 digits"
+        "Postcode must be 4 digits",
       ),
     country: z.string().optional(),
     appointmentDate: z.string().optional(),
@@ -68,7 +68,7 @@ const associateFormSchema = z
       message:
         "For individuals, given names and family name are required. For entities, entity name is required.",
       path: ["givenNames"],
-    }
+    },
   );
 
 type AssociateFormValues = z.infer<typeof associateFormSchema>;
@@ -634,8 +634,8 @@ export function AssociateForm({
               {loading
                 ? "Saving..."
                 : associate
-                ? "Update Associate"
-                : "Add Associate"}
+                  ? "Update Associate"
+                  : "Add Associate"}
             </Button>
           </div>
         </form>

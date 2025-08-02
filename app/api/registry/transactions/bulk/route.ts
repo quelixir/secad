@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
           userId, // Use actual user ID from auth
           AuditTableName.TRANSACTION,
           transaction.id,
-          transaction
+          transaction,
         );
       }
 

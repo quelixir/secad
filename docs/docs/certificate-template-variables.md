@@ -97,32 +97,32 @@ Variables that provide current system information.
 
 ```html
 <html>
-<head>
+  <head>
     <title>Certificate of {{securityClass}}</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Certificate of {{securityClass}}</h1>
-    
+
     <div class="certificate-info">
-        <p><strong>Certificate Number:</strong> {{certificateNumber}}</p>
-        <p><strong>Issue Date:</strong> {{issueDate}}</p>
-        <p><strong>Entity:</strong> {{entityName}}</p>
-        <p><strong>Member:</strong> {{memberName}}</p>
+      <p><strong>Certificate Number:</strong> {{certificateNumber}}</p>
+      <p><strong>Issue Date:</strong> {{issueDate}}</p>
+      <p><strong>Entity:</strong> {{entityName}}</p>
+      <p><strong>Member:</strong> {{memberName}}</p>
     </div>
-    
+
     <div class="security-details">
-        <p><strong>Security Class:</strong> {{securityClass}}</p>
-        <p><strong>Quantity:</strong> {{quantity}}</p>
-        <p><strong>Unit Price:</strong> {{unitPrice}}</p>
-        <p><strong>Total Value:</strong> {{totalValue}}</p>
+      <p><strong>Security Class:</strong> {{securityClass}}</p>
+      <p><strong>Quantity:</strong> {{quantity}}</p>
+      <p><strong>Unit Price:</strong> {{unitPrice}}</p>
+      <p><strong>Total Value:</strong> {{totalValue}}</p>
     </div>
-    
+
     <div class="transaction-details">
-        <p><strong>Transaction ID:</strong> {{transactionId}}</p>
-        <p><strong>Transaction Date:</strong> {{transactionDate}}</p>
-        <p><strong>Transaction Type:</strong> {{transactionType}}</p>
+      <p><strong>Transaction ID:</strong> {{transactionId}}</p>
+      <p><strong>Transaction Date:</strong> {{transactionDate}}</p>
+      <p><strong>Transaction Type:</strong> {{transactionType}}</p>
     </div>
-</body>
+  </body>
 </html>
 ```
 
@@ -130,106 +130,113 @@ Variables that provide current system information.
 
 ```html
 <html>
-<head>
+  <head>
     <title>{{entityName}} - {{securityClass}} Certificate</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; }
-        .section { margin: 20px 0; }
-        .field { margin: 10px 0; }
-        .label { font-weight: bold; }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+      }
+      .header {
+        text-align: center;
+        border-bottom: 2px solid #333;
+        padding-bottom: 20px;
+      }
+      .section {
+        margin: 20px 0;
+      }
+      .field {
+        margin: 10px 0;
+      }
+      .label {
+        font-weight: bold;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="header">
-        <h1>{{entityName}}</h1>
-        <h2>Certificate of {{securityClass}}</h2>
-        <p>Certificate Number: {{certificateNumber}}</p>
+      <h1>{{entityName}}</h1>
+      <h2>Certificate of {{securityClass}}</h2>
+      <p>Certificate Number: {{certificateNumber}}</p>
     </div>
-    
+
     <div class="section">
-        <h3>Entity Information</h3>
-        <div class="field">
-            <span class="label">Entity Name:</span> {{entityName}}
-        </div>
-        <div class="field">
-            <span class="label">Entity Type:</span> {{entityType}}
-        </div>
-        <div class="field">
-            <span class="label">Address:</span> {{entityAddress}}
-        </div>
-        <div class="field">
-            <span class="label">Phone:</span> {{entityPhone}}
-        </div>
-        <div class="field">
-            <span class="label">Email:</span> {{entityEmail}}
-        </div>
+      <h3>Entity Information</h3>
+      <div class="field">
+        <span class="label">Entity Name:</span> {{entityName}}
+      </div>
+      <div class="field">
+        <span class="label">Entity Type:</span> {{entityType}}
+      </div>
+      <div class="field">
+        <span class="label">Address:</span> {{entityAddress}}
+      </div>
+      <div class="field"><span class="label">Phone:</span> {{entityPhone}}</div>
+      <div class="field"><span class="label">Email:</span> {{entityEmail}}</div>
     </div>
-    
+
     <div class="section">
-        <h3>Member Information</h3>
-        <div class="field">
-            <span class="label">Member Name:</span> {{memberName}}
-        </div>
-        <div class="field">
-            <span class="label">Member Type:</span> {{memberType}}
-        </div>
-        <div class="field">
-            <span class="label">Address:</span> {{memberAddress}}
-        </div>
+      <h3>Member Information</h3>
+      <div class="field">
+        <span class="label">Member Name:</span> {{memberName}}
+      </div>
+      <div class="field">
+        <span class="label">Member Type:</span> {{memberType}}
+      </div>
+      <div class="field">
+        <span class="label">Address:</span> {{memberAddress}}
+      </div>
     </div>
-    
+
     <div class="section">
-        <h3>Security Details</h3>
-        <div class="field">
-            <span class="label">Security Class:</span> {{securityClass}}
-        </div>
-        <div class="field">
-            <span class="label">Security Symbol:</span> {{securitySymbol}}
-        </div>
-        <div class="field">
-            <span class="label">Quantity:</span> {{quantity}}
-        </div>
-        <div class="field">
-            <span class="label">Unit Price:</span> {{unitPrice}}
-        </div>
-        <div class="field">
-            <span class="label">Total Value:</span> {{totalValue}}
-        </div>
+      <h3>Security Details</h3>
+      <div class="field">
+        <span class="label">Security Class:</span> {{securityClass}}
+      </div>
+      <div class="field">
+        <span class="label">Security Symbol:</span> {{securitySymbol}}
+      </div>
+      <div class="field"><span class="label">Quantity:</span> {{quantity}}</div>
+      <div class="field">
+        <span class="label">Unit Price:</span> {{unitPrice}}
+      </div>
+      <div class="field">
+        <span class="label">Total Value:</span> {{totalValue}}
+      </div>
     </div>
-    
+
     <div class="section">
-        <h3>Transaction Information</h3>
-        <div class="field">
-            <span class="label">Transaction ID:</span> {{transactionId}}
-        </div>
-        <div class="field">
-            <span class="label">Transaction Date:</span> {{transactionDate}}
-        </div>
-        <div class="field">
-            <span class="label">Transaction Type:</span> {{transactionType}}
-        </div>
-        <div class="field">
-            <span class="label">Reason:</span> {{transactionReason}}
-        </div>
-        <div class="field">
-            <span class="label">Description:</span> {{transactionDescription}}
-        </div>
+      <h3>Transaction Information</h3>
+      <div class="field">
+        <span class="label">Transaction ID:</span> {{transactionId}}
+      </div>
+      <div class="field">
+        <span class="label">Transaction Date:</span> {{transactionDate}}
+      </div>
+      <div class="field">
+        <span class="label">Transaction Type:</span> {{transactionType}}
+      </div>
+      <div class="field">
+        <span class="label">Reason:</span> {{transactionReason}}
+      </div>
+      <div class="field">
+        <span class="label">Description:</span> {{transactionDescription}}
+      </div>
     </div>
-    
+
     <div class="section">
-        <h3>Certificate Information</h3>
-        <div class="field">
-            <span class="label">Certificate Number:</span> {{certificateNumber}}
-        </div>
-        <div class="field">
-            <span class="label">Issue Date:</span> {{issueDate}}
-        </div>
-        <div class="field">
-            <span class="label">Generated On:</span> {{currentDate}}
-        </div>
+      <h3>Certificate Information</h3>
+      <div class="field">
+        <span class="label">Certificate Number:</span> {{certificateNumber}}
+      </div>
+      <div class="field">
+        <span class="label">Issue Date:</span> {{issueDate}}
+      </div>
+      <div class="field">
+        <span class="label">Generated On:</span> {{currentDate}}
+      </div>
     </div>
-</body>
+  </body>
 </html>
 ```
 
@@ -246,18 +253,24 @@ All template variables are populated from the following data sources:
 ## Formatting
 
 ### Currency Values
+
 Financial values (`{{totalAmount}}`, `{{unitPrice}}`, `{{totalValue}}`) are automatically formatted according to the locale and currency settings:
+
 - Uses the transaction's currency code
 - Applies proper number formatting with commas and decimal places
 - Example: `$50,000.00`
 
 ### Date Values
+
 Date values are formatted according to the system locale:
+
 - `{{transactionDate}}`, `{{issueDate}}`, `{{currentDate}}`
 - Example: `15/01/2024` (for Australian locale)
 
 ### Number Values
+
 Quantity values are formatted with locale-appropriate number separators:
+
 - `{{quantity}}` - Example: `1,000`
 
 ## Fallback Values
@@ -298,7 +311,8 @@ The system also supports dynamic properties that can be added to the `Certificat
 ### Debugging
 
 To debug template variable issues:
+
 1. Check the certificate generation logs
 2. Verify transaction data in the database
 3. Test with a simple template first
-4. Use the template validation API endpoint 
+4. Use the template validation API endpoint

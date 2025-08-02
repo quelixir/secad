@@ -30,7 +30,7 @@ export default function EditTransactionPage() {
       try {
         setLoading(true);
         const response = await fetch(
-          `/api/registry/transactions/${params?.id}`
+          `/api/registry/transactions/${params?.id}`,
         );
         const result = await response.json();
 

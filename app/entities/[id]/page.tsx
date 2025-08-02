@@ -85,14 +85,14 @@ export default function ViewEntityPage() {
     return compliancePackRegistration.formatIdentifier(
       identifier.country,
       identifier.type,
-      identifier.value
+      identifier.value,
     );
   };
 
   const getIdentifierTypeName = (country: string, typeCode: string) => {
     const identifierType = compliancePackRegistration.getIdentifierType(
       country,
-      typeCode
+      typeCode,
     );
     return identifierType?.name || typeCode;
   };
@@ -120,7 +120,7 @@ export default function ViewEntityPage() {
   const getEntityType = (entityTypeId: string, country?: string) => {
     const entityType = compliancePackRegistration.getEntityType(
       country || getDefaultCountry(),
-      entityTypeId
+      entityTypeId,
     );
     return entityType;
   };
@@ -285,7 +285,7 @@ export default function ViewEntityPage() {
                     <Badge variant="outline">
                       {getEntityType(
                         entity.entityTypeId,
-                        entity.incorporationCountry || undefined
+                        entity.incorporationCountry || undefined,
                       )?.name || entity.entityTypeId}
                     </Badge>
                   </div>
@@ -396,7 +396,7 @@ export default function ViewEntityPage() {
                             <TableCell>
                               {getIdentifierTypeName(
                                 identifier.country,
-                                identifier.type
+                                identifier.type,
                               )}
                             </TableCell>
                             <TableCell className="font-mono">
@@ -412,7 +412,7 @@ export default function ViewEntityPage() {
                               </Badge>
                             </TableCell>
                           </TableRow>
-                        )
+                        ),
                       )}
                     </TableBody>
                   </Table>
@@ -543,17 +543,17 @@ export default function ViewEntityPage() {
                                   member.familyName || ""
                                 }`.trim()
                               : member.memberType === MemberType.JOINT
-                              ? member.jointPersons &&
-                                member.jointPersons.length > 0
-                                ? member.jointPersons
-                                    .map(
-                                      (p: any) =>
-                                        p.entityName ||
-                                        `${p.givenNames} ${p.familyName}`.trim()
-                                    )
-                                    .join(" & ")
-                                : member.entityName || "Joint Members"
-                              : member.entityName;
+                                ? member.jointPersons &&
+                                  member.jointPersons.length > 0
+                                  ? member.jointPersons
+                                      .map(
+                                        (p: any) =>
+                                          p.entityName ||
+                                          `${p.givenNames} ${p.familyName}`.trim(),
+                                      )
+                                      .join(" & ")
+                                  : member.entityName || "Joint Members"
+                                : member.entityName;
 
                           return (
                             <TableRow key={member.id}>
@@ -623,27 +623,27 @@ export default function ViewEntityPage() {
                           const totalQuantity =
                             securityClass.transactions?.reduce(
                               (sum: number, t: any) => sum + t.quantity,
-                              0
+                              0,
                             ) || 0;
                           const totalAmountPaid =
                             securityClass.transactions?.reduce(
                               (sum: number, t: any) => {
                                 const amount = parseFloat(
-                                  t.totalAmountPaid || "0"
+                                  t.totalAmountPaid || "0",
                                 );
                                 return sum + (isNaN(amount) ? 0 : amount);
                               },
-                              0
+                              0,
                             ) || 0;
                           const totalAmountUnpaid =
                             securityClass.transactions?.reduce(
                               (sum: number, t: any) => {
                                 const amount = parseFloat(
-                                  t.totalAmountUnpaid || "0"
+                                  t.totalAmountUnpaid || "0",
                                 );
                                 return sum + (isNaN(amount) ? 0 : amount);
                               },
-                              0
+                              0,
                             ) || 0;
 
                           return (
@@ -663,14 +663,14 @@ export default function ViewEntityPage() {
                               <TableCell className="text-right">
                                 {totalQuantity.toLocaleString(
                                   getLocale(),
-                                  getLocaleOptions()
+                                  getLocaleOptions(),
                                 )}
                               </TableCell>
                               <TableCell className="text-right">
                                 {totalAmountPaid > 0
                                   ? `$${totalAmountPaid.toLocaleString(
                                       getLocale(),
-                                      getLocaleOptions()
+                                      getLocaleOptions(),
                                     )}`
                                   : "-"}
                               </TableCell>
@@ -678,7 +678,7 @@ export default function ViewEntityPage() {
                                 {totalAmountUnpaid > 0
                                   ? `$${totalAmountUnpaid.toLocaleString(
                                       getLocale(),
-                                      getLocaleOptions()
+                                      getLocaleOptions(),
                                     )}`
                                   : "-"}
                               </TableCell>

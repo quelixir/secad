@@ -331,8 +331,8 @@ export function SecurityForm({
               {loading
                 ? "Saving..."
                 : securityClass
-                ? "Update Security Class"
-                : "Create Security Class"}
+                  ? "Update Security Class"
+                  : "Create Security Class"}
             </Button>
           </div>
         </form>

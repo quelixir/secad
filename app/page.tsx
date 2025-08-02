@@ -83,7 +83,7 @@ export default function Dashboard() {
         // Fetch entity-specific data in parallel
         const [membersRes, securitiesRes, transactionsRes] = await Promise.all([
           fetch(
-            `/api/registry/members?entityId=${selectedEntity.id}&include=holdings`
+            `/api/registry/members?entityId=${selectedEntity.id}&include=holdings`,
           ),
           fetch(`/api/registry/securities?entityId=${selectedEntity.id}`),
           fetch(`/api/registry/transactions?entityId=${selectedEntity.id}`),
@@ -104,7 +104,7 @@ export default function Dashboard() {
                 (memberTotal: number, transaction: { quantity: number }) => {
                   return memberTotal + transaction.quantity;
                 },
-                0
+                0,
               ) || 0)
             );
           }, 0) || 0;
@@ -207,14 +207,14 @@ export default function Dashboard() {
             <CardDescription>
               {compliancePackRegistration.getEntityType(
                 selectedEntity.incorporationCountry || getDefaultCountry(),
-                selectedEntity.entityTypeId
+                selectedEntity.entityTypeId,
               )?.name || "Unknown Type"}
               {selectedEntity.identifiers
                 ?.map((identifier: any) => {
                   const formatted = compliancePackRegistration.formatIdentifier(
                     identifier.country,
                     identifier.type,
-                    identifier.value
+                    identifier.value,
                   );
                   return ` • ${identifier.type}: ${formatted}`;
                 })
@@ -270,7 +270,7 @@ export default function Dashboard() {
                   ? "..."
                   : stats.totalHoldings.toLocaleString(
                       getLocale(),
-                      getLocaleOptions()
+                      getLocaleOptions(),
                     )}
               </div>
               <p className="text-xs text-muted-foreground">Securities issued</p>
@@ -361,7 +361,7 @@ export default function Dashboard() {
                       <div className="text-right text-sm">
                         <div className="text-xs text-muted-foreground">
                           {new Date(
-                            transaction.settlementDate
+                            transaction.settlementDate,
                           ).toLocaleDateString()}
                         </div>
                       </div>

@@ -31,7 +31,7 @@ export function MemberContacts({ memberId, entityId }: MemberContactsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingContact, setEditingContact] = useState<MemberContact | null>(
-    null
+    null,
   );
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -50,7 +50,7 @@ export function MemberContacts({ memberId, entityId }: MemberContactsProps) {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/registry/members/${memberId}/contacts`
+        `/api/registry/members/${memberId}/contacts`,
       );
       const result = await response.json();
 
@@ -127,7 +127,7 @@ export function MemberContacts({ memberId, entityId }: MemberContactsProps) {
         `/api/registry/members/${memberId}/contacts/${contactId}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       const result = await response.json();

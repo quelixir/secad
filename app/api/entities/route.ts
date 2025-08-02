@@ -33,7 +33,7 @@ export async function GET() {
         success: false,
         error: "Failed to fetch entities",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -49,14 +49,14 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Name and entity type are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get entity type from compliance registry
     const entityType = compliancePackRegistration.getEntityType(
       body.incorporationCountry || getDefaultCountry(),
-      body.entityTypeId
+      body.entityTypeId,
     );
 
     if (!entityType) {
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Invalid entity type",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: "Failed to create entity",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

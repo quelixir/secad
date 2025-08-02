@@ -41,7 +41,7 @@ export function StateSelect({
 
   const states = selectedCountry ? getStatesForCountry(selectedCountry) : [];
   const selectedState = states.find(
-    (state) => state.state_code === value || state.name === value
+    (state) => state.state_code === value || state.name === value,
   );
 
   return (
@@ -76,7 +76,7 @@ export function StateSelect({
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === state.state_code ? "opacity-100" : "opacity-0"
+                      value === state.state_code ? "opacity-100" : "opacity-0",
                     )}
                   />
                   <Badge variant="secondary" className="mr-2 text-xs">

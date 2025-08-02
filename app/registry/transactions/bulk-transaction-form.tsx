@@ -62,7 +62,7 @@ const bulkTransactionSchema = z
             .string()
             .refine(
               (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
-              "Quantity must be a positive number"
+              "Quantity must be a positive number",
             ),
           paidPerSecurity: z
             .string()
@@ -70,7 +70,7 @@ const bulkTransactionSchema = z
             .refine(
               (val) =>
                 !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0),
-              "Paid amount must be a valid positive number"
+              "Paid amount must be a valid positive number",
             ),
           unpaidPerSecurity: z
             .string()
@@ -78,13 +78,13 @@ const bulkTransactionSchema = z
             .refine(
               (val) =>
                 !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0),
-              "Unpaid amount must be a valid positive number"
+              "Unpaid amount must be a valid positive number",
             ),
           fromMemberId: z.string().optional(),
           toMemberId: z.string().optional(),
           reference: z.string().optional(),
           description: z.string().optional(),
-        })
+        }),
       )
       .min(1, "At least one transaction is required"),
   })
@@ -96,7 +96,7 @@ const bulkTransactionSchema = z
       } else if (data.type === "TRANSFER") {
         return data.transactions.every(
           (t) =>
-            t.fromMemberId && t.toMemberId && t.fromMemberId !== t.toMemberId
+            t.fromMemberId && t.toMemberId && t.fromMemberId !== t.toMemberId,
         ); // Must have both members and they must be different
       } else if (data.type === "REDEMPTION") {
         return data.transactions.every((t) => t.fromMemberId); // Must have member to redeem from
@@ -106,7 +106,7 @@ const bulkTransactionSchema = z
     {
       message: "Invalid member selection for transaction type",
       path: ["transactions"],
-    }
+    },
   );
 
 type BulkTransactionFormValues = z.infer<typeof bulkTransactionSchema>;
@@ -169,7 +169,7 @@ export function BulkTransactionForm({
   const fetchSecurityClasses = async (entityId: string) => {
     try {
       const response = await fetch(
-        `/api/registry/securities?entityId=${entityId}`
+        `/api/registry/securities?entityId=${entityId}`,
       );
       const result = await response.json();
       if (result.success) {
@@ -183,7 +183,7 @@ export function BulkTransactionForm({
   const fetchMembers = async (entityId: string) => {
     try {
       const response = await fetch(
-        `/api/registry/members?entityId=${entityId}`
+        `/api/registry/members?entityId=${entityId}`,
       );
       const result = await response.json();
       if (result.success) {

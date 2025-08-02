@@ -61,21 +61,21 @@ const transactionFormSchema = z
       .string()
       .refine(
         (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
-        "Quantity must be a positive number"
+        "Quantity must be a positive number",
       ),
     paidPerSecurity: z
       .string()
       .optional()
       .refine(
         (val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0),
-        "Paid amount must be a valid positive number"
+        "Paid amount must be a valid positive number",
       ),
     unpaidPerSecurity: z
       .string()
       .optional()
       .refine(
         (val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0),
-        "Unpaid amount must be a valid positive number"
+        "Unpaid amount must be a valid positive number",
       ),
     currency: z.string().min(1, "Currency is required"),
     fromMemberId: z.string().optional(),
@@ -104,7 +104,7 @@ const transactionFormSchema = z
     {
       message: "Invalid member selection for transaction type",
       path: ["toMemberId"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -122,7 +122,7 @@ const transactionFormSchema = z
     {
       message: "Transaction date cannot be in the future",
       path: ["transactionDate"],
-    }
+    },
   );
 
 type TransactionFormValues = z.infer<typeof transactionFormSchema>;
@@ -201,7 +201,7 @@ export function TransactionForm({
     try {
       setLoadingSecurities(true);
       const response = await fetch(
-        `/api/registry/securities?entityId=${entityId}`
+        `/api/registry/securities?entityId=${entityId}`,
       );
       const result = await response.json();
 
@@ -221,7 +221,7 @@ export function TransactionForm({
     try {
       setLoadingMembers(true);
       const response = await fetch(
-        `/api/registry/members?entityId=${entityId}`
+        `/api/registry/members?entityId=${entityId}`,
       );
       const result = await response.json();
 
@@ -354,7 +354,7 @@ export function TransactionForm({
     } catch (error) {
       console.error(
         `Error ${transaction ? "updating" : "creating"} transaction:`,
-        error
+        error,
       );
       form.setError("root", { message: "An unexpected error occurred" });
     } finally {
@@ -418,7 +418,7 @@ export function TransactionForm({
                         onMouseEnter={(e) =>
                           showTooltip(
                             getTransactionTypeDescription(selectedType),
-                            e
+                            e,
                           )
                         }
                         onMouseLeave={hideTooltip}
@@ -452,11 +452,11 @@ export function TransactionForm({
                         >
                           {field.value
                             ? TransactionReasons.find(
-                                (reason) => reason.code === field.value
+                                (reason) => reason.code === field.value,
                               )?.code +
                               " - " +
                               TransactionReasons.find(
-                                (reason) => reason.code === field.value
+                                (reason) => reason.code === field.value,
                               )?.reason
                             : "Select reason code..."}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -483,7 +483,7 @@ export function TransactionForm({
                                     "mr-2 h-4 w-4",
                                     reason.code === field.value
                                       ? "opacity-100"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                                 <div className="flex flex-col">
@@ -556,24 +556,24 @@ export function TransactionForm({
                             {field.value
                               ? securityClasses.find(
                                   (securityClass) =>
-                                    securityClass.id === field.value
+                                    securityClass.id === field.value,
                                 )?.name +
                                 (securityClasses.find(
                                   (securityClass) =>
-                                    securityClass.id === field.value
+                                    securityClass.id === field.value,
                                 )?.symbol
                                   ? ` (${
                                       securityClasses.find(
                                         (securityClass) =>
-                                          securityClass.id === field.value
+                                          securityClass.id === field.value,
                                       )?.symbol
                                     })`
                                   : "")
                               : !selectedEntityId
-                              ? "Select entity first"
-                              : loadingSecurities
-                              ? "Loading securities..."
-                              : "Select security class..."}
+                                ? "Select entity first"
+                                : loadingSecurities
+                                  ? "Loading securities..."
+                                  : "Select security class..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -602,7 +602,7 @@ export function TransactionForm({
                                       "mr-2 h-4 w-4",
                                       securityClass.id === field.value
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                   <div className="flex flex-col">
@@ -667,7 +667,7 @@ export function TransactionForm({
                                       ? Currencies.find(
                                           (currency) =>
                                             currency.code ===
-                                            currencyField.value
+                                            currencyField.value,
                                         )?.code
                                       : "Select currency..."}
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -688,7 +688,7 @@ export function TransactionForm({
                                           value={`${currency.code} ${currency.name} ${currency.symbol}`}
                                           onSelect={() => {
                                             currencyField.onChange(
-                                              currency.code
+                                              currency.code,
                                             );
                                             setCurrencyOpen(false);
                                           }}
@@ -699,7 +699,7 @@ export function TransactionForm({
                                               currency.code ===
                                                 currencyField.value
                                                 ? "opacity-100"
-                                                : "opacity-0"
+                                                : "opacity-0",
                                             )}
                                           />
                                           <div className="flex flex-col">
@@ -782,7 +782,7 @@ export function TransactionForm({
                                       ? Currencies.find(
                                           (currency) =>
                                             currency.code ===
-                                            currencyField.value
+                                            currencyField.value,
                                         )?.code
                                       : "Select currency..."}
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -803,7 +803,7 @@ export function TransactionForm({
                                           value={`${currency.code} ${currency.name} ${currency.symbol}`}
                                           onSelect={() => {
                                             currencyField.onChange(
-                                              currency.code
+                                              currency.code,
                                             );
                                             setCurrencyOpen(false);
                                           }}
@@ -814,7 +814,7 @@ export function TransactionForm({
                                               currency.code ===
                                                 currencyField.value
                                                 ? "opacity-100"
-                                                : "opacity-0"
+                                                : "opacity-0",
                                             )}
                                           />
                                           <div className="flex flex-col">
@@ -903,7 +903,7 @@ export function TransactionForm({
                                   {currencyField.value
                                     ? Currencies.find(
                                         (currency) =>
-                                          currency.code === currencyField.value
+                                          currency.code === currencyField.value,
                                       )?.code
                                     : "Select currency..."}
                                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -933,7 +933,7 @@ export function TransactionForm({
                                             currency.code ===
                                               currencyField.value
                                               ? "opacity-100"
-                                              : "opacity-0"
+                                              : "opacity-0",
                                           )}
                                         />
                                         <div className="flex flex-col">
@@ -991,14 +991,14 @@ export function TransactionForm({
                               {field.value
                                 ? formatMemberName(
                                     members.find(
-                                      (member) => member.id === field.value
-                                    )
+                                      (member) => member.id === field.value,
+                                    ),
                                   )
                                 : !selectedEntityId
-                                ? "Select entity first"
-                                : loadingMembers
-                                ? "Loading members..."
-                                : "Select member..."}
+                                  ? "Select entity first"
+                                  : loadingMembers
+                                    ? "Loading members..."
+                                    : "Select member..."}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </FormControl>
@@ -1022,7 +1022,7 @@ export function TransactionForm({
                                         "mr-2 h-4 w-4",
                                         member.id === field.value
                                           ? "opacity-100"
-                                          : "opacity-0"
+                                          : "opacity-0",
                                       )}
                                     />
                                     {formatMemberName(member)}
@@ -1058,14 +1058,14 @@ export function TransactionForm({
                               {field.value
                                 ? formatMemberName(
                                     members.find(
-                                      (member) => member.id === field.value
-                                    )
+                                      (member) => member.id === field.value,
+                                    ),
                                   )
                                 : !selectedEntityId
-                                ? "Select entity first"
-                                : loadingMembers
-                                ? "Loading members..."
-                                : "Select member..."}
+                                  ? "Select entity first"
+                                  : loadingMembers
+                                    ? "Loading members..."
+                                    : "Select member..."}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </FormControl>
@@ -1089,7 +1089,7 @@ export function TransactionForm({
                                         "mr-2 h-4 w-4",
                                         member.id === field.value
                                           ? "opacity-100"
-                                          : "opacity-0"
+                                          : "opacity-0",
                                       )}
                                     />
                                     {formatMemberName(member)}
@@ -1187,8 +1187,8 @@ export function TransactionForm({
                 ? "Updating Transaction..."
                 : "Creating Transaction..."
               : transaction
-              ? "Update Transaction"
-              : "Create Transaction"}
+                ? "Update Transaction"
+                : "Create Transaction"}
           </Button>
         </div>
       </form>

@@ -12,11 +12,13 @@ This folder contains the Docusaurus documentation site for SECAD.
 ### Getting Started
 
 1. Install dependencies:
+
 ```bash
 yarn install
 ```
 
 2. Start the development server:
+
 ```bash
 yarn start
 ```
@@ -59,6 +61,7 @@ docs/
 
 1. Create a new `.md` file in the `docs/docs/` directory
 2. Add frontmatter with metadata:
+
 ```markdown
 ---
 sidebar_position: 1

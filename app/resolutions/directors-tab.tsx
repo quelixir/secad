@@ -209,7 +209,7 @@ export function DirectorsTab({ entityId, entityName }: DirectorsTabProps) {
       (resolution.referenceNumber &&
         resolution.referenceNumber
           .toLowerCase()
-          .includes(searchTerm.toLowerCase()))
+          .includes(searchTerm.toLowerCase())),
   );
 
   if (loading) {
@@ -338,7 +338,7 @@ export function DirectorsTab({ entityId, entityName }: DirectorsTabProps) {
                       <TableCell>
                         <Badge
                           className={`flex items-center gap-1 ${getStatusColor(
-                            resolution.status
+                            resolution.status,
                           )}`}
                         >
                           {getStatusIcon(resolution.status)}
@@ -349,7 +349,7 @@ export function DirectorsTab({ entityId, entityName }: DirectorsTabProps) {
                       <TableCell>
                         {resolution.resolutionDate
                           ? new Date(
-                              resolution.resolutionDate
+                              resolution.resolutionDate,
                             ).toLocaleDateString()
                           : "—"}
                       </TableCell>

@@ -60,7 +60,7 @@ export default function AssociatesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [hideResigned, setHideResigned] = useState(false);
   const [editingAssociate, setEditingAssociate] = useState<Associate | null>(
-    null
+    null,
   );
   const [showAddDialog, setShowAddDialog] = useState(false);
 
@@ -172,7 +172,7 @@ export default function AssociatesPage() {
         formatAssociateType(associate.type)
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        associate.status.toLowerCase().includes(searchTerm.toLowerCase())
+        associate.status.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
   if (!selectedEntity) {
@@ -339,7 +339,7 @@ export default function AssociatesPage() {
                                 <div>
                                   DOB:{" "}
                                   {new Date(
-                                    associate.dateOfBirth
+                                    associate.dateOfBirth,
                                   ).toLocaleDateString()}
                                 </div>
                               )}
@@ -362,14 +362,14 @@ export default function AssociatesPage() {
                         <TableCell>
                           {associate.appointmentDate
                             ? new Date(
-                                associate.appointmentDate
+                                associate.appointmentDate,
                               ).toLocaleDateString()
                             : "—"}
                         </TableCell>
                         <TableCell>
                           {associate.resignationDate
                             ? new Date(
-                                associate.resignationDate
+                                associate.resignationDate,
                               ).toLocaleDateString()
                             : "—"}
                         </TableCell>

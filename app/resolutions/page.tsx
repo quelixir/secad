@@ -137,7 +137,7 @@ function ResolutionsContent() {
                   variant={activeSection === item.id ? "secondary" : "ghost"}
                   className={cn(
                     "w-full justify-start gap-3 h-auto py-3 px-3",
-                    activeSection === item.id && "bg-secondary"
+                    activeSection === item.id && "bg-secondary",
                   )}
                   onClick={() => handleSectionChange(item.id)}
                 >
@@ -183,20 +183,20 @@ function ResolutionsDashboard() {
 
         // Fetch all resolutions
         const response = await fetch(
-          `/api/resolutions?entityId=${selectedEntity.id}`
+          `/api/resolutions?entityId=${selectedEntity.id}`,
         );
         const data = await response.json();
 
         if (data.success) {
           const resolutions = data.data;
           const directors = resolutions.filter(
-            (r: any) => r.category === "directors"
+            (r: any) => r.category === "directors",
           );
           const members = resolutions.filter(
-            (r: any) => r.category === "members"
+            (r: any) => r.category === "members",
           );
           const approved = resolutions.filter(
-            (r: any) => r.status === "Approved"
+            (r: any) => r.status === "Approved",
           );
           const draft = resolutions.filter((r: any) => r.status === "Draft");
 
@@ -374,7 +374,7 @@ function ResolutionsDashboard() {
                     <div className="text-xs">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
-                          resolution.status
+                          resolution.status,
                         )}`}
                       >
                         {resolution.status}

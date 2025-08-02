@@ -5,7 +5,7 @@ import { ApiResponse, ResolutionInput } from "@/lib/types";
 // GET /api/resolutions/[id] - Get a specific resolution
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -49,7 +49,7 @@ export async function GET(
 // PUT /api/resolutions/[id] - Update a resolution
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -130,7 +130,7 @@ export async function PUT(
 // DELETE /api/resolutions/[id] - Delete a resolution
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;

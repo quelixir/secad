@@ -80,7 +80,7 @@ export function CountrySelect({
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === country.name ? "opacity-100" : "opacity-0"
+                      value === country.name ? "opacity-100" : "opacity-0",
                     )}
                   />
                   <span

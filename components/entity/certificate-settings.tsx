@@ -79,7 +79,7 @@ export function CertificateSettings({ entityId }: CertificateSettingsProps) {
       if (result.success && result.data) {
         setSettings(result.data);
         setSuccess(
-          `Certificates ${enabled ? "enabled" : "disabled"} successfully`
+          `Certificates ${enabled ? "enabled" : "disabled"} successfully`,
         );
 
         // Clear success message after 3 seconds
@@ -166,7 +166,7 @@ export function CertificateSettings({ entityId }: CertificateSettingsProps) {
                   "font-medium",
                   settings?.certificatesEnabled
                     ? "text-green-600"
-                    : "text-red-600"
+                    : "text-red-600",
                 )}
               >
                 {settings?.certificatesEnabled ? "enabled" : "disabled"}

@@ -77,9 +77,9 @@ export default function EntitiesPage() {
           ...entity,
           entityType: compliancePackRegistration.getEntityType(
             entity.incorporationCountry || getDefaultCountry(),
-            entity.entityTypeId
+            entity.entityTypeId,
           ),
-        }))
+        })),
       );
       setTransformedEntities(transformed);
     }
@@ -95,7 +95,7 @@ export default function EntitiesPage() {
   if (entitiesData && "success" in entitiesData && !entitiesData.success) {
     console.error(
       "Error fetching entities:",
-      (entitiesData as { error?: string }).error || "Unknown API error"
+      (entitiesData as { error?: string }).error || "Unknown API error",
     );
   }
 
@@ -117,11 +117,11 @@ export default function EntitiesPage() {
     const searchTermLower = searchTerm.toLowerCase();
     const nameMatch = entity.name?.toLowerCase().includes(searchTermLower);
     const identifierMatch = entity.identifiers?.some((identifier: any) =>
-      identifier.value?.toLowerCase().includes(searchTermLower)
+      identifier.value?.toLowerCase().includes(searchTermLower),
     );
     const entityType = compliancePackRegistration.getEntityType(
       entity.incorporationCountry || getDefaultCountry(),
-      entity.entityTypeId
+      entity.entityTypeId,
     );
     console.log("Entity type lookup:", {
       country: entity.incorporationCountry || getDefaultCountry(),
@@ -147,14 +147,13 @@ export default function EntitiesPage() {
   };
 
   // Add debugging for available entity types
-  const availableTypes = compliancePackRegistration.getEntityTypes(
-    getDefaultCountry()
-  );
+  const availableTypes =
+    compliancePackRegistration.getEntityTypes(getDefaultCountry());
   console.log(
     "Available entity types for default country (",
     getDefaultCountry(),
     "):",
-    availableTypes.map((t) => ({ id: t.id, name: t.name }))
+    availableTypes.map((t) => ({ id: t.id, name: t.name })),
   );
 
   return (
@@ -254,7 +253,7 @@ export default function EntitiesPage() {
                             {compliancePackRegistration.getEntityType(
                               entity.incorporationCountry ||
                                 getDefaultCountry(),
-                              entity.entityTypeId
+                              entity.entityTypeId,
                             )?.name || "Unknown Type"}
                           </Badge>
                         </TableCell>

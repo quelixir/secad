@@ -1,14 +1,14 @@
-import { prisma } from '../lib/db';
-import { DEFAULT_CERTIFICATE_TEMPLATE } from '../lib/certificate-templates/default-template';
+import { prisma } from "../lib/db";
+import { DEFAULT_CERTIFICATE_TEMPLATE } from "../lib/certificate-templates/default-template";
 
 async function seedDefaultCertificateTemplate() {
   try {
-    console.log('🌱 Seeding default certificate template...');
+    console.log("🌱 Seeding default certificate template...");
 
     // Check if default template already exists
     const existingDefault = await prisma.certificateTemplate.findFirst({
       where: {
-        scope: 'GLOBAL',
+        scope: "GLOBAL",
         scopeId: null,
         isDefault: true,
       },
@@ -16,7 +16,7 @@ async function seedDefaultCertificateTemplate() {
 
     if (existingDefault) {
       console.log(
-        '✅ Default certificate template already exists, skipping...'
+        "✅ Default certificate template already exists, skipping...",
       );
       return;
     }
@@ -32,11 +32,11 @@ async function seedDefaultCertificateTemplate() {
         scopeId: DEFAULT_CERTIFICATE_TEMPLATE.scopeId,
         isDefault: DEFAULT_CERTIFICATE_TEMPLATE.isDefault,
         isActive: DEFAULT_CERTIFICATE_TEMPLATE.isActive,
-        createdBy: 'system', // System-generated template
+        createdBy: "system", // System-generated template
       },
     });
 
-    console.log('✅ Default certificate template created successfully!');
+    console.log("✅ Default certificate template created successfully!");
     console.log(`📄 Template ID: ${defaultTemplate.id}`);
     console.log(`📄 Template Name: ${defaultTemplate.name}`);
     console.log(`📄 Template Scope: ${defaultTemplate.scope}`);
@@ -51,40 +51,40 @@ async function seedDefaultCertificateTemplate() {
         (defaultTemplate.templateCss?.length || 0),
     };
 
-    console.log('📊 Template Statistics:');
+    console.log("📊 Template Statistics:");
     console.log(`   - HTML Length: ${templateStats.htmlLength} characters`);
     console.log(`   - CSS Length: ${templateStats.cssLength} characters`);
     console.log(`   - Total Length: ${templateStats.totalLength} characters`);
 
     // Count template variables
     const templateVariables = [
-      'certificateNumber',
-      'generationDate',
-      'generationTimestamp',
-      'entityName',
-      'entityType',
-      'entityAddress',
-      'entityContact',
-      'entityPhone',
-      'entityEmail',
-      'memberName',
-      'memberType',
-      'memberAddress',
-      'memberContact',
-      'transactionId',
-      'transactionDate',
-      'transactionType',
-      'transactionReason',
-      'securityName',
-      'securitySymbol',
-      'securityClass',
-      'quantity',
-      'unitPrice',
-      'totalValue',
-      'transactionAmount',
-      'currency',
-      'fees',
-      'netAmount',
+      "certificateNumber",
+      "generationDate",
+      "generationTimestamp",
+      "entityName",
+      "entityType",
+      "entityAddress",
+      "entityContact",
+      "entityPhone",
+      "entityEmail",
+      "memberName",
+      "memberType",
+      "memberAddress",
+      "memberContact",
+      "transactionId",
+      "transactionDate",
+      "transactionType",
+      "transactionReason",
+      "securityName",
+      "securitySymbol",
+      "securityClass",
+      "quantity",
+      "unitPrice",
+      "totalValue",
+      "transactionAmount",
+      "currency",
+      "fees",
+      "netAmount",
     ];
 
     console.log(`📋 Template Variables (${templateVariables.length}):`);
@@ -92,7 +92,7 @@ async function seedDefaultCertificateTemplate() {
       console.log(`   ${index + 1}. {{${variable}}}`);
     });
   } catch (error) {
-    console.error('❌ Error seeding default certificate template:', error);
+    console.error("❌ Error seeding default certificate template:", error);
     throw error;
   } finally {
     await prisma.$disconnect();
@@ -103,11 +103,11 @@ async function seedDefaultCertificateTemplate() {
 if (require.main === module) {
   seedDefaultCertificateTemplate()
     .then(() => {
-      console.log('🎉 Default certificate template seeding completed!');
+      console.log("🎉 Default certificate template seeding completed!");
       process.exit(0);
     })
     .catch((error) => {
-      console.error('💥 Seeding failed:', error);
+      console.error("💥 Seeding failed:", error);
       process.exit(1);
     });
 }

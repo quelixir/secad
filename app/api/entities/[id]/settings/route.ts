@@ -8,7 +8,7 @@ import {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id: entityId } = await params;
@@ -25,7 +25,7 @@ export async function GET(
           success: false,
           error: "Entity not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -46,14 +46,14 @@ export async function GET(
         success: false,
         error: "Failed to fetch entity settings",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id: entityId } = await params;

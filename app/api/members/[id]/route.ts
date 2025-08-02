@@ -6,7 +6,7 @@ import { getDefaultCountry } from "@/lib/config";
 // GET /api/members/[id] - Get a specific member
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -71,7 +71,7 @@ export async function GET(
 // PUT /api/members/[id] - Update a member
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -203,7 +203,7 @@ export async function PUT(
 // DELETE /api/members/[id] - Delete a member
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;

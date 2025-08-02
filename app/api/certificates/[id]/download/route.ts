@@ -23,7 +23,7 @@ export interface DownloadRequest {
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Rate limiting
@@ -35,7 +35,7 @@ export async function POST(
     if (!success) {
       return NextResponse.json(
         { error: "Rate limit exceeded. Please try again later." },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
@@ -49,7 +49,7 @@ export async function POST(
           error:
             "Missing required fields: transactionId, templateId, format, userId",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -57,7 +57,7 @@ export async function POST(
     if (!["PDF", "DOCX"].includes(format)) {
       return NextResponse.json(
         { error: "Invalid format. Must be PDF or DOCX" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -74,7 +74,7 @@ export async function POST(
     if (!transaction) {
       return NextResponse.json(
         { error: "Transaction not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -86,7 +86,7 @@ export async function POST(
     if (!template) {
       return NextResponse.json(
         { error: "Certificate template not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -96,13 +96,13 @@ export async function POST(
       templateId,
       format,
       undefined,
-      userId
+      userId,
     );
 
     if (!result.success || !result.data) {
       return NextResponse.json(
         { error: result.error || "Certificate generation failed" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -142,7 +142,7 @@ export async function POST(
         ip: identifier,
         userAgent: request.headers.get("user-agent"),
         templateName: template.name,
-      }
+      },
     );
 
     // Log certificate download event
@@ -156,12 +156,12 @@ export async function POST(
         ip: identifier,
         userAgent: request.headers.get("user-agent"),
         templateName: template.name,
-      }
+      },
     );
 
     // Log successful generation
     console.log(
-      `Certificate generated and downloaded: ${result.data.metadata.certificateNumber} by ${identifier}`
+      `Certificate generated and downloaded: ${result.data.metadata.certificateNumber} by ${identifier}`,
     );
 
     return new NextResponse(new Uint8Array(result.data.certificateBuffer), {
@@ -172,7 +172,7 @@ export async function POST(
     console.error("Certificate generation error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -183,14 +183,14 @@ export async function POST(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   return NextResponse.json(
     {
       error:
         "Certificates are generated on-demand. Use POST to generate and download.",
     },
-    { status: 405 }
+    { status: 405 },
   );
 }
 
@@ -200,10 +200,10 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   return NextResponse.json(
     { error: "Certificates are not stored on the server. No cleanup needed." },
-    { status: 405 }
+    { status: 405 },
   );
 }

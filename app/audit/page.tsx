@@ -72,8 +72,8 @@ export default function AuditPage() {
         offset: offset.toString(),
         ...Object.fromEntries(
           Object.entries(filters).filter(
-            ([_, value]) => value !== "" && value !== "all"
-          )
+            ([_, value]) => value !== "" && value !== "all",
+          ),
         ),
       });
 
@@ -104,8 +104,8 @@ export default function AuditPage() {
         export: "csv",
         ...Object.fromEntries(
           Object.entries(filters).filter(
-            ([_, value]) => value !== "" && value !== "all"
-          )
+            ([_, value]) => value !== "" && value !== "all",
+          ),
         ),
       });
 

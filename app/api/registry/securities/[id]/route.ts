@@ -8,7 +8,7 @@ import { auth } from "@/lib/auth";
 // GET /api/securities/[id] - Get a specific security class
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -80,7 +80,7 @@ export async function GET(
 // PUT /api/securities/[id] - Update a security class
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Get user session from auth
@@ -180,7 +180,7 @@ export async function PUT(
         AuditAction.UPDATE,
         AuditTableName.SECURITY_CLASS,
         id,
-        changedFields
+        changedFields,
       );
     }
 
@@ -204,7 +204,7 @@ export async function PUT(
 // PATCH /api/securities/[id] - Archive/unarchive a security class
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Get user session from auth
@@ -265,7 +265,7 @@ export async function PATCH(
       userId, // Use actual user ID from auth
       AuditTableName.SECURITY_CLASS,
       id,
-      isArchived
+      isArchived,
     );
 
     const response: ApiResponse = {
@@ -290,7 +290,7 @@ export async function PATCH(
 // DELETE /api/securities/[id] - Delete a security class
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;

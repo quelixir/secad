@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     if (!entityId) {
       return NextResponse.json(
         { error: "entityId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -54,14 +54,14 @@ export async function GET(request: NextRequest) {
       result = await AuditLogger.getTransactionCertificateLogs(
         entityId,
         transactionId,
-        options
+        options,
       );
     } else if (templateId) {
       // Get certificate template logs
       result = await AuditLogger.getCertificateTemplateLogs(
         entityId,
         templateId,
-        options
+        options,
       );
     } else {
       // Get all certificate audit logs
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching certificate audit logs:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     if (!entityId) {
       return NextResponse.json(
         { error: "entityId is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -120,14 +120,14 @@ export async function POST(request: NextRequest) {
       result = await AuditLogger.getTransactionCertificateLogs(
         entityId,
         transactionId,
-        options
+        options,
       );
     } else if (templateId) {
       // Get certificate template logs
       result = await AuditLogger.getCertificateTemplateLogs(
         entityId,
         templateId,
-        options
+        options,
       );
     } else {
       // Get all certificate audit logs
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
     console.error("Error fetching certificate audit logs:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,7 +1,7 @@
-'use server';
+"use server";
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getSessionCookie } from 'better-auth/cookies';
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionCookie } from "better-auth/cookies";
 
 export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
 
   const isLoggedIn = !!sessionCookie;
 
-  const isOnAuthRoute = nextUrl.pathname.startsWith('/auth');
+  const isOnAuthRoute = nextUrl.pathname.startsWith("/auth");
 
   if (isOnAuthRoute) {
     // Allow all /auth routes to pass through, regardless of login state
@@ -17,16 +17,16 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!isLoggedIn) {
-    return NextResponse.redirect(new URL('/auth/signin', request.url));
+    return NextResponse.redirect(new URL("/auth/signin", request.url));
   }
 
-  if (isLoggedIn && nextUrl.pathname === '/auth/signin') {
-    return NextResponse.redirect(new URL('/', request.url));
+  if (isLoggedIn && nextUrl.pathname === "/auth/signin") {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/', '/((?!_next|api|static|favicon.ico).*)'],
+  matcher: ["/", "/((?!_next|api|static|favicon.ico).*)"],
 };

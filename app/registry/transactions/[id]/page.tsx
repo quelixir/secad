@@ -75,7 +75,7 @@ export default function ViewTransactionPage() {
       try {
         setLoading(true);
         const response = await fetch(
-          `/api/registry/transactions/${params?.id}`
+          `/api/registry/transactions/${params?.id}`,
         );
         const result = await response.json();
 
@@ -144,7 +144,7 @@ export default function ViewTransactionPage() {
     if (!amount) return "N/A";
     return `$${parseFloat(amount).toLocaleString(
       getLocale(),
-      getLocaleOptions()
+      getLocaleOptions(),
     )}`;
   };
 
@@ -189,7 +189,7 @@ export default function ViewTransactionPage() {
         `/api/registry/transactions/${transaction.id}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       const result = await response.json();
@@ -220,7 +220,7 @@ export default function ViewTransactionPage() {
 
       // Get available certificate templates for the entity
       const templateResponse = await fetch(
-        `/api/registry/certificate-templates?scopeId=${transaction.entityId}`
+        `/api/registry/certificate-templates?scopeId=${transaction.entityId}`,
       );
       const templateResult = await templateResponse.json();
 
@@ -253,7 +253,7 @@ export default function ViewTransactionPage() {
             format: "PDF",
             userId: user?.id || "anonymous",
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -278,7 +278,7 @@ export default function ViewTransactionPage() {
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to generate certificate"
+          : "Failed to generate certificate",
       );
     } finally {
       setIsGeneratingCertificate(false);
@@ -372,8 +372,8 @@ export default function ViewTransactionPage() {
                 transaction.status === TransactionStatus.COMPLETED
                   ? "bg-green-100"
                   : transaction.status === TransactionStatus.PENDING
-                  ? "bg-yellow-100"
-                  : "bg-red-100"
+                    ? "bg-yellow-100"
+                    : "bg-red-100"
               }
             >
               {transaction.status}
@@ -483,7 +483,7 @@ export default function ViewTransactionPage() {
               <div className="text-2xl font-bold">
                 {transaction.quantity.toLocaleString(
                   getLocale(),
-                  getLocaleOptions()
+                  getLocaleOptions(),
                 )}{" "}
                 {transaction.securityClass?.symbol && (
                   <span className="text-sm text-muted-foreground font-medium">
@@ -504,7 +504,7 @@ export default function ViewTransactionPage() {
             <CardContent className="pt-0">
               {(() => {
                 const pricePerSecurity = Number(
-                  transaction.amountPaidPerSecurity
+                  transaction.amountPaidPerSecurity,
                 );
                 const currencyCode =
                   transaction.currencyCode ||
@@ -525,7 +525,7 @@ export default function ViewTransactionPage() {
                         ${pricePerSecurity.toFixed(2)} ({currencyCode}) &times;{" "}
                         {transaction.quantity.toLocaleString(
                           getLocale(),
-                          getLocaleOptions()
+                          getLocaleOptions(),
                         )}{" "}
                         {securitySymbol}
                       </div>
@@ -650,7 +650,7 @@ export default function ViewTransactionPage() {
                   <p className="text-sm font-mono">
                     {transaction.quantity.toLocaleString(
                       getLocale(),
-                      getLocaleOptions()
+                      getLocaleOptions(),
                     )}
                   </p>
                 </div>
@@ -665,8 +665,8 @@ export default function ViewTransactionPage() {
                         transaction.status === TransactionStatus.COMPLETED
                           ? "bg-green-100"
                           : transaction.status === TransactionStatus.PENDING
-                          ? "bg-yellow-100"
-                          : "bg-red-100"
+                            ? "bg-yellow-100"
+                            : "bg-red-100"
                       }
                     >
                       {transaction.status}
@@ -696,7 +696,7 @@ export default function ViewTransactionPage() {
                         </label>
                         <p className="text-sm font-mono">
                           {formatCurrency(
-                            transaction.amountPaidPerSecurity.toString()
+                            transaction.amountPaidPerSecurity.toString(),
                           )}
                         </p>
                       </div>
@@ -709,7 +709,7 @@ export default function ViewTransactionPage() {
                             (
                               transaction.amountPaidPerSecurity *
                               transaction.quantity
-                            ).toString()
+                            ).toString(),
                           )}
                         </p>
                       </div>
@@ -724,7 +724,7 @@ export default function ViewTransactionPage() {
                         </label>
                         <p className="text-sm font-mono">
                           {formatCurrency(
-                            transaction.amountUnpaidPerSecurity.toString()
+                            transaction.amountUnpaidPerSecurity.toString(),
                           )}
                         </p>
                       </div>
@@ -737,7 +737,7 @@ export default function ViewTransactionPage() {
                             (
                               transaction.amountUnpaidPerSecurity *
                               transaction.quantity
-                            ).toString()
+                            ).toString(),
                           )}
                         </p>
                       </div>
@@ -753,7 +753,7 @@ export default function ViewTransactionPage() {
                       </label>
                       <p className="text-sm font-mono">
                         {formatCurrency(
-                          transaction.amountPaidPerSecurity.toString()
+                          transaction.amountPaidPerSecurity.toString(),
                         )}
                       </p>
                     </div>
@@ -766,7 +766,7 @@ export default function ViewTransactionPage() {
                           (
                             transaction.amountPaidPerSecurity *
                             transaction.quantity
-                          ).toString()
+                          ).toString(),
                         )}
                       </p>
                     </div>

@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
       userId, // Use actual user ID from auth
       AuditTableName.MEMBER,
       member.id,
-      member
+      member,
     );
 
     const response: ApiResponse<any> = {

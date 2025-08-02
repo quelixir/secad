@@ -17,7 +17,7 @@ import { auth } from "@/lib/auth";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -46,7 +46,7 @@ export async function GET(
 // POST /api/members/[id]/contacts - Create a new contact for a member
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Get user session from auth
@@ -109,7 +109,7 @@ export async function POST(
       userId, // Use actual user ID from auth
       AuditTableName.MEMBER_CONTACT,
       contact.id,
-      contact
+      contact,
     );
 
     const response: ApiResponse = {

@@ -267,7 +267,7 @@ export default function ResolutionDetailPage() {
 
   const formatResolutionType = (type: string) => {
     const standardResolution = STANDARD_DIRECTORS_RESOLUTIONS.find(
-      (r) => r.type === type
+      (r) => r.type === type,
     );
     return standardResolution ? standardResolution.title : type;
   };
@@ -334,7 +334,7 @@ export default function ResolutionDetailPage() {
           <div className="flex items-center gap-2">
             <Badge
               className={`flex items-center gap-1 ${getStatusColor(
-                resolution.status
+                resolution.status,
               )}`}
             >
               {getStatusIcon(resolution.status)}
@@ -466,7 +466,7 @@ export default function ResolutionDetailPage() {
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {new Date(resolution.createdAt).toLocaleString(
-                              getLocale()
+                              getLocale(),
                             )}
                             {resolution.createdBy &&
                               ` by ${resolution.createdBy}`}
@@ -483,7 +483,7 @@ export default function ResolutionDetailPage() {
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(resolution.updatedAt).toLocaleString(
-                                getLocale()
+                                getLocale(),
                               )}
                             </p>
                           </div>
@@ -499,7 +499,7 @@ export default function ResolutionDetailPage() {
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(
-                                resolution.resolutionDate
+                                resolution.resolutionDate,
                               ).toLocaleDateString()}
                               {resolution.approvedBy &&
                                 ` by ${resolution.approvedBy}`}
@@ -545,7 +545,7 @@ export default function ResolutionDetailPage() {
                       <p className="text-sm font-medium">Resolution Date</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(
-                          resolution.resolutionDate
+                          resolution.resolutionDate,
                         ).toLocaleDateString()}
                       </p>
                     </div>
@@ -559,7 +559,7 @@ export default function ResolutionDetailPage() {
                       <p className="text-sm font-medium">Effective Date</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(
-                          resolution.effectiveDate
+                          resolution.effectiveDate,
                         ).toLocaleDateString()}
                       </p>
                     </div>

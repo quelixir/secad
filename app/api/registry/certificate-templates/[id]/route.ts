@@ -15,7 +15,7 @@ import { TemplateValidationService } from "@/lib/certificate-templates/template-
 // PUT /api/registry/certificate-templates/[templateId]
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Get user session
@@ -24,7 +24,7 @@ export async function PUT(
     if (!userId) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -39,7 +39,7 @@ export async function PUT(
     if (!existingTemplate) {
       return NextResponse.json(
         { success: false, error: "Certificate template not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -53,7 +53,7 @@ export async function PUT(
     if (!accessValidation.hasAccess) {
       return NextResponse.json(
         { success: false, error: accessValidation.accessError },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -67,7 +67,7 @@ export async function PUT(
       };
 
       const validationResult = validationService.validateTemplate(
-        templateForValidation
+        templateForValidation,
       );
 
       if (!validationResult.isValid) {
@@ -81,7 +81,7 @@ export async function PUT(
             warnings:
               validationService.formatValidationWarnings(validationResult),
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -91,12 +91,12 @@ export async function PUT(
       const defaultValidation = await validateDefaultTemplateConstraint(
         existingTemplate.scope as "GLOBAL" | "USER" | "ENTITY",
         existingTemplate.scopeId,
-        id
+        id,
       );
       if (!defaultValidation.isValid) {
         return NextResponse.json(
           { success: false, error: defaultValidation.error },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -127,7 +127,7 @@ export async function PUT(
     console.error("Error updating certificate template:", error);
     return NextResponse.json(
       { success: false, error: "Failed to update certificate template" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -135,7 +135,7 @@ export async function PUT(
 // DELETE /api/registry/certificate-templates/[id]
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     // Get user session
@@ -144,7 +144,7 @@ export async function DELETE(
     if (!userId) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -158,7 +158,7 @@ export async function DELETE(
     if (!existingTemplate) {
       return NextResponse.json(
         { success: false, error: "Certificate template not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -172,7 +172,7 @@ export async function DELETE(
     if (!accessValidation.hasAccess) {
       return NextResponse.json(
         { success: false, error: accessValidation.accessError },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -184,7 +184,7 @@ export async function DELETE(
           error:
             "Cannot delete default template. Set another template as default first.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -201,7 +201,7 @@ export async function DELETE(
     console.error("Error deleting certificate template:", error);
     return NextResponse.json(
       { success: false, error: "Failed to delete certificate template" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

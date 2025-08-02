@@ -108,7 +108,7 @@ export default function SecuritiesPage() {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/registry/securities/summary?entityId=${selectedEntity.id}`
+        `/api/registry/securities/summary?entityId=${selectedEntity.id}`,
       );
       const result = await response.json();
 
@@ -191,16 +191,16 @@ export default function SecuritiesPage() {
 
   // Calculate statistics
   const activeSecurities = securityClasses.filter(
-    (s) => s.isActive && !s.isArchived
+    (s) => s.isActive && !s.isArchived,
   ).length;
   const archivedSecurities = securityClasses.filter((s) => s.isArchived).length;
   const totalSecurities = securityClasses.reduce(
     (sum, securityClass) => sum + securityClass.totalQuantity,
-    0
+    0,
   );
   const totalTranches = securityClasses.reduce(
     (sum, securityClass) => sum + securityClass.trancheCount,
-    0
+    0,
   );
 
   if (!selectedEntity) {
@@ -304,7 +304,7 @@ export default function SecuritiesPage() {
                 <div className="text-2xl font-bold">
                   {totalSecurities.toLocaleString(
                     getLocale(),
-                    getLocaleOptions()
+                    getLocaleOptions(),
                   )}
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -315,7 +315,7 @@ export default function SecuritiesPage() {
                 <div className="text-2xl font-bold">
                   {totalTranches.toLocaleString(
                     getLocale(),
-                    getLocaleOptions()
+                    getLocaleOptions(),
                   )}
                 </div>
                 <div className="text-sm text-muted-foreground">Tranches</div>
@@ -434,7 +434,7 @@ export default function SecuritiesPage() {
                       <div className="font-medium">
                         {securityClass.totalQuantity.toLocaleString(
                           getLocale(),
-                          getLocaleOptions()
+                          getLocaleOptions(),
                         )}
                       </div>
                     </TableCell>
@@ -444,7 +444,7 @@ export default function SecuritiesPage() {
                           $
                           {securityClass.totalAmountPaid.toLocaleString(
                             getLocale(),
-                            getLocaleOptions()
+                            getLocaleOptions(),
                           )}{" "}
                           {securityClass.currency}
                         </span>
@@ -458,7 +458,7 @@ export default function SecuritiesPage() {
                           $
                           {securityClass.totalAmountUnpaid.toLocaleString(
                             getLocale(),
-                            getLocaleOptions()
+                            getLocaleOptions(),
                           )}{" "}
                           {securityClass.currency}
                         </span>
@@ -471,14 +471,14 @@ export default function SecuritiesPage() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                         {securityClass.trancheCount.toLocaleString(
                           getLocale(),
-                          getLocaleOptions()
+                          getLocaleOptions(),
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
                       {securityClass.memberCount.toLocaleString(
                         getLocale(),
-                        getLocaleOptions()
+                        getLocaleOptions(),
                       )}
                     </TableCell>
                     <TableCell>

@@ -11,7 +11,7 @@ interface EntityIdentifierInput {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -40,7 +40,7 @@ export async function GET(
           success: false,
           error: "Entity not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -55,14 +55,14 @@ export async function GET(
         success: false,
         error: "Failed to fetch entity",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -76,7 +76,7 @@ export async function PUT(
         const isValid = compliancePackRegistration.validateIdentifier(
           identifier.country,
           identifier.type,
-          identifier.value
+          identifier.value,
         );
         if (!isValid) {
           return NextResponse.json(
@@ -84,7 +84,7 @@ export async function PUT(
               success: false,
               error: `Invalid ${identifier.type} value: ${identifier.value}`,
             },
-            { status: 400 }
+            { status: 400 },
           );
         }
       }
@@ -109,7 +109,7 @@ export async function PUT(
               success: false,
               error: `${identifier.type} ${identifier.value} is already in use`,
             },
-            { status: 409 }
+            { status: 409 },
           );
         }
       }
@@ -161,7 +161,7 @@ export async function PUT(
           success: false,
           error: "Entity not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
     return NextResponse.json(
@@ -169,14 +169,14 @@ export async function PUT(
         success: false,
         error: "Failed to update entity",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -199,7 +199,7 @@ export async function DELETE(
           success: false,
           error: "Entity not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
     return NextResponse.json(
@@ -207,7 +207,7 @@ export async function DELETE(
         success: false,
         error: "Failed to delete entity",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

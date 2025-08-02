@@ -5,7 +5,7 @@ import { ApiResponse, SecurityInput } from "@/lib/types";
 // GET /api/securities/[id] - Get a specific security class
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -77,7 +77,7 @@ export async function GET(
 // PUT /api/securities/[id] - Update a security class
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -159,7 +159,7 @@ export async function PUT(
 // DELETE /api/securities/[id] - Delete a security class
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;

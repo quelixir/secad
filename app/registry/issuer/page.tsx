@@ -75,7 +75,7 @@ export default function IssuerPage() {
                 <p className="text-sm">
                   {compliancePackRegistration.getEntityType(
                     selectedEntity.incorporationCountry || "Australia",
-                    selectedEntity.entityTypeId
+                    selectedEntity.entityTypeId,
                   )?.name || "Not specified"}
                 </p>
               </div>
@@ -93,7 +93,7 @@ export default function IssuerPage() {
                           compliancePackRegistration.formatIdentifier(
                             identifier.country,
                             identifier.type,
-                            identifier.value
+                            identifier.value,
                           );
                         return (
                           <div key={index} className="flex justify-between">
@@ -105,7 +105,7 @@ export default function IssuerPage() {
                             </span>
                           </div>
                         );
-                      }
+                      },
                     )}
                   </div>
                 ) : (

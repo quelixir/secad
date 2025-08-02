@@ -45,7 +45,7 @@ import { getLocale, getLocaleOptions } from "@/lib/locale";
 export default function TransactionsPage() {
   const { selectedEntity } = useEntity();
   const [transactions, setTransactions] = useState<TransactionWithRelations[]>(
-    []
+    [],
   );
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -61,7 +61,7 @@ export default function TransactionsPage() {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/registry/transactions?entityId=${selectedEntity.id}`
+        `/api/registry/transactions?entityId=${selectedEntity.id}`,
       );
       const result = await response.json();
 
@@ -144,7 +144,7 @@ export default function TransactionsPage() {
     if (!amount) return "N/A";
     return `$${parseFloat(amount).toLocaleString(
       getLocale(),
-      getLocaleOptions()
+      getLocaleOptions(),
     )}`;
   };
 
@@ -333,7 +333,7 @@ export default function TransactionsPage() {
                             <div>
                               <Badge
                                 className={getTransactionTypeColor(
-                                  transaction.transactionType
+                                  transaction.transactionType,
                                 )}
                               >
                                 {transaction.transactionType}
@@ -363,7 +363,7 @@ export default function TransactionsPage() {
                           <span className="font-mono font-medium">
                             {transaction.quantity.toLocaleString(
                               getLocale(),
-                              getLocaleOptions()
+                              getLocaleOptions(),
                             )}
                           </span>
                         </TableCell>
@@ -373,7 +373,7 @@ export default function TransactionsPage() {
                               <div>
                                 @
                                 {formatCurrency(
-                                  transaction.amountPaidPerSecurity.toString()
+                                  transaction.amountPaidPerSecurity.toString(),
                                 )}
                               </div>
                             )}
@@ -384,7 +384,7 @@ export default function TransactionsPage() {
                                     (
                                       transaction.amountPaidPerSecurity *
                                       transaction.quantity
-                                    ).toString()
+                                    ).toString(),
                                   )}
                                 </div>
                               )}
@@ -403,7 +403,7 @@ export default function TransactionsPage() {
                         <TableCell>
                           <span className="text-sm">
                             {new Date(
-                              transaction.settlementDate
+                              transaction.settlementDate,
                             ).toLocaleDateString()}
                           </span>
                         </TableCell>
