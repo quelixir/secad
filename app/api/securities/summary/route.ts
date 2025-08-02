@@ -1,18 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse } from '@/lib/types';
-import { getDefaultCurrencyCode } from '@/lib/config';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse } from "@/lib/types";
+import { getDefaultCurrencyCode } from "@/lib/config";
 
 // GET /api/securities/summary - Get securities summary with totals per class
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const entityId = searchParams.get('entityId');
+    const entityId = searchParams.get("entityId");
 
     if (!entityId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Entity ID is required',
+        error: "Entity ID is required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -22,14 +22,14 @@ export async function GET(request: NextRequest) {
       where: { entityId },
       include: {
         transactions: {
-          where: { status: 'Completed' },
+          where: { status: "Completed" },
           include: {
             fromMember: true,
             toMember: true,
           },
         },
       },
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
     });
 
     // Calculate totals for each security class
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       const trancheNumbers = new Set<string>();
 
       securityClass.transactions.forEach((transaction) => {
-        if (transaction.transactionType === 'ISSUE') {
+        if (transaction.transactionType === "ISSUE") {
           // Add quantities and amounts for ISSUE transactions
           totalQuantity += transaction.quantity;
           totalAmountPaid += transaction.totalAmountPaid
@@ -57,13 +57,13 @@ export async function GET(request: NextRequest) {
           if (transaction.trancheNumber) {
             trancheNumbers.add(transaction.trancheNumber);
           }
-        } else if (transaction.transactionType === 'TRANSFER') {
+        } else if (transaction.transactionType === "TRANSFER") {
           // For TRANSFER transactions, we need to track net movements
           // This is a simplified approach - in a real system you'd want more sophisticated tracking
           if (transaction.toMember) {
             memberIds.add(transaction.toMember.id);
           }
-        } else if (transaction.transactionType === 'CANCELLATION') {
+        } else if (transaction.transactionType === "CANCELLATION") {
           // Subtract quantities for CANCELLATION transactions
           totalQuantity -= transaction.quantity;
           totalAmountPaid -= transaction.totalAmountPaid
@@ -78,9 +78,9 @@ export async function GET(request: NextRequest) {
       // Group transactions by tranche for display
       const trancheGroups = new Map<string, any>();
       securityClass.transactions
-        .filter((t) => t.transactionType === 'ISSUE')
+        .filter((t) => t.transactionType === "ISSUE")
         .forEach((transaction) => {
-          const trancheNumber = transaction.trancheNumber || 'Unknown';
+          const trancheNumber = transaction.trancheNumber || "Unknown";
           if (!trancheGroups.has(trancheNumber)) {
             trancheGroups.set(trancheNumber, {
               id: transaction.id,
@@ -133,10 +133,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching securities summary:', error);
+    console.error("Error fetching securities summary:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch securities summary',
+      error: "Failed to fetch securities summary",
     };
     return NextResponse.json(response, { status: 500 });
   }

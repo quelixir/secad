@@ -1,7 +1,7 @@
 export const DEFAULT_CERTIFICATE_TEMPLATE = {
-  name: 'Default Certificate Template',
+  name: "Default Certificate Template",
   description:
-    'Professional A4 certificate template with comprehensive styling and all required variables',
+    "Professional A4 certificate template with comprehensive styling and all required variables",
   templateHtml: `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -440,48 +440,48 @@ export const DEFAULT_CERTIFICATE_TEMPLATE = {
         color: #000;
     }
 }`,
-  scope: 'GLOBAL' as const,
+  scope: "GLOBAL" as const,
   scopeId: null,
   isDefault: true,
   isActive: true,
 };
 
 export const SAMPLE_CERTIFICATE_DATA = {
-  certificateNumber: 'CERT-2025-001',
-  generationDate: 'January 15, 2025',
-  generationTimestamp: '2025-01-15T10:30:00Z',
+  certificateNumber: "CERT-2025-001",
+  generationDate: "January 15, 2025",
+  generationTimestamp: "2025-01-15T10:30:00Z",
 
   // Entity Information
-  entityName: 'Acme Corporation Ltd',
-  entityType: 'Private Limited Company',
-  entityAddress: '123 Business Street, Suite 100, Sydney NSW 2000, Australia',
-  entityContact: 'John Smith',
-  entityPhone: '+61 2 9123 4567',
-  entityEmail: 'contact@acmecorp.com.au',
+  entityName: "Acme Corporation Ltd",
+  entityType: "Private Limited Company",
+  entityAddress: "123 Business Street, Suite 100, Sydney NSW 2000, Australia",
+  entityContact: "John Smith",
+  entityPhone: "+61 2 9123 4567",
+  entityEmail: "contact@acmecorp.com.au",
 
   // Member Information
-  memberName: 'Jane Doe',
-  memberType: 'Individual Shareholder',
-  memberAddress: '456 Residential Avenue, Melbourne VIC 3000, Australia',
-  memberContact: 'Jane Doe',
+  memberName: "Jane Doe",
+  memberType: "Individual Shareholder",
+  memberAddress: "456 Residential Avenue, Melbourne VIC 3000, Australia",
+  memberContact: "Jane Doe",
 
   // Transaction Information
-  transactionId: 'TXN-2025-001234',
-  transactionDate: 'January 15, 2025',
-  transactionType: 'Share Purchase',
-  transactionReason: 'Initial Investment',
+  transactionId: "TXN-2025-001234",
+  transactionDate: "January 15, 2025",
+  transactionType: "Share Purchase",
+  transactionReason: "Initial Investment",
 
   // Securities Information
-  securityName: 'Acme Corporation Ordinary Shares',
-  securitySymbol: 'ACME',
-  securityClass: 'Ordinary Shares',
-  quantity: '1,000',
-  unitPrice: 'AUD 25.00',
-  totalValue: 'AUD 25,000.00',
+  securityName: "Acme Corporation Ordinary Shares",
+  securitySymbol: "ACME",
+  securityClass: "Ordinary Shares",
+  quantity: "1,000",
+  unitPrice: "AUD 25.00",
+  totalValue: "AUD 25,000.00",
 
   // Financial Information
-  transactionAmount: 'AUD 25,000.00',
-  currency: 'AUD',
-  fees: 'AUD 150.00',
-  netAmount: 'AUD 25,150.00',
+  transactionAmount: "AUD 25,000.00",
+  currency: "AUD",
+  fees: "AUD 150.00",
+  netAmount: "AUD 25,150.00",
 };

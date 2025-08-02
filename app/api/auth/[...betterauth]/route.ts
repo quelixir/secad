@@ -1,7 +1,7 @@
-'use server';
+"use server";
 
-import { NextRequest } from 'next/server';
-import { auth } from '@/lib/auth';
+import { NextRequest } from "next/server";
+import { auth } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   return auth.handler(req);

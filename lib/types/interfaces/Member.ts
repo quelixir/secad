@@ -1,18 +1,18 @@
-import { Entity } from './Entity';
-import { TransactionWithRelations, TransactionType } from './Transaction';
-import { SecurityClass } from './Security';
+import { Entity } from "./Entity";
+import { TransactionWithRelations, TransactionType } from "./Transaction";
+import { SecurityClass } from "./Security";
 
 export enum MemberType {
-  INDIVIDUAL = 'INDIVIDUAL',
-  JOINT = 'JOINT',
-  COMPANY = 'COMPANY',
-  OTHER_NON_INDIVIDUAL = 'OTHER_NON_INDIVIDUAL',
+  INDIVIDUAL = "INDIVIDUAL",
+  JOINT = "JOINT",
+  COMPANY = "COMPANY",
+  OTHER_NON_INDIVIDUAL = "OTHER_NON_INDIVIDUAL",
 }
 
 export enum MemberStatus {
-  ACTIVE = 'Active',
-  INACTIVE = 'Inactive',
-  RESIGNED = 'Resigned',
+  ACTIVE = "Active",
+  INACTIVE = "Inactive",
+  RESIGNED = "Resigned",
 }
 
 export interface MemberContact {
@@ -70,12 +70,12 @@ export interface Member {
 
 export function getFormattedMemberName(member: Member): string {
   if (member.entityName) return member.entityName;
-  return `${member.givenNames || ''} ${member.familyName || ''}`.trim();
+  return `${member.givenNames || ""} ${member.familyName || ""}`.trim();
 }
 
 // Utility function to add getFormattedName method to any Member object
 export function addFormattedNameMethod(
-  member: Member
+  member: Member,
 ): Member & { getFormattedName(): string } {
   return {
     ...member,
@@ -96,7 +96,7 @@ export interface MemberHolding {
 
 export function calculateMemberHoldings(
   memberId: string,
-  transactions: TransactionWithRelations[]
+  transactions: TransactionWithRelations[],
 ): MemberHolding[] {
   const holdings = new Map<
     string,

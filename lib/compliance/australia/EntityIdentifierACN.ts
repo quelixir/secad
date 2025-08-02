@@ -4,15 +4,15 @@
  * @returns Formatted ACN string like "123 456 789"
  */
 export function formatACN(acn: string | null | undefined): string {
-  if (!acn) return 'Not specified';
+  if (!acn) return "Not specified";
 
   // Remove any existing spaces and ensure it's 9 digits
-  const cleanACN = acn.replace(/\s/g, '');
+  const cleanACN = acn.replace(/\s/g, "");
   if (cleanACN.length !== 9 || !/^\d{9}$/.test(cleanACN)) {
     return acn; // Return original if invalid format
   }
 
-  return cleanACN.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+  return cleanACN.replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3");
 }
 
 /**
@@ -21,16 +21,16 @@ export function formatACN(acn: string | null | undefined): string {
  * @returns true if the ACN is valid, false otherwise
  */
 export function validateACN(acn: string): boolean {
-  if (!acn || typeof acn !== 'string') return false;
+  if (!acn || typeof acn !== "string") return false;
 
   // Remove any spaces and ensure it's exactly 9 digits
-  const cleanACN = acn.replace(/\s/g, '');
+  const cleanACN = acn.replace(/\s/g, "");
   if (cleanACN.length !== 9 || !/^\d{9}$/.test(cleanACN)) {
     return false;
   }
 
   // Extract the first 8 digits and the check digit (last digit)
-  const digits = cleanACN.split('').map(Number);
+  const digits = cleanACN.split("").map(Number);
   const checkDigit = digits[8];
 
   // Apply weighting to digits 1 to 8 (positions 0-7)

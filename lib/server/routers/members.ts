@@ -1,17 +1,17 @@
-import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '@/lib/trpc';
-import { prisma } from '@/lib/db';
-import { TRPCError } from '@trpc/server';
-import { getDefaultCountry } from '@/lib/config';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "@/lib/trpc";
+import { prisma } from "@/lib/db";
+import { TRPCError } from "@trpc/server";
+import { getDefaultCountry } from "@/lib/config";
 
 const memberInputSchema = z.object({
   entityId: z.string(),
   givenNames: z.string().optional(),
   familyName: z.string().optional(),
   entityName: z.string().optional(),
-  memberType: z.string().min(1, 'Member type is required'),
+  memberType: z.string().min(1, "Member type is required"),
   designation: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
+  email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
@@ -34,8 +34,8 @@ export const membersRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       if (!ctx.user?.id) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
         });
       }
       const access = await prisma.userEntityAccess.findUnique({
@@ -45,8 +45,8 @@ export const membersRouter = createTRPCRouter({
       });
       if (!access) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'No access to this entity',
+          code: "UNAUTHORIZED",
+          message: "No access to this entity",
         });
       }
       try {
@@ -68,9 +68,9 @@ export const membersRouter = createTRPCRouter({
             },
           },
           orderBy: [
-            { familyName: 'asc' },
-            { givenNames: 'asc' },
-            { entityName: 'asc' },
+            { familyName: "asc" },
+            { givenNames: "asc" },
+            { entityName: "asc" },
           ],
         });
 
@@ -80,8 +80,8 @@ export const membersRouter = createTRPCRouter({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch members',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch members",
           cause: error,
         });
       }
@@ -113,8 +113,8 @@ export const membersRouter = createTRPCRouter({
 
         if (!member) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Member not found',
+            code: "NOT_FOUND",
+            message: "Member not found",
           });
         }
 
@@ -125,8 +125,8 @@ export const membersRouter = createTRPCRouter({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch member',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch member",
           cause: error,
         });
       }
@@ -161,12 +161,12 @@ export const membersRouter = createTRPCRouter({
         return {
           success: true,
           data: member,
-          message: 'Member created successfully',
+          message: "Member created successfully",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create member',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create member",
           cause: error,
         });
       }
@@ -187,21 +187,21 @@ export const membersRouter = createTRPCRouter({
         return {
           success: true,
           data: member,
-          message: 'Member updated successfully',
+          message: "Member updated successfully",
         };
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message.includes('Record to update not found')
+          error.message.includes("Record to update not found")
         ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Member not found',
+            code: "NOT_FOUND",
+            message: "Member not found",
           });
         }
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update member',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update member",
           cause: error,
         });
       }
@@ -218,21 +218,21 @@ export const membersRouter = createTRPCRouter({
 
         return {
           success: true,
-          message: 'Member deleted successfully',
+          message: "Member deleted successfully",
         };
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message.includes('Record to delete does not exist')
+          error.message.includes("Record to delete does not exist")
         ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Member not found',
+            code: "NOT_FOUND",
+            message: "Member not found",
           });
         }
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete member',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete member",
           cause: error,
         });
       }

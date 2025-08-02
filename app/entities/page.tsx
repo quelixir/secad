@@ -1,39 +1,75 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { MainLayout } from '@/components/layout/main-layout'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Plus, Search, Edit, Trash2, Building2, Users, Play } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useEntities, useDeleteEntity } from '@/lib/hooks/use-trpc'
-import { Entity } from '@/lib/types/interfaces/Entity'
-import { compliancePackRegistration } from '@/lib/compliance'
-import { useEntityContext } from '@/lib/entity-context'
-import { ProtectedRoute } from '@/components/auth/protected-route'
-import { getDefaultCountry } from '@/lib/config'
+import { useState, useEffect } from "react";
+import { MainLayout } from "@/components/layout/main-layout";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Building2,
+  Users,
+  Play,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEntities, useDeleteEntity } from "@/lib/hooks/use-trpc";
+import { Entity } from "@/lib/types/interfaces/Entity";
+import { compliancePackRegistration } from "@/lib/compliance";
+import { useEntityContext } from "@/lib/entity-context";
+import { ProtectedRoute } from "@/components/auth/protected-route";
+import { getDefaultCountry } from "@/lib/config";
 
 export default function EntitiesPage() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [transformedEntities, setTransformedEntities] = useState<Entity[]>([])
-  const { data: entitiesData, isLoading, refetch, error } = useEntities({ include: 'details' })
-  const deleteEntityMutation = useDeleteEntity()
-  const { setSelectedEntity } = useEntityContext()
-  const router = useRouter()
+  const [searchTerm, setSearchTerm] = useState("");
+  const [transformedEntities, setTransformedEntities] = useState<Entity[]>([]);
+  const {
+    data: entitiesData,
+    isLoading,
+    refetch,
+    error,
+  } = useEntities({ include: "details" });
+  const deleteEntityMutation = useDeleteEntity();
+  const { setSelectedEntity } = useEntityContext();
+  const router = useRouter();
 
   // Transform entities to match our Entity interface
   useEffect(() => {
     async function transformEntities() {
-      const entities = entitiesData?.data || []
+      const entities = entitiesData?.data || [];
 
       if (entities.length === 0) {
-        setTransformedEntities([])
-        return
+        setTransformedEntities([]);
+        return;
       }
 
       const transformed = await Promise.all(
@@ -42,37 +78,40 @@ export default function EntitiesPage() {
           entityType: compliancePackRegistration.getEntityType(
             entity.incorporationCountry || getDefaultCountry(),
             entity.entityTypeId
-          )
+          ),
         }))
-      )
-      setTransformedEntities(transformed)
+      );
+      setTransformedEntities(transformed);
     }
 
-    transformEntities()
-  }, [entitiesData?.data])
+    transformEntities();
+  }, [entitiesData?.data]);
 
   if (error) {
-    console.error('Error fetching entities:', error)
+    console.error("Error fetching entities:", error);
   }
 
   // Log API errors (when data.success === false)
-  if (entitiesData && 'success' in entitiesData && !entitiesData.success) {
-    console.error('Error fetching entities:', (entitiesData as { error?: string }).error || 'Unknown API error')
+  if (entitiesData && "success" in entitiesData && !entitiesData.success) {
+    console.error(
+      "Error fetching entities:",
+      (entitiesData as { error?: string }).error || "Unknown API error"
+    );
   }
 
   const handleDelete = async (entity: Entity) => {
     try {
-      await deleteEntityMutation.mutateAsync({ id: entity.id })
-      await refetch() // Refresh the list
+      await deleteEntityMutation.mutateAsync({ id: entity.id });
+      await refetch(); // Refresh the list
     } catch (error) {
-      console.error('Error deleting entity:', error)
+      console.error("Error deleting entity:", error);
     }
-  }
+  };
 
   const handleUseEntity = (entity: Entity) => {
-    setSelectedEntity(entity)
-    router.push(`/entities/${entity.id}`) // Redirect to the entity view page
-  }
+    setSelectedEntity(entity);
+    router.push(`/entities/${entity.id}`); // Redirect to the entity view page
+  };
 
   const filteredEntities = transformedEntities.filter((entity: Entity) => {
     const searchTermLower = searchTerm.toLowerCase();
@@ -84,28 +123,39 @@ export default function EntitiesPage() {
       entity.incorporationCountry || getDefaultCountry(),
       entity.entityTypeId
     );
-    console.log('Entity type lookup:', {
+    console.log("Entity type lookup:", {
       country: entity.incorporationCountry || getDefaultCountry(),
       entityTypeId: entity.entityTypeId,
-      found: entityType?.name || 'Not found'
+      found: entityType?.name || "Not found",
     });
     const typeMatch = entityType?.name?.toLowerCase().includes(searchTermLower);
 
     return nameMatch || identifierMatch || typeMatch;
-  })
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Active': return 'bg-green-100 text-green-800'
-      case 'Inactive': return 'bg-yellow-100 text-yellow-800'
-      case 'Dissolved': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "Active":
+        return "bg-green-100 text-green-800";
+      case "Inactive":
+        return "bg-yellow-100 text-yellow-800";
+      case "Dissolved":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   // Add debugging for available entity types
-  const availableTypes = compliancePackRegistration.getEntityTypes(getDefaultCountry());
-  console.log('Available entity types for default country (', getDefaultCountry(), '):', availableTypes.map(t => ({ id: t.id, name: t.name })));
+  const availableTypes = compliancePackRegistration.getEntityTypes(
+    getDefaultCountry()
+  );
+  console.log(
+    "Available entity types for default country (",
+    getDefaultCountry(),
+    "):",
+    availableTypes.map((t) => ({ id: t.id, name: t.name }))
+  );
 
   return (
     <MainLayout requireEntity={false}>
@@ -152,15 +202,20 @@ export default function EntitiesPage() {
           <CardHeader>
             <CardTitle>Entities ({filteredEntities.length})</CardTitle>
             <CardDescription>
-              All registered entities in the system. Click "Use" to select an entity and start working with it.
+              All registered entities in the system. Click "Use" to select an
+              entity and start working with it.
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading entities...</div>
+              <div className="text-center py-8 text-muted-foreground">
+                Loading entities...
+              </div>
             ) : filteredEntities.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {searchTerm ? 'No entities found matching your search.' : 'No entities yet. Add your first entity to get started!'}
+                {searchTerm
+                  ? "No entities found matching your search."
+                  : "No entities yet. Add your first entity to get started!"}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -171,7 +226,9 @@ export default function EntitiesPage() {
                       <TableHead className="w-[25%]">Entity Type</TableHead>
                       <TableHead className="w-[15%]">Status</TableHead>
                       <TableHead className="w-[10%]">Members</TableHead>
-                      <TableHead className="w-[20%] text-center">Actions</TableHead>
+                      <TableHead className="w-[20%] text-center">
+                        Actions
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -185,7 +242,9 @@ export default function EntitiesPage() {
                             <div>
                               <div className="font-medium">{entity.name}</div>
                               <div className="text-sm text-muted-foreground">
-                                {entity.city && entity.state ? `${entity.city}, ${entity.state}` : 'No location set'}
+                                {entity.city && entity.state
+                                  ? `${entity.city}, ${entity.state}`
+                                  : "No location set"}
                               </div>
                             </div>
                           </div>
@@ -193,9 +252,10 @@ export default function EntitiesPage() {
                         <TableCell>
                           <Badge variant="outline">
                             {compliancePackRegistration.getEntityType(
-                              entity.incorporationCountry || getDefaultCountry(),
+                              entity.incorporationCountry ||
+                                getDefaultCountry(),
                               entity.entityTypeId
-                            )?.name || 'Unknown Type'}
+                            )?.name || "Unknown Type"}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -206,7 +266,9 @@ export default function EntitiesPage() {
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Users className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-sm">{entity._count?.members || 0}</span>
+                            <span className="text-sm">
+                              {entity._count?.members || 0}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
@@ -220,20 +282,10 @@ export default function EntitiesPage() {
                               <Play className="h-4 w-4 mr-1" />
                               Use
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              asChild
-                            >
-                              <Link href={`/entities/${entity.id}`}>
-                                View
-                              </Link>
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/entities/${entity.id}`}>View</Link>
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              asChild
-                            >
+                            <Button variant="ghost" size="sm" asChild>
                               <Link href={`/entities/${entity.id}/edit`}>
                                 <Edit className="h-4 w-4" />
                               </Link>
@@ -250,10 +302,14 @@ export default function EntitiesPage() {
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Entity</AlertDialogTitle>
+                                  <AlertDialogTitle>
+                                    Delete Entity
+                                  </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete &quot;{entity.name}&quot;? This action cannot be undone.
-                                    You can only delete entities with no members, securities, or transactions.
+                                    Are you sure you want to delete &quot;
+                                    {entity.name}&quot;? This action cannot be
+                                    undone. You can only delete entities with no
+                                    members, securities, or transactions.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -279,5 +335,5 @@ export default function EntitiesPage() {
         </Card>
       </div>
     </MainLayout>
-  )
-} 
+  );
+}

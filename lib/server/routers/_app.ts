@@ -1,12 +1,12 @@
-import { createTRPCRouter } from '@/lib/trpc';
-import { entitiesRouter } from './entities';
-import { membersRouter } from './members';
-import { securitiesRouter } from './securities';
-import { transactionsRouter } from './transactions';
-import { associatesRouter } from './associates';
-import { resolutionsRouter } from './resolutions';
-import { registryRouter } from './registry';
-import { invitationsRouter } from './invitations';
+import { createTRPCRouter } from "@/lib/trpc";
+import { entitiesRouter } from "./entities";
+import { membersRouter } from "./members";
+import { securitiesRouter } from "./securities";
+import { transactionsRouter } from "./transactions";
+import { associatesRouter } from "./associates";
+import { resolutionsRouter } from "./resolutions";
+import { registryRouter } from "./registry";
+import { invitationsRouter } from "./invitations";
 
 /**
  * This is the primary router for your server.

@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import {
   CertificateTemplateUpdateInput,
   CertificateTemplateResponse,
-} from '@/lib/types/interfaces';
+} from "@/lib/types/interfaces";
 import {
   validateTemplateAccess,
   validateTemplateHtml,
   validateDefaultTemplateConstraint,
-} from '@/lib/certificate-templates/scope-validation';
-import { TemplateValidationService } from '@/lib/certificate-templates/template-validation';
+} from "@/lib/certificate-templates/scope-validation";
+import { TemplateValidationService } from "@/lib/certificate-templates/template-validation";
 
 // PUT /api/registry/certificate-templates/[templateId]
 export async function PUT(
@@ -23,7 +23,7 @@ export async function PUT(
     const userId = session?.user?.id;
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -38,14 +38,14 @@ export async function PUT(
 
     if (!existingTemplate) {
       return NextResponse.json(
-        { success: false, error: 'Certificate template not found' },
+        { success: false, error: "Certificate template not found" },
         { status: 404 }
       );
     }
 
     // Check authorization using helper function
     const accessValidation = await validateTemplateAccess(userId, {
-      scope: existingTemplate.scope as 'GLOBAL' | 'USER' | 'ENTITY',
+      scope: existingTemplate.scope as "GLOBAL" | "USER" | "ENTITY",
       scopeId: existingTemplate.scopeId,
       createdBy: existingTemplate.createdBy,
     });
@@ -76,7 +76,7 @@ export async function PUT(
         return NextResponse.json(
           {
             success: false,
-            error: 'Template validation failed',
+            error: "Template validation failed",
             details: errorMessages,
             warnings:
               validationService.formatValidationWarnings(validationResult),
@@ -89,7 +89,7 @@ export async function PUT(
     // Check for default template constraint if setting as default using helper function
     if (body.isDefault) {
       const defaultValidation = await validateDefaultTemplateConstraint(
-        existingTemplate.scope as 'GLOBAL' | 'USER' | 'ENTITY',
+        existingTemplate.scope as "GLOBAL" | "USER" | "ENTITY",
         existingTemplate.scopeId,
         id
       );
@@ -121,12 +121,12 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       data: updatedTemplate,
-      message: 'Certificate template updated successfully',
+      message: "Certificate template updated successfully",
     });
   } catch (error) {
-    console.error('Error updating certificate template:', error);
+    console.error("Error updating certificate template:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to update certificate template' },
+      { success: false, error: "Failed to update certificate template" },
       { status: 500 }
     );
   }
@@ -143,7 +143,7 @@ export async function DELETE(
     const userId = session?.user?.id;
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -157,14 +157,14 @@ export async function DELETE(
 
     if (!existingTemplate) {
       return NextResponse.json(
-        { success: false, error: 'Certificate template not found' },
+        { success: false, error: "Certificate template not found" },
         { status: 404 }
       );
     }
 
     // Check authorization using helper function
     const accessValidation = await validateTemplateAccess(userId, {
-      scope: existingTemplate.scope as 'GLOBAL' | 'USER' | 'ENTITY',
+      scope: existingTemplate.scope as "GLOBAL" | "USER" | "ENTITY",
       scopeId: existingTemplate.scopeId,
       createdBy: existingTemplate.createdBy,
     });
@@ -182,7 +182,7 @@ export async function DELETE(
         {
           success: false,
           error:
-            'Cannot delete default template. Set another template as default first.',
+            "Cannot delete default template. Set another template as default first.",
         },
         { status: 400 }
       );
@@ -195,12 +195,12 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'Certificate template deleted successfully',
+      message: "Certificate template deleted successfully",
     });
   } catch (error) {
-    console.error('Error deleting certificate template:', error);
+    console.error("Error deleting certificate template:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to delete certificate template' },
+      { success: false, error: "Failed to delete certificate template" },
       { status: 500 }
     );
   }

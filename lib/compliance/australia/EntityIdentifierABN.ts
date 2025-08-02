@@ -4,15 +4,15 @@
  * @returns Formatted ABN string like "12 345 678 912"
  */
 export function formatABN(abn: string | null | undefined): string {
-  if (!abn) return 'Not specified';
+  if (!abn) return "Not specified";
 
   // Remove any existing spaces and ensure it's 11 digits
-  const cleanABN = abn.replace(/\s/g, '');
+  const cleanABN = abn.replace(/\s/g, "");
   if (cleanABN.length !== 11 || !/^\d{11}$/.test(cleanABN)) {
     return abn; // Return original if invalid format
   }
 
-  return cleanABN.replace(/(\d{2})(\d{3})(\d{3})(\d{3})/, '$1 $2 $3 $4');
+  return cleanABN.replace(/(\d{2})(\d{3})(\d{3})(\d{3})/, "$1 $2 $3 $4");
 }
 
 /**
@@ -21,16 +21,16 @@ export function formatABN(abn: string | null | undefined): string {
  * @returns true if the ABN is valid, false otherwise
  */
 export function validateABN(abn: string): boolean {
-  if (!abn || typeof abn !== 'string') return false;
+  if (!abn || typeof abn !== "string") return false;
 
   // Remove any spaces and ensure it's exactly 11 digits
-  const cleanABN = abn.replace(/\s/g, '');
+  const cleanABN = abn.replace(/\s/g, "");
   if (cleanABN.length !== 11 || !/^\d{11}$/.test(cleanABN)) {
     return false;
   }
 
   // Step 1: Subtract 1 from the first (left-most) digit
-  const digits = cleanABN.split('').map(Number);
+  const digits = cleanABN.split("").map(Number);
   const firstDigit = digits[0];
   if (firstDigit === 0) return false; // Can't subtract 1 from 0
 

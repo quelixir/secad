@@ -1,169 +1,216 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Plus, Search, Edit, Trash2, FileText, Crown, CheckCircle, Clock, XCircle, Eye } from 'lucide-react'
-import { ResolutionType, ResolutionStatus } from '@/lib/types'
-import { Resolution } from '@/lib/types/interfaces'
-import { ResolutionForm } from './resolution-form'
-import Link from 'next/link'
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  FileText,
+  Crown,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Eye,
+} from "lucide-react";
+import { ResolutionType, ResolutionStatus } from "@/lib/types";
+import { Resolution } from "@/lib/types/interfaces";
+import { ResolutionForm } from "./resolution-form";
+import Link from "next/link";
 
 interface DirectorsTabProps {
-  entityId: string
-  entityName: string
+  entityId: string;
+  entityName: string;
 }
 
 export function DirectorsTab({ entityId, entityName }: DirectorsTabProps) {
-  const [resolutions, setResolutions] = useState<Resolution[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [resolutions, setResolutions] = useState<Resolution[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const fetchResolutions = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const params = new URLSearchParams({
         entityId,
-        category: 'directors'
-      })
+        category: "directors",
+      });
 
-      const response = await fetch(`/api/resolutions?${params}`)
-      const result = await response.json()
+      const response = await fetch(`/api/resolutions?${params}`);
+      const result = await response.json();
 
       if (result.success) {
-        setResolutions(result.data)
+        setResolutions(result.data);
       } else {
-        console.error('Failed to fetch resolutions:', result.error)
-        setResolutions([])
+        console.error("Failed to fetch resolutions:", result.error);
+        setResolutions([]);
       }
     } catch (error) {
-      console.error('Error fetching resolutions:', error)
-      setResolutions([])
+      console.error("Error fetching resolutions:", error);
+      setResolutions([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchResolutions()
-  }, [entityId])
+    fetchResolutions();
+  }, [entityId]);
 
   const handleDelete = async (resolution: Resolution) => {
     try {
       const response = await fetch(`/api/resolutions/${resolution.id}`, {
-        method: 'DELETE'
-      })
+        method: "DELETE",
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
-        await fetchResolutions() // Refresh the list
+        await fetchResolutions(); // Refresh the list
       }
     } catch (error) {
-      console.error('Error deleting resolution:', error)
+      console.error("Error deleting resolution:", error);
     }
-  }
+  };
 
   const handleResolutionSaved = () => {
-    setShowCreateDialog(false)
-    fetchResolutions()
-  }
+    setShowCreateDialog(false);
+    fetchResolutions();
+  };
 
   const formatResolutionType = (type: string) => {
     switch (type) {
       case ResolutionType.APPOINTMENT_OF_DIRECTOR:
-        return 'Appointment of Director'
+        return "Appointment of Director";
       case ResolutionType.RESIGNATION_OF_DIRECTOR:
-        return 'Resignation of Director'
+        return "Resignation of Director";
       case ResolutionType.REMOVAL_OF_DIRECTOR:
-        return 'Removal of Director'
+        return "Removal of Director";
       case ResolutionType.APPOINTMENT_OF_COMPANY_SECRETARY:
-        return 'Appointment of Company Secretary'
+        return "Appointment of Company Secretary";
       case ResolutionType.CHANGE_OF_REGISTERED_OFFICE:
-        return 'Change of Registered Office'
+        return "Change of Registered Office";
       case ResolutionType.ISSUE_OF_SHARES:
-        return 'Issue of Shares'
+        return "Issue of Shares";
       case ResolutionType.TRANSFER_OF_SHARES:
-        return 'Transfer of Shares'
+        return "Transfer of Shares";
       case ResolutionType.DECLARATION_OF_DIVIDENDS:
-        return 'Declaration of Dividends'
+        return "Declaration of Dividends";
       case ResolutionType.APPROVAL_OF_FINANCIAL_STATEMENTS:
-        return 'Approval of Financial Statements'
+        return "Approval of Financial Statements";
       case ResolutionType.LODGEMENT_OF_ANNUAL_REVIEW:
-        return 'Lodgement of Annual Review'
+        return "Lodgement of Annual Review";
       case ResolutionType.CHANGE_OF_COMPANY_NAME:
-        return 'Change of Company Name'
+        return "Change of Company Name";
       case ResolutionType.CHANGE_TO_COMPANY_CONSTITUTION:
-        return 'Change to Company Constitution'
+        return "Change to Company Constitution";
       case ResolutionType.ADOPTION_OF_A_CONSTITUTION:
-        return 'Adoption of a Constitution'
+        return "Adoption of a Constitution";
       case ResolutionType.OPENING_A_BANK_ACCOUNT:
-        return 'Opening a Bank Account'
+        return "Opening a Bank Account";
       case ResolutionType.EXECUTION_OF_CONTRACTS:
-        return 'Execution of Contracts'
+        return "Execution of Contracts";
       case ResolutionType.SOLVENCY_RESOLUTION:
-        return 'Solvency Resolution'
+        return "Solvency Resolution";
       case ResolutionType.LOANS_TO_DIRECTORS:
-        return 'Loans to Directors'
+        return "Loans to Directors";
       case ResolutionType.DIRECTORS_INTERESTS_DISCLOSURE:
-        return 'Director\'s Interests Disclosure'
+        return "Director's Interests Disclosure";
       case ResolutionType.CALLING_A_GENERAL_MEETING:
-        return 'Calling a General Meeting'
+        return "Calling a General Meeting";
       case ResolutionType.DISTRIBUTION_OF_PROFITS:
-        return 'Distribution of Profits'
+        return "Distribution of Profits";
       case ResolutionType.APPOINTMENT_OF_AUDITOR:
-        return 'Appointment of Auditor'
+        return "Appointment of Auditor";
       case ResolutionType.APPROVAL_OF_RELATED_PARTY_TRANSACTIONS:
-        return 'Approval of Related Party Transactions'
+        return "Approval of Related Party Transactions";
       case ResolutionType.RECORD_OF_RESOLUTIONS_WITHOUT_MEETING:
-        return 'Record of Resolutions Without Meeting'
+        return "Record of Resolutions Without Meeting";
       case ResolutionType.GENERAL_BUSINESS:
-        return 'General Business'
+        return "General Business";
       default:
-        return type
+        return type;
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case ResolutionStatus.APPROVED:
-        return <CheckCircle className="h-4 w-4 text-green-600" />
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
       case ResolutionStatus.DRAFT:
-        return <Clock className="h-4 w-4 text-yellow-600" />
+        return <Clock className="h-4 w-4 text-yellow-600" />;
       case ResolutionStatus.REJECTED:
-        return <XCircle className="h-4 w-4 text-red-600" />
+        return <XCircle className="h-4 w-4 text-red-600" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-600" />
+        return <Clock className="h-4 w-4 text-gray-600" />;
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case ResolutionStatus.APPROVED:
-        return 'bg-green-100 text-green-800'
+        return "bg-green-100 text-green-800";
       case ResolutionStatus.DRAFT:
-        return 'bg-yellow-100 text-yellow-800'
+        return "bg-yellow-100 text-yellow-800";
       case ResolutionStatus.REJECTED:
-        return 'bg-red-100 text-red-800'
+        return "bg-red-100 text-red-800";
       case ResolutionStatus.SUPERSEDED:
-        return 'bg-gray-100 text-gray-800'
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-gray-100 text-gray-800'
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
-  const filteredResolutions = resolutions.filter(resolution =>
-    resolution.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    formatResolutionType(resolution.type).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    resolution.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (resolution.referenceNumber && resolution.referenceNumber.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+  const filteredResolutions = resolutions.filter(
+    (resolution) =>
+      resolution.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      formatResolutionType(resolution.type)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      resolution.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (resolution.referenceNumber &&
+        resolution.referenceNumber
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()))
+  );
 
   if (loading) {
     return (
@@ -172,14 +219,16 @@ export function DirectorsTab({ entityId, entityName }: DirectorsTabProps) {
           <div className="text-center">Loading directors' resolutions...</div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Directors' Resolutions</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Directors' Resolutions
+        </h1>
         <p className="text-muted-foreground">
           Manage directors' resolutions for {entityName}
         </p>
@@ -241,9 +290,13 @@ export function DirectorsTab({ entityId, entityName }: DirectorsTabProps) {
           {filteredResolutions.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">No Directors' Resolutions</h3>
+              <h3 className="text-lg font-medium mb-2">
+                No Directors' Resolutions
+              </h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm ? 'No resolutions match your search.' : 'No directors\' resolutions have been created yet.'}
+                {searchTerm
+                  ? "No resolutions match your search."
+                  : "No directors' resolutions have been created yet."}
               </p>
               {!searchTerm && (
                 <Button onClick={() => setShowCreateDialog(true)}>
@@ -283,19 +336,22 @@ export function DirectorsTab({ entityId, entityName }: DirectorsTabProps) {
                         {formatResolutionType(resolution.type)}
                       </TableCell>
                       <TableCell>
-                        <Badge className={`flex items-center gap-1 ${getStatusColor(resolution.status)}`}>
+                        <Badge
+                          className={`flex items-center gap-1 ${getStatusColor(
+                            resolution.status
+                          )}`}
+                        >
                           {getStatusIcon(resolution.status)}
                           {resolution.status}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        {resolution.referenceNumber || '—'}
-                      </TableCell>
+                      <TableCell>{resolution.referenceNumber || "—"}</TableCell>
                       <TableCell>
                         {resolution.resolutionDate
-                          ? new Date(resolution.resolutionDate).toLocaleDateString()
-                          : '—'
-                        }
+                          ? new Date(
+                              resolution.resolutionDate
+                            ).toLocaleDateString()
+                          : "—"}
                       </TableCell>
                       <TableCell>
                         {new Date(resolution.createdAt).toLocaleDateString()}
@@ -320,9 +376,13 @@ export function DirectorsTab({ entityId, entityName }: DirectorsTabProps) {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Resolution</AlertDialogTitle>
+                                <AlertDialogTitle>
+                                  Delete Resolution
+                                </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete "{resolution.title}"? This action cannot be undone.
+                                  Are you sure you want to delete "
+                                  {resolution.title}"? This action cannot be
+                                  undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -347,5 +407,5 @@ export function DirectorsTab({ entityId, entityName }: DirectorsTabProps) {
         </CardContent>
       </Card>
     </div>
-  )
-} 
+  );
+}

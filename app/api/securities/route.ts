@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse, SecurityInput } from '@/lib/types';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse, SecurityInput } from "@/lib/types";
 
 // GET /api/securities - List all security classes (optionally filtered by entity)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const entityId = searchParams.get('entityId');
-    const includeHoldings = searchParams.get('include')?.includes('holdings');
+    const entityId = searchParams.get("entityId");
+    const includeHoldings = searchParams.get("include")?.includes("holdings");
 
     const whereClause = entityId ? { entityId } : {};
 
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: [{ entity: { name: 'asc' } }, { name: 'asc' }],
+      orderBy: [{ entity: { name: "asc" } }, { name: "asc" }],
     });
 
     const response: ApiResponse<any[]> = {
@@ -55,10 +55,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching security classes:', error);
+    console.error("Error fetching security classes:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch security classes',
+      error: "Failed to fetch security classes",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     if (!body.entityId || !body.name) {
       const response: ApiResponse = {
         success: false,
-        error: 'Entity ID and name are required',
+        error: "Entity ID and name are required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     if (!entity) {
       const response: ApiResponse = {
         success: false,
-        error: 'Entity not found',
+        error: "Entity not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     if (existingSecurity) {
       const response: ApiResponse = {
         success: false,
-        error: 'Security class with this name already exists for this entity',
+        error: "Security class with this name already exists for this entity",
       };
       return NextResponse.json(response, { status: 409 });
     }
@@ -124,15 +124,15 @@ export async function POST(request: NextRequest) {
     const response: ApiResponse<any> = {
       success: true,
       data: securityClass,
-      message: 'Security class created successfully',
+      message: "Security class created successfully",
     };
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('Error creating security class:', error);
+    console.error("Error creating security class:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to create security class',
+      error: "Failed to create security class",
     };
     return NextResponse.json(response, { status: 500 });
   }

@@ -1,23 +1,23 @@
-import { z } from 'zod';
+import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
-} from '@/lib/trpc';
-import { prisma } from '@/lib/db';
-import { TRPCError } from '@trpc/server';
-import { getDefaultCountry } from '@/lib/config';
+} from "@/lib/trpc";
+import { prisma } from "@/lib/db";
+import { TRPCError } from "@trpc/server";
+import { getDefaultCountry } from "@/lib/config";
 
 const associateInputSchema = z.object({
   entityId: z.string(),
-  type: z.string().min(1, 'Type is required'),
+  type: z.string().min(1, "Type is required"),
   isIndividual: z.boolean(),
   givenNames: z.string().optional(),
   familyName: z.string().optional(),
   dateOfBirth: z.date().optional(),
   previousNames: z.array(z.string()).optional(),
   entityName: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
+  email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
@@ -40,8 +40,8 @@ export const associatesRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       if (!ctx.user?.id) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
         });
       }
       const access = await prisma.userEntityAccess.findUnique({
@@ -51,8 +51,8 @@ export const associatesRouter = createTRPCRouter({
       });
       if (!access) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'No access to this entity',
+          code: "UNAUTHORIZED",
+          message: "No access to this entity",
         });
       }
       try {
@@ -62,9 +62,9 @@ export const associatesRouter = createTRPCRouter({
             entity: true,
           },
           orderBy: [
-            { familyName: 'asc' },
-            { givenNames: 'asc' },
-            { entityName: 'asc' },
+            { familyName: "asc" },
+            { givenNames: "asc" },
+            { entityName: "asc" },
           ],
         });
 
@@ -74,8 +74,8 @@ export const associatesRouter = createTRPCRouter({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch associates',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch associates",
           cause: error,
         });
       }
@@ -95,8 +95,8 @@ export const associatesRouter = createTRPCRouter({
 
         if (!associate) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Associate not found',
+            code: "NOT_FOUND",
+            message: "Associate not found",
           });
         }
 
@@ -107,8 +107,8 @@ export const associatesRouter = createTRPCRouter({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch associate',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch associate",
           cause: error,
         });
       }
@@ -145,12 +145,12 @@ export const associatesRouter = createTRPCRouter({
         return {
           success: true,
           data: associate,
-          message: 'Associate created successfully',
+          message: "Associate created successfully",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create associate',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create associate",
           cause: error,
         });
       }
@@ -171,21 +171,21 @@ export const associatesRouter = createTRPCRouter({
         return {
           success: true,
           data: associate,
-          message: 'Associate updated successfully',
+          message: "Associate updated successfully",
         };
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message.includes('Record to update not found')
+          error.message.includes("Record to update not found")
         ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Associate not found',
+            code: "NOT_FOUND",
+            message: "Associate not found",
           });
         }
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update associate',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update associate",
           cause: error,
         });
       }
@@ -202,21 +202,21 @@ export const associatesRouter = createTRPCRouter({
 
         return {
           success: true,
-          message: 'Associate deleted successfully',
+          message: "Associate deleted successfully",
         };
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message.includes('Record to delete does not exist')
+          error.message.includes("Record to delete does not exist")
         ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Associate not found',
+            code: "NOT_FOUND",
+            message: "Associate not found",
           });
         }
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete associate',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete associate",
           cause: error,
         });
       }

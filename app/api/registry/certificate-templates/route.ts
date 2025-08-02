@@ -1,18 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import {
   CertificateTemplateInput,
   CertificateTemplateListResponse,
   CertificateTemplateResponse,
-} from '@/lib/types/interfaces';
+} from "@/lib/types/interfaces";
 import {
   getAvailableTemplates,
   validateTemplateScope,
   validateTemplateHtml,
   validateDefaultTemplateConstraint,
-} from '@/lib/certificate-templates/scope-validation';
-import { TemplateValidationService } from '@/lib/certificate-templates/template-validation';
+} from "@/lib/certificate-templates/scope-validation";
+import { TemplateValidationService } from "@/lib/certificate-templates/template-validation";
 
 // GET /api/registry/certificate-templates
 export async function GET(request: NextRequest) {
@@ -22,17 +22,17 @@ export async function GET(request: NextRequest) {
     const userId = session?.user?.id;
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: "Unauthorized" },
         { status: 401 }
       );
     }
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
-    const scope = searchParams.get('scope');
-    const scopeId = searchParams.get('scopeId');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const scope = searchParams.get("scope");
+    const scopeId = searchParams.get("scopeId");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "50");
     const offset = (page - 1) * limit;
 
     // Get available templates using scope validation helper
@@ -63,9 +63,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching certificate templates:', error);
+    console.error("Error fetching certificate templates:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch certificate templates' },
+      { success: false, error: "Failed to fetch certificate templates" },
       { status: 500 }
     );
   }
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     const userId = session?.user?.id;
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
+        { success: false, error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Name, template HTML, and scope are required',
+          error: "Name, template HTML, and scope are required",
         },
         { status: 400 }
       );
@@ -120,11 +120,11 @@ export async function POST(request: NextRequest) {
     // Validate template using comprehensive validation service
     const validationService = new TemplateValidationService();
     const templateForValidation = {
-      id: 'temp',
+      id: "temp",
       name: body.name,
-      description: body.description || '',
+      description: body.description || "",
       templateHtml: body.templateHtml,
-      templateCss: body.templateCss || '',
+      templateCss: body.templateCss || "",
       scope: body.scope,
       scopeId: body.scopeId || null,
       isDefault: body.isDefault || false,
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Template validation failed',
+          error: "Template validation failed",
           details: errorMessages,
           warnings:
             validationService.formatValidationWarnings(validationResult),
@@ -186,14 +186,14 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         data: template,
-        message: 'Certificate template created successfully',
+        message: "Certificate template created successfully",
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error creating certificate template:', error);
+    console.error("Error creating certificate template:", error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create certificate template' },
+      { success: false, error: "Failed to create certificate template" },
       { status: 500 }
     );
   }

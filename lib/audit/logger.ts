@@ -1,11 +1,11 @@
-import { prisma } from '../db';
+import { prisma } from "../db";
 import {
   AuditAction,
   AuditTableName,
   AuditLogData,
   AuditLogOptions,
   EventLogResponse,
-} from './types';
+} from "./types";
 
 export class AuditLogger {
   /**
@@ -13,7 +13,7 @@ export class AuditLogger {
    */
   static getChangedFields(
     oldValues: Record<string, any>,
-    newValues: Record<string, any>
+    newValues: Record<string, any>,
   ): Record<string, { oldValue: any; newValue: any }> {
     const changes: Record<string, { oldValue: any; newValue: any }> = {};
 
@@ -52,10 +52,10 @@ export class AuditLogger {
     // Handle Decimal objects (from Prisma)
     if (
       oldValue &&
-      typeof oldValue === 'object' &&
+      typeof oldValue === "object" &&
       oldValue.toNumber &&
       newValue &&
-      typeof newValue === 'object' &&
+      typeof newValue === "object" &&
       newValue.toNumber
     ) {
       return oldValue.toNumber() !== newValue.toNumber();
@@ -65,7 +65,7 @@ export class AuditLogger {
     if (Array.isArray(oldValue) && Array.isArray(newValue)) {
       return JSON.stringify(oldValue) !== JSON.stringify(newValue);
     }
-    if (typeof oldValue === 'object' && typeof newValue === 'object') {
+    if (typeof oldValue === "object" && typeof newValue === "object") {
       return JSON.stringify(oldValue) !== JSON.stringify(newValue);
     }
 
@@ -92,7 +92,7 @@ export class AuditLogger {
         },
       });
     } catch (error) {
-      console.error('Failed to log field change:', error);
+      console.error("Failed to log field change:", error);
       // Don't throw - audit logging should not break the main application flow
     }
   }
@@ -107,7 +107,7 @@ export class AuditLogger {
     tableName: AuditTableName,
     recordId: string,
     changes: Record<string, { oldValue?: any; newValue?: any }>,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       const logPromises = Object.entries(changes).map(([fieldName, change]) =>
@@ -121,12 +121,12 @@ export class AuditLogger {
           oldValue: change.oldValue,
           newValue: change.newValue,
           metadata,
-        })
+        }),
       );
 
       await Promise.all(logPromises);
     } catch (error) {
-      console.error('Failed to log record changes:', error);
+      console.error("Failed to log record changes:", error);
       // Don't throw - audit logging should not break the main application flow
     }
   }
@@ -140,7 +140,7 @@ export class AuditLogger {
     tableName: AuditTableName,
     recordId: string,
     data: Record<string, any>,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       await prisma.eventLog.create({
@@ -155,7 +155,7 @@ export class AuditLogger {
         },
       });
     } catch (error) {
-      console.error('Failed to log record creation:', error);
+      console.error("Failed to log record creation:", error);
       // Don't throw - audit logging should not break the main application flow
     }
   }
@@ -169,7 +169,7 @@ export class AuditLogger {
     tableName: AuditTableName,
     recordId: string,
     data: Record<string, any>,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       await prisma.eventLog.create({
@@ -184,7 +184,7 @@ export class AuditLogger {
         },
       });
     } catch (error) {
-      console.error('Failed to log record deletion:', error);
+      console.error("Failed to log record deletion:", error);
       // Don't throw - audit logging should not break the main application flow
     }
   }
@@ -198,7 +198,7 @@ export class AuditLogger {
     tableName: AuditTableName,
     recordId: string,
     isArchived: boolean,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       await prisma.eventLog.create({
@@ -213,7 +213,7 @@ export class AuditLogger {
         },
       });
     } catch (error) {
-      console.error('Failed to log archive action:', error);
+      console.error("Failed to log archive action:", error);
       // Don't throw - audit logging should not break the main application flow
     }
   }
@@ -223,7 +223,7 @@ export class AuditLogger {
    */
   static async getAuditLogs(
     entityId: string,
-    options: AuditLogOptions = {}
+    options: AuditLogOptions = {},
   ): Promise<EventLogResponse> {
     const {
       startDate,
@@ -265,7 +265,7 @@ export class AuditLogger {
             select: { name: true },
           },
         },
-        orderBy: { timestamp: 'desc' },
+        orderBy: { timestamp: "desc" },
         take: limit,
         skip: offset,
       }),
@@ -321,7 +321,7 @@ export class AuditLogger {
    */
   static async exportAuditLogs(
     entityId: string,
-    options: AuditLogOptions = {}
+    options: AuditLogOptions = {},
   ): Promise<string> {
     const { startDate, endDate, userId, tableName, recordId, action } = options;
 
@@ -353,7 +353,7 @@ export class AuditLogger {
           select: { name: true },
         },
       },
-      orderBy: { timestamp: 'desc' },
+      orderBy: { timestamp: "desc" },
     });
 
     // Get unique user IDs from the logs
@@ -376,17 +376,17 @@ export class AuditLogger {
 
     // Create CSV content
     const csvHeaders = [
-      'Timestamp',
-      'Entity',
-      'User ID',
-      'User Name',
-      'User Email',
-      'Action',
-      'Table',
-      'Record ID',
-      'Field Name',
-      'Old Value',
-      'New Value',
+      "Timestamp",
+      "Entity",
+      "User ID",
+      "User Name",
+      "User Email",
+      "Action",
+      "Table",
+      "Record ID",
+      "Field Name",
+      "Old Value",
+      "New Value",
     ];
 
     const csvRows = logs.map((log) => {
@@ -395,20 +395,20 @@ export class AuditLogger {
         log.timestamp.toISOString(),
         log.entity.name,
         log.userId,
-        user?.name || '',
-        user?.email || '',
+        user?.name || "",
+        user?.email || "",
         log.action,
         log.tableName,
         log.recordId,
-        log.fieldName || '',
-        log.oldValue || '',
-        log.newValue || '',
+        log.fieldName || "",
+        log.oldValue || "",
+        log.newValue || "",
       ];
     });
 
     return [csvHeaders, ...csvRows]
-      .map((row) => row.map((cell) => `"${cell}"`).join(','))
-      .join('\n');
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
   }
 
   /**
@@ -419,11 +419,11 @@ export class AuditLogger {
     userId: string,
     transactionId: string,
     templateId: string,
-    format: 'PDF' | 'DOCX',
+    format: "PDF" | "DOCX",
     certificateNumber: string,
     fileSize: number,
     checksum: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       await prisma.eventLog.create({
@@ -433,7 +433,7 @@ export class AuditLogger {
           action: AuditAction.CERTIFICATE_GENERATED,
           tableName: AuditTableName.TRANSACTION,
           recordId: transactionId,
-          fieldName: 'certificate',
+          fieldName: "certificate",
           oldValue: null,
           newValue: JSON.stringify({
             templateId,
@@ -454,7 +454,7 @@ export class AuditLogger {
         },
       });
     } catch (error) {
-      console.error('Failed to log certificate generation:', error);
+      console.error("Failed to log certificate generation:", error);
       // Don't throw - audit logging should not break the main application flow
     }
   }
@@ -467,8 +467,8 @@ export class AuditLogger {
     userId: string,
     transactionId: string,
     certificateNumber: string,
-    format: 'PDF' | 'DOCX',
-    metadata?: Record<string, any>
+    format: "PDF" | "DOCX",
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       await prisma.eventLog.create({
@@ -478,7 +478,7 @@ export class AuditLogger {
           action: AuditAction.CERTIFICATE_DOWNLOADED,
           tableName: AuditTableName.TRANSACTION,
           recordId: transactionId,
-          fieldName: 'certificate',
+          fieldName: "certificate",
           oldValue: null,
           newValue: JSON.stringify({
             certificateNumber,
@@ -493,7 +493,7 @@ export class AuditLogger {
         },
       });
     } catch (error) {
-      console.error('Failed to log certificate download:', error);
+      console.error("Failed to log certificate download:", error);
       // Don't throw - audit logging should not break the main application flow
     }
   }
@@ -506,9 +506,9 @@ export class AuditLogger {
     userId: string,
     transactionId: string,
     certificateNumber: string,
-    format: 'PDF' | 'DOCX',
-    accessType: 'view' | 'download' | 'generate',
-    metadata?: Record<string, any>
+    format: "PDF" | "DOCX",
+    accessType: "view" | "download" | "generate",
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       await prisma.eventLog.create({
@@ -518,7 +518,7 @@ export class AuditLogger {
           action: AuditAction.CERTIFICATE_ACCESSED,
           tableName: AuditTableName.TRANSACTION,
           recordId: transactionId,
-          fieldName: 'certificate',
+          fieldName: "certificate",
           oldValue: null,
           newValue: JSON.stringify({
             certificateNumber,
@@ -535,7 +535,7 @@ export class AuditLogger {
         },
       });
     } catch (error) {
-      console.error('Failed to log certificate access:', error);
+      console.error("Failed to log certificate access:", error);
       // Don't throw - audit logging should not break the main application flow
     }
   }
@@ -545,7 +545,7 @@ export class AuditLogger {
    */
   static async getCertificateAuditLogs(
     entityId: string,
-    options: AuditLogOptions = {}
+    options: AuditLogOptions = {},
   ): Promise<EventLogResponse> {
     const certificateActions = [
       AuditAction.CERTIFICATE_GENERATED,
@@ -555,7 +555,7 @@ export class AuditLogger {
 
     return this.getAuditLogs(entityId, {
       ...options,
-      action: certificateActions.join(','),
+      action: certificateActions.join(","),
     });
   }
 
@@ -565,7 +565,7 @@ export class AuditLogger {
   static async getTransactionCertificateLogs(
     entityId: string,
     transactionId: string,
-    options: AuditLogOptions = {}
+    options: AuditLogOptions = {},
   ): Promise<EventLogResponse> {
     return this.getAuditLogs(entityId, {
       ...options,
@@ -574,7 +574,7 @@ export class AuditLogger {
         AuditAction.CERTIFICATE_GENERATED,
         AuditAction.CERTIFICATE_DOWNLOADED,
         AuditAction.CERTIFICATE_ACCESSED,
-      ].join(','),
+      ].join(","),
     });
   }
 
@@ -584,7 +584,7 @@ export class AuditLogger {
   static async getCertificateTemplateLogs(
     entityId: string,
     templateId: string,
-    options: AuditLogOptions = {}
+    options: AuditLogOptions = {},
   ): Promise<EventLogResponse> {
     return this.getAuditLogs(entityId, {
       ...options,

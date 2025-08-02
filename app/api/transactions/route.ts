@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse, TransactionInput } from '@/lib/types';
-import { Decimal } from '@prisma/client/runtime/library';
-import { getDefaultCurrencyCode } from '@/lib/config';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse, TransactionInput } from "@/lib/types";
+import { Decimal } from "@prisma/client/runtime/library";
+import { getDefaultCurrencyCode } from "@/lib/config";
 
 // GET /api/transactions - List all transactions (optionally filtered by entity)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const entityId = searchParams.get('entityId');
-    const memberId = searchParams.get('memberId');
-    const transactionType = searchParams.get('transactionType');
+    const entityId = searchParams.get("entityId");
+    const memberId = searchParams.get("memberId");
+    const transactionType = searchParams.get("transactionType");
 
     const whereClause: any = {};
 
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         toMember: true,
       },
       orderBy: {
-        settlementDate: 'desc',
+        settlementDate: "desc",
       },
     });
 
@@ -46,10 +46,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching transactions:', error);
+    console.error("Error fetching transactions:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch transactions',
+      error: "Failed to fetch transactions",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       reference,
       description,
       certificateNumber,
-      status = 'Completed',
+      status = "Completed",
     } = body;
 
     // Validate required fields
@@ -90,104 +90,104 @@ export async function POST(request: NextRequest) {
     ) {
       const response: ApiResponse = {
         success: false,
-        error: 'Missing required fields',
+        error: "Missing required fields",
       };
       return NextResponse.json(response, { status: 400 });
     }
 
     // Validate transaction type specific requirements
-    if (transactionType === 'ISSUE') {
+    if (transactionType === "ISSUE") {
       if (fromMemberId !== null) {
         const response: ApiResponse = {
           success: false,
           error:
-            'ISSUE transactions must have fromMemberId as null (entity issuing)',
+            "ISSUE transactions must have fromMemberId as null (entity issuing)",
         };
         return NextResponse.json(response, { status: 400 });
       }
       if (!toMemberId) {
         const response: ApiResponse = {
           success: false,
-          error: 'ISSUE transactions must have a toMemberId',
+          error: "ISSUE transactions must have a toMemberId",
         };
         return NextResponse.json(response, { status: 400 });
       }
     }
 
-    if (transactionType === 'TRANSFER') {
+    if (transactionType === "TRANSFER") {
       if (!fromMemberId || !toMemberId) {
         const response: ApiResponse = {
           success: false,
           error:
-            'TRANSFER transactions must have both fromMemberId and toMemberId',
+            "TRANSFER transactions must have both fromMemberId and toMemberId",
         };
         return NextResponse.json(response, { status: 400 });
       }
     }
 
-    if (transactionType === 'CANCELLATION') {
+    if (transactionType === "CANCELLATION") {
       if (!fromMemberId) {
         const response: ApiResponse = {
           success: false,
-          error: 'CANCELLATION transactions must have a fromMemberId',
+          error: "CANCELLATION transactions must have a fromMemberId",
         };
         return NextResponse.json(response, { status: 400 });
       }
       if (toMemberId !== null) {
         const response: ApiResponse = {
           success: false,
-          error: 'CANCELLATION transactions must have toMemberId as null',
+          error: "CANCELLATION transactions must have toMemberId as null",
         };
         return NextResponse.json(response, { status: 400 });
       }
     }
 
-    if (transactionType === 'REDEMPTION') {
+    if (transactionType === "REDEMPTION") {
       if (!fromMemberId) {
         const response: ApiResponse = {
           success: false,
-          error: 'REDEMPTION transactions must have a fromMemberId',
+          error: "REDEMPTION transactions must have a fromMemberId",
         };
         return NextResponse.json(response, { status: 400 });
       }
       if (toMemberId !== null) {
         const response: ApiResponse = {
           success: false,
-          error: 'REDEMPTION transactions must have toMemberId as null',
+          error: "REDEMPTION transactions must have toMemberId as null",
         };
         return NextResponse.json(response, { status: 400 });
       }
     }
 
-    if (transactionType === 'RETURN_OF_CAPITAL') {
+    if (transactionType === "RETURN_OF_CAPITAL") {
       if (!fromMemberId) {
         const response: ApiResponse = {
           success: false,
-          error: 'RETURN_OF_CAPITAL transactions must have a fromMemberId',
+          error: "RETURN_OF_CAPITAL transactions must have a fromMemberId",
         };
         return NextResponse.json(response, { status: 400 });
       }
       if (toMemberId !== null) {
         const response: ApiResponse = {
           success: false,
-          error: 'RETURN_OF_CAPITAL transactions must have toMemberId as null',
+          error: "RETURN_OF_CAPITAL transactions must have toMemberId as null",
         };
         return NextResponse.json(response, { status: 400 });
       }
     }
 
-    if (transactionType === 'CAPITAL_CALL') {
+    if (transactionType === "CAPITAL_CALL") {
       if (!fromMemberId) {
         const response: ApiResponse = {
           success: false,
-          error: 'CAPITAL_CALL transactions must have a fromMemberId',
+          error: "CAPITAL_CALL transactions must have a fromMemberId",
         };
         return NextResponse.json(response, { status: 400 });
       }
       if (toMemberId !== null) {
         const response: ApiResponse = {
           success: false,
-          error: 'CAPITAL_CALL transactions must have toMemberId as null',
+          error: "CAPITAL_CALL transactions must have toMemberId as null",
         };
         return NextResponse.json(response, { status: 400 });
       }
@@ -239,15 +239,15 @@ export async function POST(request: NextRequest) {
     const response: ApiResponse = {
       success: true,
       data: transaction,
-      message: 'Transaction created successfully',
+      message: "Transaction created successfully",
     };
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('Error creating transaction:', error);
+    console.error("Error creating transaction:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to create transaction',
+      error: "Failed to create transaction",
     };
     return NextResponse.json(response, { status: 500 });
   }

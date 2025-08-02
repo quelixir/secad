@@ -1,25 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse, AssociateInput } from '@/lib/types';
-import { getDefaultCountry } from '@/lib/config';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse, AssociateInput } from "@/lib/types";
+import { getDefaultCountry } from "@/lib/config";
 
 // GET /api/associates - List all associates (optionally filtered by entity)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const entityId = searchParams.get('entityId');
-    const includeHistorical = searchParams.get('includeHistorical') === 'true';
-    const type = searchParams.get('type'); // Filter by associate type
+    const entityId = searchParams.get("entityId");
+    const includeHistorical = searchParams.get("includeHistorical") === "true";
+    const type = searchParams.get("type"); // Filter by associate type
 
     const whereClause: any = {};
     if (entityId) whereClause.entityId = entityId;
     if (type) {
       // Handle multiple types passed as comma-separated string
-      const types = type.split(',').map((t) => t.trim());
+      const types = type.split(",").map((t) => t.trim());
       whereClause.type = { in: types };
     }
     if (!includeHistorical) {
-      whereClause.status = 'Active';
+      whereClause.status = "Active";
     }
 
     const associates = await prisma.associate.findMany({
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: [{ entity: { name: 'asc' } }, { appointmentDate: 'desc' }],
+      orderBy: [{ entity: { name: "asc" } }, { appointmentDate: "desc" }],
     });
 
     const response: ApiResponse<any[]> = {
@@ -42,10 +42,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching associates:', error);
+    console.error("Error fetching associates:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch associates',
+      error: "Failed to fetch associates",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     if (!body.entityId || !body.type) {
       const response: ApiResponse = {
         success: false,
-        error: 'Entity and associate type are required',
+        error: "Entity and associate type are required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         const response: ApiResponse = {
           success: false,
           error:
-            'Given names and family name are required for individual associates',
+            "Given names and family name are required for individual associates",
         };
         return NextResponse.json(response, { status: 400 });
       }
@@ -79,14 +79,14 @@ export async function POST(request: NextRequest) {
       if (!body.entityName) {
         const response: ApiResponse = {
           success: false,
-          error: 'Entity name is required for corporate associates',
+          error: "Entity name is required for corporate associates",
         };
         return NextResponse.json(response, { status: 400 });
       }
     }
 
     // Automatically set status based on resignation date
-    const status = body.resignationDate ? 'Resigned' : 'Active';
+    const status = body.resignationDate ? "Resigned" : "Active";
 
     const associate = await prisma.associate.create({
       data: {
@@ -123,15 +123,15 @@ export async function POST(request: NextRequest) {
     const response: ApiResponse<any> = {
       success: true,
       data: associate,
-      message: 'Associate created successfully',
+      message: "Associate created successfully",
     };
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('Error creating associate:', error);
+    console.error("Error creating associate:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to create associate',
+      error: "Failed to create associate",
     };
     return NextResponse.json(response, { status: 500 });
   }

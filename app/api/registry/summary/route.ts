@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const entityId = searchParams.get('entityId');
+    const entityId = searchParams.get("entityId");
 
     if (!entityId) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Entity ID is required',
+          error: "Entity ID is required",
         },
         { status: 400 }
       );
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: { settlementDate: 'desc' },
+      orderBy: { settlementDate: "desc" },
       take: 10,
     });
 
@@ -122,11 +122,11 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching registry summary:', error);
+    console.error("Error fetching registry summary:", error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch registry summary',
+        error: "Failed to fetch registry summary",
       },
       { status: 500 }
     );

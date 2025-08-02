@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse, MemberInput, MemberType } from '@/lib/types';
-import { AuditLogger } from '@/lib/audit';
-import { AuditAction, AuditTableName } from '@/lib/audit';
-import { auth } from '@/lib/auth';
-import { getDefaultCountry } from '@/lib/config';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse, MemberInput, MemberType } from "@/lib/types";
+import { AuditLogger } from "@/lib/audit";
+import { AuditAction, AuditTableName } from "@/lib/audit";
+import { auth } from "@/lib/auth";
+import { getDefaultCountry } from "@/lib/config";
 
 // GET /api/members/[id] - Get a specific member
 export async function GET(
@@ -15,8 +15,8 @@ export async function GET(
     const { id } = await params;
     const { searchParams } = new URL(request.url);
     const includeTransactions = searchParams
-      .get('include')
-      ?.includes('transactions');
+      .get("include")
+      ?.includes("transactions");
 
     const member = await prisma.member.findUnique({
       where: { id },
@@ -30,7 +30,7 @@ export async function GET(
                 securityClass: true,
               },
               orderBy: {
-                settlementDate: 'desc',
+                settlementDate: "desc",
               },
             }
           : false,
@@ -41,7 +41,7 @@ export async function GET(
                 securityClass: true,
               },
               orderBy: {
-                settlementDate: 'desc',
+                settlementDate: "desc",
               },
             }
           : false,
@@ -51,7 +51,7 @@ export async function GET(
     if (!member) {
       const response: ApiResponse = {
         success: false,
-        error: 'Member not found',
+        error: "Member not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -63,10 +63,10 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching member:', error);
+    console.error("Error fetching member:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch member',
+      error: "Failed to fetch member",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -84,7 +84,7 @@ export async function PUT(
     if (!userId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
       };
       return NextResponse.json(response, { status: 401 });
     }
@@ -99,7 +99,7 @@ export async function PUT(
     if (!existingMember) {
       const response: ApiResponse = {
         success: false,
-        error: 'Member not found',
+        error: "Member not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -120,7 +120,7 @@ export async function PUT(
       if (duplicate) {
         const response: ApiResponse = {
           success: false,
-          error: 'Member number already exists for this entity',
+          error: "Member number already exists for this entity",
         };
         return NextResponse.json(response, { status: 409 });
       }
@@ -135,18 +135,18 @@ export async function PUT(
         const response: ApiResponse = {
           success: false,
           error:
-            'Given names and family name are required for individual members',
+            "Given names and family name are required for individual members",
         };
         return NextResponse.json(response, { status: 400 });
       }
 
       if (
-        body.memberType === 'Joint' &&
+        body.memberType === "Joint" &&
         (!body.jointPersons || body.jointPersons.length < 2)
       ) {
         const response: ApiResponse = {
           success: false,
-          error: 'For joint members, at least 2 persons are required',
+          error: "For joint members, at least 2 persons are required",
         };
         return NextResponse.json(response, { status: 400 });
       }
@@ -158,7 +158,7 @@ export async function PUT(
       ) {
         const response: ApiResponse = {
           success: false,
-          error: 'Entity name is required for non-individual members',
+          error: "Entity name is required for non-individual members",
         };
         return NextResponse.json(response, { status: 400 });
       }
@@ -243,15 +243,15 @@ export async function PUT(
     const response: ApiResponse = {
       success: true,
       data: member,
-      message: 'Member updated successfully',
+      message: "Member updated successfully",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error updating member:', error);
+    console.error("Error updating member:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to update member',
+      error: "Failed to update member",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -281,7 +281,7 @@ export async function DELETE(
     if (!existingMember) {
       const response: ApiResponse = {
         success: false,
-        error: 'Member not found',
+        error: "Member not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -293,7 +293,7 @@ export async function DELETE(
     ) {
       const response: ApiResponse = {
         success: false,
-        error: 'Cannot delete member with existing transactions',
+        error: "Cannot delete member with existing transactions",
       };
       return NextResponse.json(response, { status: 409 });
     }
@@ -304,15 +304,15 @@ export async function DELETE(
 
     const response: ApiResponse = {
       success: true,
-      message: 'Member deleted successfully',
+      message: "Member deleted successfully",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error deleting member:', error);
+    console.error("Error deleting member:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to delete member',
+      error: "Failed to delete member",
     };
     return NextResponse.json(response, { status: 500 });
   }

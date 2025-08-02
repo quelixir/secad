@@ -1,131 +1,179 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { MainLayout } from '@/components/layout/main-layout'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Plus, Search, Edit, Trash2, Building2, Crown, UserCheck } from 'lucide-react'
-import { useEntity } from '@/lib/entity-context'
-import { AssociateForm } from './associate-form'
-import type { AssociateWithRelations as Associate } from '@/lib/types/interfaces/Associate';
+import { useEffect, useState } from "react";
+import { MainLayout } from "@/components/layout/main-layout";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Building2,
+  Crown,
+  UserCheck,
+} from "lucide-react";
+import { useEntity } from "@/lib/entity-context";
+import { AssociateForm } from "./associate-form";
+import type { AssociateWithRelations as Associate } from "@/lib/types/interfaces/Associate";
 
 export default function AssociatesPage() {
-  const { selectedEntity } = useEntity()
-  const [associates, setAssociates] = useState<Associate[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [hideResigned, setHideResigned] = useState(false)
-  const [editingAssociate, setEditingAssociate] = useState<Associate | null>(null)
-  const [showAddDialog, setShowAddDialog] = useState(false)
-
+  const { selectedEntity } = useEntity();
+  const [associates, setAssociates] = useState<Associate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [hideResigned, setHideResigned] = useState(false);
+  const [editingAssociate, setEditingAssociate] = useState<Associate | null>(
+    null
+  );
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
   const fetchAssociates = async () => {
     if (!selectedEntity) {
-      setAssociates([])
-      setLoading(false)
-      return
+      setAssociates([]);
+      setLoading(false);
+      return;
     }
 
     try {
-      setLoading(true)
+      setLoading(true);
       const params = new URLSearchParams({
         entityId: selectedEntity.id,
-        includeHistorical: 'true', // Always include historical data
-        type: 'officeholder_director,officeholder_secretary'
-      })
+        includeHistorical: "true", // Always include historical data
+        type: "officeholder_director,officeholder_secretary",
+      });
 
-      const response = await fetch(`/api/associates?${params}`)
-      const result = await response.json()
+      const response = await fetch(`/api/associates?${params}`);
+      const result = await response.json();
 
       if (result.success) {
-        setAssociates(result.data)
+        setAssociates(result.data);
       } else {
-        console.error('Failed to fetch associates:', result.error)
-        setAssociates([])
+        console.error("Failed to fetch associates:", result.error);
+        setAssociates([]);
       }
     } catch (error) {
-      console.error('Error fetching associates:', error)
-      setAssociates([])
+      console.error("Error fetching associates:", error);
+      setAssociates([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchAssociates()
-  }, [selectedEntity]) // Remove hideResigned from dependencies since we filter on frontend
+    fetchAssociates();
+  }, [selectedEntity]); // Remove hideResigned from dependencies since we filter on frontend
 
   const handleDelete = async (associate: Associate) => {
     try {
       const response = await fetch(`/api/associates/${associate.id}`, {
-        method: 'DELETE'
-      })
+        method: "DELETE",
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (result.success) {
-        await fetchAssociates() // Refresh the list
+        await fetchAssociates(); // Refresh the list
       }
     } catch (error) {
-      console.error('Error deleting associate:', error)
+      console.error("Error deleting associate:", error);
     }
-  }
+  };
 
   const handleAssociateSaved = () => {
-    setEditingAssociate(null)
-    setShowAddDialog(false)
-    fetchAssociates()
-  }
-
-
+    setEditingAssociate(null);
+    setShowAddDialog(false);
+    fetchAssociates();
+  };
 
   const formatAssociateName = (associate: Associate) => {
     if (associate.isIndividual) {
-      return `${associate.givenNames || ''} ${associate.familyName || ''}`.trim()
+      return `${associate.givenNames || ""} ${
+        associate.familyName || ""
+      }`.trim();
     } else {
-      return associate.entityName || 'Unknown Entity'
+      return associate.entityName || "Unknown Entity";
     }
-  }
+  };
 
   const formatAssociateType = (type: string) => {
     switch (type) {
-      case 'officeholder_director':
-        return 'Director'
-      case 'officeholder_secretary':
-        return 'Secretary'
+      case "officeholder_director":
+        return "Director";
+      case "officeholder_secretary":
+        return "Secretary";
       default:
-        return type
+        return type;
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Active': return 'bg-green-100 text-green-800'
-      case 'Resigned': return 'bg-yellow-100 text-yellow-800'
-      case 'Removed': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "Active":
+        return "bg-green-100 text-green-800";
+      case "Resigned":
+        return "bg-yellow-100 text-yellow-800";
+      case "Removed":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const filteredAssociates = associates
-    .filter(associate => {
+    .filter((associate) => {
       // Filter out resigned associates if hideResigned is true
-      if (hideResigned && associate.status === 'Resigned') {
-        return false
+      if (hideResigned && associate.status === "Resigned") {
+        return false;
       }
-      return true
+      return true;
     })
-    .filter(associate =>
-      formatAssociateName(associate).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      formatAssociateType(associate.type).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      associate.status.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    .filter(
+      (associate) =>
+        formatAssociateName(associate)
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        formatAssociateType(associate.type)
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        associate.status.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   if (!selectedEntity) {
     return (
@@ -133,14 +181,17 @@ export default function AssociatesPage() {
         <div className="space-y-8">
           <div className="text-center py-12">
             <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h2 className="text-2xl font-semibold text-muted-foreground mb-2">No Entity Selected</h2>
+            <h2 className="text-2xl font-semibold text-muted-foreground mb-2">
+              No Entity Selected
+            </h2>
             <p className="text-muted-foreground mb-6">
-              Please select an entity from the dropdown in the navigation bar to view its associates.
+              Please select an entity from the dropdown in the navigation bar to
+              view its associates.
             </p>
           </div>
         </div>
       </MainLayout>
-    )
+    );
   }
 
   return (
@@ -151,7 +202,8 @@ export default function AssociatesPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Associates</h1>
             <p className="text-muted-foreground">
-              Manage directors, secretaries, and other associates for {selectedEntity.name}
+              Manage directors, secretaries, and other associates for{" "}
+              {selectedEntity.name}
             </p>
           </div>
         </div>
@@ -183,7 +235,10 @@ export default function AssociatesPage() {
                       Add a new director or secretary to {selectedEntity.name}
                     </DialogDescription>
                   </DialogHeader>
-                  <AssociateForm entityId={selectedEntity.id} onSaved={handleAssociateSaved} />
+                  <AssociateForm
+                    entityId={selectedEntity.id}
+                    onSaved={handleAssociateSaved}
+                  />
                 </DialogContent>
               </Dialog>
             </div>
@@ -204,7 +259,9 @@ export default function AssociatesPage() {
                 <Checkbox
                   id="hide-resigned"
                   checked={hideResigned}
-                  onCheckedChange={(checked) => setHideResigned(checked === true)}
+                  onCheckedChange={(checked) =>
+                    setHideResigned(checked === true)
+                  }
                 />
                 <label
                   htmlFor="hide-resigned"
@@ -217,10 +274,14 @@ export default function AssociatesPage() {
 
             {/* Table */}
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Loading officeholders...</div>
+              <div className="text-center py-8 text-muted-foreground">
+                Loading officeholders...
+              </div>
             ) : filteredAssociates.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {searchTerm ? 'No officeholders found matching your search.' : 'No officeholders yet. Add your first officeholder to get started!'}
+                {searchTerm
+                  ? "No officeholders found matching your search."
+                  : "No officeholders yet. Add your first officeholder to get started!"}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -250,9 +311,13 @@ export default function AssociatesPage() {
                               )}
                             </div>
                             <div>
-                              <div className="font-medium">{formatAssociateName(associate)}</div>
+                              <div className="font-medium">
+                                {formatAssociateName(associate)}
+                              </div>
                               <div className="text-sm text-muted-foreground">
-                                {associate.isIndividual ? 'Individual' : 'Corporate Entity'}
+                                {associate.isIndividual
+                                  ? "Individual"
+                                  : "Corporate Entity"}
                               </div>
                             </div>
                           </div>
@@ -269,27 +334,44 @@ export default function AssociatesPage() {
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
-                            {associate.isIndividual && associate.dateOfBirth && (
-                              <div>DOB: {new Date(associate.dateOfBirth).toLocaleDateString()}</div>
-                            )}
-                            {associate.isIndividual && associate.previousNames && associate.previousNames.length > 0 && (
-                              <div className="text-muted-foreground">
-                                Also known as: {associate.previousNames.join(', ')}
-                              </div>
-                            )}
-                            {!associate.isIndividual && associate.entityName && (
-                              <div className="text-muted-foreground">Corporate Entity</div>
-                            )}
+                            {associate.isIndividual &&
+                              associate.dateOfBirth && (
+                                <div>
+                                  DOB:{" "}
+                                  {new Date(
+                                    associate.dateOfBirth
+                                  ).toLocaleDateString()}
+                                </div>
+                              )}
+                            {associate.isIndividual &&
+                              associate.previousNames &&
+                              associate.previousNames.length > 0 && (
+                                <div className="text-muted-foreground">
+                                  Also known as:{" "}
+                                  {associate.previousNames.join(", ")}
+                                </div>
+                              )}
+                            {!associate.isIndividual &&
+                              associate.entityName && (
+                                <div className="text-muted-foreground">
+                                  Corporate Entity
+                                </div>
+                              )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          {associate.appointmentDate ? new Date(associate.appointmentDate).toLocaleDateString() : '—'}
+                          {associate.appointmentDate
+                            ? new Date(
+                                associate.appointmentDate
+                              ).toLocaleDateString()
+                            : "—"}
                         </TableCell>
                         <TableCell>
                           {associate.resignationDate
-                            ? new Date(associate.resignationDate).toLocaleDateString()
-                            : '—'
-                          }
+                            ? new Date(
+                                associate.resignationDate
+                              ).toLocaleDateString()
+                            : "—"}
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
@@ -313,7 +395,8 @@ export default function AssociatesPage() {
                                 <DialogHeader>
                                   <DialogTitle>Edit Officeholder</DialogTitle>
                                   <DialogDescription>
-                                    Update information for {formatAssociateName(associate)}
+                                    Update information for{" "}
+                                    {formatAssociateName(associate)}
                                   </DialogDescription>
                                 </DialogHeader>
                                 <AssociateForm
@@ -324,8 +407,6 @@ export default function AssociatesPage() {
                               </DialogContent>
                             </Dialog>
 
-
-
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="sm">
@@ -334,9 +415,13 @@ export default function AssociatesPage() {
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Officeholder</AlertDialogTitle>
+                                  <AlertDialogTitle>
+                                    Delete Officeholder
+                                  </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete &quot;{formatAssociateName(associate)}&quot;? This action cannot be undone.
+                                    Are you sure you want to delete &quot;
+                                    {formatAssociateName(associate)}&quot;? This
+                                    action cannot be undone.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -360,9 +445,7 @@ export default function AssociatesPage() {
             )}
           </CardContent>
         </Card>
-
-
       </div>
     </MainLayout>
-  )
-} 
+  );
+}

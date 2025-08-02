@@ -1,9 +1,9 @@
-import { trpc } from '@/lib/trpc/client';
+import { trpc } from "@/lib/trpc/client";
 
 export { trpc };
 
 // Re-export commonly used hooks for convenience
-export const useEntities = (input?: { include?: 'details' | 'basic' }) =>
+export const useEntities = (input?: { include?: "details" | "basic" }) =>
   trpc.entities.getAll.useQuery(input);
 export const useEntity = (id: string) => trpc.entities.getById.useQuery({ id });
 export const useCreateEntity = () => trpc.entities.create.useMutation();
@@ -61,5 +61,5 @@ export const useRegistryMembers = (entityId: string) =>
 export const useRegistryTransactions = (
   entityId: string,
   limit?: number,
-  offset?: number
+  offset?: number,
 ) => trpc.registry.getTransactions.useQuery({ entityId, limit, offset });

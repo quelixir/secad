@@ -1,13 +1,13 @@
-import { Associate } from './Associate';
-import { Member } from './Member';
-import { SecurityClass } from './Security';
-import { Transaction } from './Transaction';
-import { EntityIdentifier } from './EntityIdentifier';
+import { Associate } from "./Associate";
+import { Member } from "./Member";
+import { SecurityClass } from "./Security";
+import { Transaction } from "./Transaction";
+import { EntityIdentifier } from "./EntityIdentifier";
 
 export enum EntityStatus {
-  ACTIVE = 'Active',
-  INACTIVE = 'Inactive',
-  DISSOLVED = 'Dissolved',
+  ACTIVE = "Active",
+  INACTIVE = "Inactive",
+  DISSOLVED = "Dissolved",
 }
 
 export interface Entity {
@@ -76,24 +76,24 @@ export interface EntityInput {
 export interface EntityApiResponse
   extends Omit<
     EntityWithRelations,
-    | 'incorporationDate'
-    | 'createdAt'
-    | 'updatedAt'
-    | 'members'
-    | 'securityClasses'
+    | "incorporationDate"
+    | "createdAt"
+    | "updatedAt"
+    | "members"
+    | "securityClasses"
   > {
   incorporationDate?: string | null;
   createdAt: string;
   updatedAt: string;
   members?: Array<
-    Omit<Member, 'joinDate' | 'createdAt' | 'updatedAt'> & {
+    Omit<Member, "joinDate" | "createdAt" | "updatedAt"> & {
       joinDate: string;
       createdAt: string;
       updatedAt: string;
     }
   >;
   securityClasses?: Array<
-    Omit<SecurityClass, 'createdAt' | 'updatedAt'> & {
+    Omit<SecurityClass, "createdAt" | "updatedAt"> & {
       createdAt: string;
       updatedAt: string;
       isActive: boolean;

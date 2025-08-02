@@ -1,7 +1,7 @@
-import { initTRPC } from '@trpc/server';
-import superjson from 'superjson';
-import { ZodError } from 'zod';
-import { auth } from './auth';
+import { initTRPC } from "@trpc/server";
+import superjson from "superjson";
+import { ZodError } from "zod";
+import { auth } from "./auth";
 
 /**
  * 1. CONTEXT
@@ -74,7 +74,7 @@ export const publicProcedure = t.procedure;
  */
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
   if (!ctx.session || !ctx.user) {
-    throw new Error('UNAUTHORIZED');
+    throw new Error("UNAUTHORIZED");
   }
   return next({
     ctx: {

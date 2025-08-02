@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { compliancePackRegistration } from '@/lib/compliance';
-import { getDefaultCountry } from '@/lib/config';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { compliancePackRegistration } from "@/lib/compliance";
+import { getDefaultCountry } from "@/lib/config";
 
 export async function GET() {
   try {
@@ -18,7 +18,7 @@ export async function GET() {
         },
       },
       orderBy: {
-        name: 'asc',
+        name: "asc",
       },
     });
 
@@ -27,11 +27,11 @@ export async function GET() {
       data: entities,
     });
   } catch (error) {
-    console.error('Error fetching entities:', error);
+    console.error("Error fetching entities:", error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch entities',
+        error: "Failed to fetch entities",
       },
       { status: 500 }
     );
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Name and entity type are required',
+          error: "Name and entity type are required",
         },
         { status: 400 }
       );
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Invalid entity type',
+          error: "Invalid entity type",
         },
         { status: 400 }
       );
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       const createdEntity = await tx.entity.create({
         data: {
           ...body,
-          status: 'Active',
+          status: "Active",
         },
         include: {
           identifiers: true,
@@ -89,14 +89,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: entity,
-      message: 'Entity created successfully',
+      message: "Entity created successfully",
     });
   } catch (error) {
-    console.error('Error creating entity:', error);
+    console.error("Error creating entity:", error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to create entity',
+        error: "Failed to create entity",
       },
       { status: 500 }
     );

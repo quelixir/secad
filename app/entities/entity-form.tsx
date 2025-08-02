@@ -1,88 +1,133 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { Button } from '@/components/ui/button'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { compliancePackRegistration } from '@/lib/compliance'
-import { CountrySelect } from '@/components/ui/country-select'
-import { StateSelect } from '@/components/ui/state-select'
-import { EntityTypeSelect } from '@/components/ui/entity-type-select'
-import { EntityIdentifiers, type EntityIdentifier } from '@/components/ui/entity-identifiers'
-import { getDefaultCountry } from '@/lib/config'
-import { Entity } from '@/lib/types/interfaces'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { compliancePackRegistration } from "@/lib/compliance";
+import { CountrySelect } from "@/components/ui/country-select";
+import { StateSelect } from "@/components/ui/state-select";
+import { EntityTypeSelect } from "@/components/ui/entity-type-select";
+import {
+  EntityIdentifiers,
+  type EntityIdentifier,
+} from "@/components/ui/entity-identifiers";
+import { getDefaultCountry } from "@/lib/config";
+import { Entity } from "@/lib/types/interfaces";
 
 const entityFormSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  entityTypeId: z.string().min(1, 'Entity type is required'),
-  incorporationDate: z.string().min(1, 'Incorporation/formation date is required').refine((val) => !isNaN(Date.parse(val)), 'Invalid date'),
+  name: z.string().min(1, "Name is required"),
+  entityTypeId: z.string().min(1, "Entity type is required"),
+  incorporationDate: z
+    .string()
+    .min(1, "Incorporation/formation date is required")
+    .refine((val) => !isNaN(Date.parse(val)), "Invalid date"),
   incorporationCountry: z.string().optional(),
   incorporationState: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
-  postcode: z.string().optional().refine((val) => !val || /^\d{4}$/.test(val), 'Postcode must be 4 digits'),
+  postcode: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^\d{4}$/.test(val), "Postcode must be 4 digits"),
   country: z.string().optional(),
-  email: z.string().optional().refine((val) => !val || z.string().email().safeParse(val).success, 'Invalid email format'),
+  email: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || z.string().email().safeParse(val).success,
+      "Invalid email format"
+    ),
   phone: z.string().optional(),
-  website: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, 'Invalid website URL')
-})
+  website: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || z.string().url().safeParse(val).success,
+      "Invalid website URL"
+    ),
+});
 
-type EntityFormValues = z.infer<typeof entityFormSchema>
+type EntityFormValues = z.infer<typeof entityFormSchema>;
 
 interface EntityFormProps {
-  entity?: Entity
-  onSubmit: (data: EntityFormValues & { identifiers: EntityIdentifier[] }) => Promise<void>
-  loading?: boolean
+  entity?: Entity;
+  onSubmit: (
+    data: EntityFormValues & { identifiers: EntityIdentifier[] }
+  ) => Promise<void>;
+  loading?: boolean;
 }
 
-export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProps) {
-  const [selectedCountry, setSelectedCountry] = useState(entity?.country || getDefaultCountry())
-  const [selectedIncorporationCountry, setSelectedIncorporationCountry] = useState(entity?.incorporationCountry || getDefaultCountry())
-  const [identifiers, setIdentifiers] = useState<EntityIdentifier[]>(entity?.identifiers || [])
+export function EntityForm({
+  entity,
+  onSubmit,
+  loading = false,
+}: EntityFormProps) {
+  const [selectedCountry, setSelectedCountry] = useState(
+    entity?.country || getDefaultCountry()
+  );
+  const [selectedIncorporationCountry, setSelectedIncorporationCountry] =
+    useState(entity?.incorporationCountry || getDefaultCountry());
+  const [identifiers, setIdentifiers] = useState<EntityIdentifier[]>(
+    entity?.identifiers || []
+  );
 
   const form = useForm<EntityFormValues>({
     resolver: zodResolver(entityFormSchema),
     defaultValues: {
-      name: entity?.name || '',
-      entityTypeId: entity?.entityTypeId || '',
-      incorporationDate: entity?.incorporationDate ? entity.incorporationDate.toISOString().split('T')[0] : '',
+      name: entity?.name || "",
+      entityTypeId: entity?.entityTypeId || "",
+      incorporationDate: entity?.incorporationDate
+        ? entity.incorporationDate.toISOString().split("T")[0]
+        : "",
       incorporationCountry: entity?.incorporationCountry || getDefaultCountry(),
-      incorporationState: entity?.incorporationState || '',
-      address: entity?.address || '',
-      city: entity?.city || '',
-      state: entity?.state || '',
-      postcode: entity?.postcode || '',
+      incorporationState: entity?.incorporationState || "",
+      address: entity?.address || "",
+      city: entity?.city || "",
+      state: entity?.state || "",
+      postcode: entity?.postcode || "",
       country: entity?.country || getDefaultCountry(),
-      email: entity?.email || '',
-      phone: entity?.phone || '',
-      website: entity?.website || '',
+      email: entity?.email || "",
+      phone: entity?.phone || "",
+      website: entity?.website || "",
     },
-  })
+  });
 
   const handleSubmit = async (values: EntityFormValues) => {
     try {
       // Convert incorporationDate to ISO-8601 if present
-      const isoDate = values.incorporationDate ? new Date(values.incorporationDate).toISOString() : '';
-      await onSubmit({ ...values, incorporationDate: isoDate, identifiers })
+      const isoDate = values.incorporationDate
+        ? new Date(values.incorporationDate).toISOString()
+        : "";
+      await onSubmit({ ...values, incorporationDate: isoDate, identifiers });
     } catch (error) {
-      console.error('Error submitting form:', error)
-      form.setError('root', { message: 'Failed to save entity' })
+      console.error("Error submitting form:", error);
+      form.setError("root", { message: "Failed to save entity" });
     }
-  }
+  };
 
-  const watchedCountry = form.watch('country')
+  const watchedCountry = form.watch("country");
   if (watchedCountry !== selectedCountry) {
-    setSelectedCountry(watchedCountry || getDefaultCountry())
+    setSelectedCountry(watchedCountry || getDefaultCountry());
   }
 
-  const watchedIncorporationCountry = form.watch('incorporationCountry')
+  const watchedIncorporationCountry = form.watch("incorporationCountry");
   if (watchedIncorporationCountry !== selectedIncorporationCountry) {
-    setSelectedIncorporationCountry(watchedIncorporationCountry || getDefaultCountry())
+    setSelectedIncorporationCountry(
+      watchedIncorporationCountry || getDefaultCountry()
+    );
   }
 
   return (
@@ -120,14 +165,21 @@ export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProp
                       value={field.value}
                       onValueChange={(value) => {
                         field.onChange(value);
-                        setSelectedIncorporationCountry(value || getDefaultCountry());
+                        setSelectedIncorporationCountry(
+                          value || getDefaultCountry()
+                        );
                         // Reset entity type when country changes
-                        const entityTypeField = form.getValues('entityTypeId');
+                        const entityTypeField = form.getValues("entityTypeId");
                         if (entityTypeField) {
-                          const newCountryEntityTypes = compliancePackRegistration.getEntityTypes(value || getDefaultCountry());
-                          const typeStillValid = newCountryEntityTypes.some(type => type.id === entityTypeField);
+                          const newCountryEntityTypes =
+                            compliancePackRegistration.getEntityTypes(
+                              value || getDefaultCountry()
+                            );
+                          const typeStillValid = newCountryEntityTypes.some(
+                            (type) => type.id === entityTypeField
+                          );
                           if (!typeStillValid) {
-                            form.setValue('entityTypeId', '');
+                            form.setValue("entityTypeId", "");
                           }
                         }
                       }}
@@ -163,7 +215,10 @@ export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProp
               name="incorporationDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Incorporation/Formation Date <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Incorporation/Formation Date{" "}
+                    <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input type="date" required {...field} />
                   </FormControl>
@@ -211,7 +266,11 @@ export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProp
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="contact@entity.com.au" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="contact@entity.com.au"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -349,10 +408,10 @@ export function EntityForm({ entity, onSubmit, loading = false }: EntityFormProp
         {/* Form Actions */}
         <div className="flex justify-end space-x-4">
           <Button type="submit" disabled={loading}>
-            {loading ? 'Saving...' : entity ? 'Update Entity' : 'Create Entity'}
+            {loading ? "Saving..." : entity ? "Update Entity" : "Create Entity"}
           </Button>
         </div>
       </form>
     </Form>
-  )
-} 
+  );
+}

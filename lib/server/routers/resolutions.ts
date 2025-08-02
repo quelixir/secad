@@ -1,20 +1,20 @@
-import { z } from 'zod';
+import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
-} from '@/lib/trpc';
-import { prisma } from '@/lib/db';
-import { TRPCError } from '@trpc/server';
+} from "@/lib/trpc";
+import { prisma } from "@/lib/db";
+import { TRPCError } from "@trpc/server";
 
 const resolutionInputSchema = z.object({
   entityId: z.string(),
-  title: z.string().min(1, 'Title is required'),
-  type: z.string().min(1, 'Type is required'),
-  category: z.string().min(1, 'Category is required'),
+  title: z.string().min(1, "Title is required"),
+  type: z.string().min(1, "Type is required"),
+  category: z.string().min(1, "Category is required"),
   description: z.string().optional(),
-  content: z.string().min(1, 'Content is required'),
-  status: z.string().default('Draft'),
+  content: z.string().min(1, "Content is required"),
+  status: z.string().default("Draft"),
   resolutionDate: z.date().optional(),
   effectiveDate: z.date().optional(),
   approvedBy: z.string().optional(),
@@ -37,8 +37,8 @@ export const resolutionsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       if (!ctx.user?.id) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
         });
       }
       const access = await prisma.userEntityAccess.findUnique({
@@ -48,8 +48,8 @@ export const resolutionsRouter = createTRPCRouter({
       });
       if (!access) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'No access to this entity',
+          code: "UNAUTHORIZED",
+          message: "No access to this entity",
         });
       }
       try {
@@ -59,7 +59,7 @@ export const resolutionsRouter = createTRPCRouter({
             entity: true,
           },
           orderBy: {
-            resolutionDate: 'desc',
+            resolutionDate: "desc",
           },
         });
 
@@ -69,8 +69,8 @@ export const resolutionsRouter = createTRPCRouter({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch resolutions',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch resolutions",
           cause: error,
         });
       }
@@ -90,8 +90,8 @@ export const resolutionsRouter = createTRPCRouter({
 
         if (!resolution) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Resolution not found',
+            code: "NOT_FOUND",
+            message: "Resolution not found",
           });
         }
 
@@ -102,8 +102,8 @@ export const resolutionsRouter = createTRPCRouter({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch resolution',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch resolution",
           cause: error,
         });
       }
@@ -138,12 +138,12 @@ export const resolutionsRouter = createTRPCRouter({
         return {
           success: true,
           data: resolution,
-          message: 'Resolution created successfully',
+          message: "Resolution created successfully",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create resolution',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create resolution",
           cause: error,
         });
       }
@@ -164,21 +164,21 @@ export const resolutionsRouter = createTRPCRouter({
         return {
           success: true,
           data: resolution,
-          message: 'Resolution updated successfully',
+          message: "Resolution updated successfully",
         };
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message.includes('Record to update not found')
+          error.message.includes("Record to update not found")
         ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Resolution not found',
+            code: "NOT_FOUND",
+            message: "Resolution not found",
           });
         }
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update resolution',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update resolution",
           cause: error,
         });
       }
@@ -195,21 +195,21 @@ export const resolutionsRouter = createTRPCRouter({
 
         return {
           success: true,
-          message: 'Resolution deleted successfully',
+          message: "Resolution deleted successfully",
         };
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message.includes('Record to delete does not exist')
+          error.message.includes("Record to delete does not exist")
         ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Resolution not found',
+            code: "NOT_FOUND",
+            message: "Resolution not found",
           });
         }
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete resolution',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete resolution",
           cause: error,
         });
       }

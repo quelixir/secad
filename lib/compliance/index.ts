@@ -1,9 +1,9 @@
-import { australiaCompliancePack } from './australia';
-import { newZealandCompliancePack } from './new_zealand';
-import type { CompliancePack } from './CompliancePack';
-import type { IdentifierType } from './types/IdentifierType';
-import { EntityType } from '../types/interfaces/EntityType';
-import { DefaultEntityTypes } from '../types/interfaces/EntityType';
+import { australiaCompliancePack } from "./australia";
+import { newZealandCompliancePack } from "./new_zealand";
+import type { CompliancePack } from "./CompliancePack";
+import type { IdentifierType } from "./types/IdentifierType";
+import { EntityType } from "../types/interfaces/EntityType";
+import { DefaultEntityTypes } from "../types/interfaces/EntityType";
 
 // Registry of all compliance packs
 const COMPLIANCE_PACKS: Record<string, CompliancePack> = {
@@ -35,7 +35,7 @@ class CompliancePackRegistration {
 
   getIdentifierType(
     country: string,
-    typeCode: string
+    typeCode: string,
   ): IdentifierType | undefined {
     const pack = this.getByCountry(country);
     return pack?.identifierTypes.find((type) => type.abbreviation === typeCode);
@@ -44,7 +44,7 @@ class CompliancePackRegistration {
   validateIdentifier(
     country: string,
     typeCode: string,
-    value: string
+    value: string,
   ): boolean {
     const identifierType = this.getIdentifierType(country, typeCode);
     return identifierType?.validate(value) ?? false;
@@ -67,7 +67,7 @@ class CompliancePackRegistration {
 
   getEntityTypeByShortCode(
     country: string,
-    shortCode: string
+    shortCode: string,
   ): EntityType | undefined {
     const entityTypes = this.getEntityTypes(country);
     return entityTypes.find((type) => type.shortCode === shortCode);
@@ -78,7 +78,7 @@ class CompliancePackRegistration {
 export const compliancePackRegistration = new CompliancePackRegistration();
 
 // Export types
-export type { CompliancePack } from './CompliancePack';
-export type { IdentifierType } from './types/IdentifierType';
-export type { EntityType } from '../types/interfaces/EntityType';
-export { EntityTypeCategory } from '../types/interfaces/EntityType';
+export type { CompliancePack } from "./CompliancePack";
+export type { IdentifierType } from "./types/IdentifierType";
+export type { EntityType } from "../types/interfaces/EntityType";
+export { EntityTypeCategory } from "../types/interfaces/EntityType";

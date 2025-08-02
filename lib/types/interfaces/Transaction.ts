@@ -1,7 +1,7 @@
-import { Member } from './Member';
-import { Entity } from './Entity';
-import { SecurityClass } from './Security';
-import { Currency } from '@/lib/currencies';
+import { Member } from "./Member";
+import { Entity } from "./Entity";
+import { SecurityClass } from "./Security";
+import { Currency } from "@/lib/currencies";
 
 export interface Transaction {
   id: string;
@@ -57,21 +57,21 @@ export interface TransactionInput {
 }
 
 export enum TransactionType {
-  ISSUE = 'ISSUE',
-  TRANSFER = 'TRANSFER',
-  CANCELLATION = 'CANCELLATION',
-  REDEMPTION = 'REDEMPTION',
-  RETURN_OF_CAPITAL = 'RETURN_OF_CAPITAL',
-  CAPITAL_CALL = 'CAPITAL_CALL',
+  ISSUE = "ISSUE",
+  TRANSFER = "TRANSFER",
+  CANCELLATION = "CANCELLATION",
+  REDEMPTION = "REDEMPTION",
+  RETURN_OF_CAPITAL = "RETURN_OF_CAPITAL",
+  CAPITAL_CALL = "CAPITAL_CALL",
 }
 
 export enum TransactionStatus {
-  PENDING = 'Pending',
-  COMPLETED = 'Completed',
-  CANCELLED = 'Cancelled',
+  PENDING = "Pending",
+  COMPLETED = "Completed",
+  CANCELLED = "Cancelled",
 }
 
 export enum TransactionDirection {
-  IN = 'IN',
-  OUT = 'OUT',
+  IN = "IN",
+  OUT = "OUT",
 }

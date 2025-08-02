@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse } from '@/lib/types';
-import { AuditLogger, AuditTableName } from '@/lib/audit';
-import { auth } from '@/lib/auth';
-import { getDefaultCurrencyCode } from '@/lib/config';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse } from "@/lib/types";
+import { AuditLogger, AuditTableName } from "@/lib/audit";
+import { auth } from "@/lib/auth";
+import { getDefaultCurrencyCode } from "@/lib/config";
 
 /**
  * POST /api/registry/transactions/bulk
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     if (!body.entityId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Entity ID is required',
+        error: "Entity ID is required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     if (!body.securityClassId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Security class ID is required',
+        error: "Security class ID is required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (!body.type) {
       const response: ApiResponse = {
         success: false,
-        error: 'Transaction type is required',
+        error: "Transaction type is required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     ) {
       const response: ApiResponse = {
         success: false,
-        error: 'At least one transaction is required',
+        error: "At least one transaction is required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     if (!securityClass) {
       const response: ApiResponse = {
         success: false,
-        error: 'Security class not found',
+        error: "Security class not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     if (securityClass.isArchived) {
       const response: ApiResponse = {
         success: false,
-        error: 'Cannot create transactions for archived security class',
+        error: "Cannot create transactions for archived security class",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
       if (members.length !== memberIds.size) {
         const response: ApiResponse = {
           success: false,
-          error: 'One or more members not found',
+          error: "One or more members not found",
         };
         return NextResponse.json(response, { status: 404 });
       }
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
       };
       return NextResponse.json(response, { status: 401 });
     }
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
             reference: transactionData.reference || body.reference || null,
             description:
               transactionData.description || body.description || null,
-            status: 'Completed',
+            status: "Completed",
             createdBy: userId, // Use actual user ID from auth
           },
           include: {
@@ -189,10 +189,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('Error creating bulk transactions:', error);
+    console.error("Error creating bulk transactions:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to create bulk transactions',
+      error: "Failed to create bulk transactions",
     };
     return NextResponse.json(response, { status: 500 });
   }

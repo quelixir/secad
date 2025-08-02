@@ -6,7 +6,7 @@
  * @returns The configured default country or 'United States' as fallback
  */
 export function getDefaultCountry(): string {
-  return process.env.DEFAULT_COUNTRY || 'United States';
+  return process.env.DEFAULT_COUNTRY || "United States";
 }
 
 /**
@@ -17,5 +17,5 @@ export function getDefaultCountry(): string {
  * @returns The configured default currency or 'USD' as fallback
  */
 export function getDefaultCurrencyCode(): string {
-  return process.env.DEFAULT_CURRENCY || 'USD';
+  return process.env.DEFAULT_CURRENCY || "USD";
 }

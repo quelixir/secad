@@ -1,5 +1,5 @@
-import { Entity } from './Entity';
-import { Transaction } from './Transaction';
+import { Entity } from "./Entity";
+import { Transaction } from "./Transaction";
 
 export interface SecurityClass {
   id: string;

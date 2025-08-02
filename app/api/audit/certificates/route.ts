@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { AuditLogger } from '@/lib/audit';
+import { NextRequest, NextResponse } from "next/server";
+import { AuditLogger } from "@/lib/audit";
 
 export interface CertificateAuditQuery {
   entityId: string;
@@ -20,19 +20,19 @@ export interface CertificateAuditQuery {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const entityId = searchParams.get('entityId');
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const userId = searchParams.get('userId');
-    const transactionId = searchParams.get('transactionId');
-    const templateId = searchParams.get('templateId');
-    const action = searchParams.get('action');
-    const limit = searchParams.get('limit');
-    const offset = searchParams.get('offset');
+    const entityId = searchParams.get("entityId");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const userId = searchParams.get("userId");
+    const transactionId = searchParams.get("transactionId");
+    const templateId = searchParams.get("templateId");
+    const action = searchParams.get("action");
+    const limit = searchParams.get("limit");
+    const offset = searchParams.get("offset");
 
     if (!entityId) {
       return NextResponse.json(
-        { error: 'entityId is required' },
+        { error: "entityId is required" },
         { status: 400 }
       );
     }
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
       userId: userId || undefined,
-      tableName: transactionId ? 'Transaction' : undefined,
+      tableName: transactionId ? "Transaction" : undefined,
       recordId: transactionId || templateId || undefined,
       action: action || undefined,
       limit: limit ? parseInt(limit) : 50,
@@ -73,9 +73,9 @@ export async function GET(request: NextRequest) {
       data: result,
     });
   } catch (error) {
-    console.error('Error fetching certificate audit logs:', error);
+    console.error("Error fetching certificate audit logs:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     if (!entityId) {
       return NextResponse.json(
-        { error: 'entityId is required' },
+        { error: "entityId is required" },
         { status: 400 }
       );
     }
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
       userId: userId || undefined,
-      tableName: transactionId ? 'Transaction' : undefined,
+      tableName: transactionId ? "Transaction" : undefined,
       recordId: transactionId || templateId || undefined,
       action: action || undefined,
     };
@@ -139,9 +139,9 @@ export async function POST(request: NextRequest) {
       data: result,
     });
   } catch (error) {
-    console.error('Error fetching certificate audit logs:', error);
+    console.error("Error fetching certificate audit logs:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

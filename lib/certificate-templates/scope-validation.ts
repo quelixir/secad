@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/db';
+import { prisma } from "@/lib/db";
 
-export type TemplateScope = 'GLOBAL' | 'USER' | 'ENTITY';
+export type TemplateScope = "GLOBAL" | "USER" | "ENTITY";
 
 export interface ScopeValidationResult {
   isValid: boolean;
@@ -21,33 +21,33 @@ export interface TemplateAccessInfo {
 export async function validateTemplateScope(
   userId: string,
   scope: TemplateScope,
-  scopeId?: string | null
+  scopeId?: string | null,
 ): Promise<ScopeValidationResult> {
   // Validate scope value
-  if (!['GLOBAL', 'USER', 'ENTITY'].includes(scope)) {
+  if (!["GLOBAL", "USER", "ENTITY"].includes(scope)) {
     return {
       isValid: false,
-      error: 'Invalid scope. Must be GLOBAL, USER, or ENTITY',
+      error: "Invalid scope. Must be GLOBAL, USER, or ENTITY",
       hasAccess: false,
     };
   }
 
   // Validate scope-specific requirements
-  if (scope === 'USER') {
+  if (scope === "USER") {
     if (scopeId && scopeId !== userId) {
       return {
         isValid: false,
-        error: 'User can only create templates for themselves',
+        error: "User can only create templates for themselves",
         hasAccess: false,
       };
     }
   }
 
-  if (scope === 'ENTITY') {
+  if (scope === "ENTITY") {
     if (!scopeId) {
       return {
         isValid: false,
-        error: 'Entity ID is required for ENTITY scope',
+        error: "Entity ID is required for ENTITY scope",
         hasAccess: false,
       };
     }
@@ -66,7 +66,7 @@ export async function validateTemplateScope(
       return {
         isValid: true, // Scope is valid, but no access
         hasAccess: false,
-        accessError: 'Access denied to entity',
+        accessError: "Access denied to entity",
       };
     }
   }
@@ -82,36 +82,36 @@ export async function validateTemplateScope(
  */
 export async function validateTemplateAccess(
   userId: string,
-  template: TemplateAccessInfo
+  template: TemplateAccessInfo,
 ): Promise<ScopeValidationResult> {
   const { scope, scopeId, createdBy } = template;
 
   // GLOBAL templates - only admin can modify (for now, restrict all operations)
-  if (scope === 'GLOBAL') {
+  if (scope === "GLOBAL") {
     return {
       isValid: true,
       hasAccess: false,
-      accessError: 'Insufficient permissions to access global template',
+      accessError: "Insufficient permissions to access global template",
     };
   }
 
   // USER templates - only creator can access
-  if (scope === 'USER') {
+  if (scope === "USER") {
     if (scopeId !== userId) {
       return {
         isValid: true,
         hasAccess: false,
-        accessError: 'Access denied to user template',
+        accessError: "Access denied to user template",
       };
     }
   }
 
   // ENTITY templates - check entity access
-  if (scope === 'ENTITY') {
+  if (scope === "ENTITY") {
     if (!scopeId) {
       return {
         isValid: false,
-        error: 'Entity templates must have a scopeId',
+        error: "Entity templates must have a scopeId",
         hasAccess: false,
       };
     }
@@ -129,7 +129,7 @@ export async function validateTemplateAccess(
       return {
         isValid: true,
         hasAccess: false,
-        accessError: 'Access denied to entity template',
+        accessError: "Access denied to entity template",
       };
     }
   }
@@ -146,7 +146,7 @@ export async function validateTemplateAccess(
  */
 export async function getAvailableTemplates(
   userId: string,
-  entityId?: string
+  entityId?: string,
 ): Promise<{
   globalTemplates: any[];
   userTemplates: any[];
@@ -155,20 +155,20 @@ export async function getAvailableTemplates(
   // Always get GLOBAL templates
   const globalTemplates = await prisma.certificateTemplate.findMany({
     where: {
-      scope: 'GLOBAL',
+      scope: "GLOBAL",
       isActive: true,
     },
-    orderBy: { name: 'asc' },
+    orderBy: { name: "asc" },
   });
 
   // Get USER templates for current user
   const userTemplates = await prisma.certificateTemplate.findMany({
     where: {
-      scope: 'USER',
+      scope: "USER",
       scopeId: userId,
       isActive: true,
     },
-    orderBy: { name: 'asc' },
+    orderBy: { name: "asc" },
   });
 
   // Get ENTITY templates if entityId provided
@@ -187,11 +187,11 @@ export async function getAvailableTemplates(
     if (userAccess) {
       entityTemplates = await prisma.certificateTemplate.findMany({
         where: {
-          scope: 'ENTITY',
+          scope: "ENTITY",
           scopeId: entityId,
           isActive: true,
         },
-        orderBy: { name: 'asc' },
+        orderBy: { name: "asc" },
       });
     }
   } else {
@@ -205,11 +205,11 @@ export async function getAvailableTemplates(
       const entityIds = userEntities.map((uea) => uea.entityId);
       entityTemplates = await prisma.certificateTemplate.findMany({
         where: {
-          scope: 'ENTITY',
+          scope: "ENTITY",
           scopeId: { in: entityIds },
           isActive: true,
         },
-        orderBy: { name: 'asc' },
+        orderBy: { name: "asc" },
       });
     }
   }
@@ -228,7 +228,7 @@ export async function getAvailableTemplates(
 export function selectBestTemplate(
   entityTemplates: any[],
   userTemplates: any[],
-  globalTemplates: any[]
+  globalTemplates: any[],
 ): any | null {
   // Priority: Entity > User > Global
   // Within each scope, prefer default templates, then by name
@@ -263,7 +263,7 @@ export function selectBestTemplate(
 export async function validateDefaultTemplateConstraint(
   scope: TemplateScope,
   scopeId?: string | null,
-  excludeTemplateId?: string
+  excludeTemplateId?: string,
 ): Promise<{ isValid: boolean; error?: string }> {
   const whereClause: any = {
     scope,
@@ -282,7 +282,7 @@ export async function validateDefaultTemplateConstraint(
   if (existingDefault) {
     return {
       isValid: false,
-      error: 'Only one default template allowed per scope',
+      error: "Only one default template allowed per scope",
     };
   }
 
@@ -293,7 +293,7 @@ export async function validateDefaultTemplateConstraint(
  * Gets scope hierarchy priority for template selection
  */
 export function getScopeHierarchy(): TemplateScope[] {
-  return ['ENTITY', 'USER', 'GLOBAL'];
+  return ["ENTITY", "USER", "GLOBAL"];
 }
 
 /**
@@ -303,10 +303,10 @@ export function validateTemplateHtml(templateHtml: string): {
   isValid: boolean;
   error?: string;
 } {
-  if (!templateHtml.includes('{{') || !templateHtml.includes('}}')) {
+  if (!templateHtml.includes("{{") || !templateHtml.includes("}}")) {
     return {
       isValid: false,
-      error: 'Template HTML must contain template variables ({{variable}})',
+      error: "Template HTML must contain template variables ({{variable}})",
     };
   }
 
@@ -314,7 +314,7 @@ export function validateTemplateHtml(templateHtml: string): {
   if (templateHtml.trim().length < 10) {
     return {
       isValid: false,
-      error: 'Template HTML is too short',
+      error: "Template HTML is too short",
     };
   }
 

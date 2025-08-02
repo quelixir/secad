@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { EntityType } from '../types/interfaces/EntityType';
-import { compliancePackRegistration } from './index';
+import { useState, useEffect } from "react";
+import { EntityType } from "../types/interfaces/EntityType";
+import { compliancePackRegistration } from "./index";
 
 /**
  * Hook to get all entity types from all enabled compliance packs
@@ -19,7 +19,7 @@ export function useAllEntityTypes() {
         setEntityTypes(types);
       } catch (err) {
         setError(
-          err instanceof Error ? err : new Error('Failed to load entity types')
+          err instanceof Error ? err : new Error("Failed to load entity types"),
         );
       } finally {
         setLoading(false);
@@ -44,11 +44,11 @@ export function useEntityTypesByCountry(country?: string) {
     function loadEntityTypes() {
       try {
         setLoading(true);
-        const types = compliancePackRegistration.getEntityTypes(country || '');
+        const types = compliancePackRegistration.getEntityTypes(country || "");
         setEntityTypes(types);
       } catch (err) {
         setError(
-          err instanceof Error ? err : new Error('Failed to load entity types')
+          err instanceof Error ? err : new Error("Failed to load entity types"),
         );
       } finally {
         setLoading(false);
@@ -78,15 +78,15 @@ export function useEntityType(entityTypeId: string) {
           .flatMap((pack) => pack.entityTypes)
           .find((t) => t.id === entityTypeId) || {
           id: entityTypeId,
-          shortCode: 'UNKNOWN',
-          name: 'Unknown Entity Type',
-          category: 'OTHER',
+          shortCode: "UNKNOWN",
+          name: "Unknown Entity Type",
+          category: "OTHER",
           description: `Unknown entity type with ID: ${entityTypeId}`,
         };
         setEntityType(type);
       } catch (err) {
         setError(
-          err instanceof Error ? err : new Error('Failed to load entity type')
+          err instanceof Error ? err : new Error("Failed to load entity type"),
         );
       } finally {
         setLoading(false);

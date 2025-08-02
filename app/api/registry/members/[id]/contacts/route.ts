@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse } from '@/lib/types';
-import { AuditLogger } from '@/lib/audit';
-import { AuditTableName } from '@/lib/audit';
-import { auth } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse } from "@/lib/types";
+import { AuditLogger } from "@/lib/audit";
+import { AuditTableName } from "@/lib/audit";
+import { auth } from "@/lib/auth";
 
 /**
  * GET /api/registry/members/{id}/contacts
@@ -24,7 +24,7 @@ export async function GET(
 
     const contacts = await prisma.memberContact.findMany({
       where: { memberId: id },
-      orderBy: [{ isPrimary: 'desc' }, { name: 'asc' }],
+      orderBy: [{ isPrimary: "desc" }, { name: "asc" }],
     });
 
     const response: ApiResponse<any[]> = {
@@ -34,10 +34,10 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching member contacts:', error);
+    console.error("Error fetching member contacts:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch member contacts',
+      error: "Failed to fetch member contacts",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -55,7 +55,7 @@ export async function POST(
     if (!userId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
       };
       return NextResponse.json(response, { status: 401 });
     }
@@ -66,7 +66,7 @@ export async function POST(
     if (!body.name) {
       const response: ApiResponse = {
         success: false,
-        error: 'Contact name is required',
+        error: "Contact name is required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -79,7 +79,7 @@ export async function POST(
     if (!member) {
       const response: ApiResponse = {
         success: false,
-        error: 'Member not found',
+        error: "Member not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -115,15 +115,15 @@ export async function POST(
     const response: ApiResponse = {
       success: true,
       data: contact,
-      message: 'Contact created successfully',
+      message: "Contact created successfully",
     };
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('Error creating member contact:', error);
+    console.error("Error creating member contact:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to create member contact',
+      error: "Failed to create member contact",
     };
     return NextResponse.json(response, { status: 500 });
   }

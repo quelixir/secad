@@ -1,5 +1,5 @@
-import type { IdentifierType } from './types/IdentifierType';
-import type { EntityType } from '../types/interfaces/EntityType';
+import type { IdentifierType } from "./types/IdentifierType";
+import type { EntityType } from "../types/interfaces/EntityType";
 
 export interface CompliancePack {
   id: string;

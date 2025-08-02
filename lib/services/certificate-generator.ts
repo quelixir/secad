@@ -1,7 +1,7 @@
-import { pdfGenerator, PDFOptions } from './pdf-generator';
-import { prisma } from '@/lib/db';
-import { getLocale } from '@/lib/locale';
-import { getDefaultCurrencyCode } from '@/lib/config';
+import { pdfGenerator, PDFOptions } from "./pdf-generator";
+import { prisma } from "@/lib/db";
+import { getLocale } from "@/lib/locale";
+import { getDefaultCurrencyCode } from "@/lib/config";
 
 export interface CertificateData {
   entityId: string;
@@ -40,7 +40,7 @@ export interface CertificateMetadata {
   certificateNumber: string;
   issueDate: Date;
   templateId: string;
-  format: 'PDF' | 'DOCX';
+  format: "PDF" | "DOCX";
   generatedAt: Date;
   generatedBy: string;
   fileSize: number;
@@ -76,13 +76,13 @@ export class CertificateGenerator {
    * Generate certificate number for entity per year
    */
   async generateCertificateNumber(
-    config: CertificateNumberingConfig
+    config: CertificateNumberingConfig,
   ): Promise<string> {
     const {
       entityId,
       year,
-      prefix = 'CERT',
-      suffix = '',
+      prefix = "CERT",
+      suffix = "",
       startNumber = 1,
     } = config;
 
@@ -99,7 +99,7 @@ export class CertificateGenerator {
         },
       },
       orderBy: {
-        certificateNumber: 'desc',
+        certificateNumber: "desc",
       },
     });
 
@@ -112,7 +112,7 @@ export class CertificateGenerator {
       }
     }
 
-    return `${prefix}${year}${nextNumber.toString().padStart(6, '0')}${suffix}`;
+    return `${prefix}${year}${nextNumber.toString().padStart(6, "0")}${suffix}`;
   }
 
   /**
@@ -120,67 +120,66 @@ export class CertificateGenerator {
    */
   private replaceTemplateVariables(
     templateHtml: string,
-    data: CertificateData
+    data: CertificateData,
   ): string {
     let processedHtml = templateHtml;
 
     // Replace standard variables
     const variables = {
-      '{{entityName}}': data.entityName,
-      '{{entityId}}': data.entityId,
-      '{{entityAddress}}': data.entityAddress,
-      '{{entityPhone}}': data.entityPhone,
-      '{{entityType}}': data.entityType,
-      '{{entityContact}}': data.entityContact,
-      '{{entityEmail}}': data.entityEmail,
-      '{{transactionId}}': data.transactionId,
-      '{{transactionDate}}': data.transactionDate.toLocaleDateString(
-        getLocale()
-      ),
-      '{{transactionType}}': data.transactionType,
-      '{{transactionReason}}': data.transactionReason,
-      '{{transactionDescription}}': data.transactionDescription,
-      '{{securityClass}}': data.securityClass,
-      '{{securityName}}': data.securityName,
-      '{{securitySymbol}}': data.securitySymbol,
-      '{{quantity}}': data.quantity.toLocaleString(),
-      '{{totalAmount}}': data.totalAmount.toLocaleString(getLocale(), {
-        style: 'currency',
+      "{{entityName}}": data.entityName,
+      "{{entityId}}": data.entityId,
+      "{{entityAddress}}": data.entityAddress,
+      "{{entityPhone}}": data.entityPhone,
+      "{{entityType}}": data.entityType,
+      "{{entityContact}}": data.entityContact,
+      "{{entityEmail}}": data.entityEmail,
+      "{{transactionId}}": data.transactionId,
+      "{{transactionDate}}":
+        data.transactionDate.toLocaleDateString(getLocale()),
+      "{{transactionType}}": data.transactionType,
+      "{{transactionReason}}": data.transactionReason,
+      "{{transactionDescription}}": data.transactionDescription,
+      "{{securityClass}}": data.securityClass,
+      "{{securityName}}": data.securityName,
+      "{{securitySymbol}}": data.securitySymbol,
+      "{{quantity}}": data.quantity.toLocaleString(),
+      "{{totalAmount}}": data.totalAmount.toLocaleString(getLocale(), {
+        style: "currency",
         currency: data.currency,
       }),
-      '{{unitPrice}}': data.unitPrice.toLocaleString(getLocale(), {
-        style: 'currency',
+      "{{unitPrice}}": data.unitPrice.toLocaleString(getLocale(), {
+        style: "currency",
         currency: data.currency,
       }),
-      '{{totalValue}}': data.totalValue.toLocaleString(getLocale(), {
-        style: 'currency',
+      "{{totalValue}}": data.totalValue.toLocaleString(getLocale(), {
+        style: "currency",
         currency: data.currency,
       }),
-      '{{memberName}}': data.memberName,
-      '{{memberId}}': data.memberId,
-      '{{memberType}}': data.memberType,
-      '{{memberAddress}}': data.memberAddress,
-      '{{certificateNumber}}': data.certificateNumber,
-      '{{issueDate}}': data.issueDate.toLocaleDateString(getLocale()),
-      '{{currentDate}}': new Date().toLocaleDateString(getLocale()),
-      '{{currentYear}}': new Date().getFullYear().toString(),
+      "{{memberName}}": data.memberName,
+      "{{memberId}}": data.memberId,
+      "{{memberType}}": data.memberType,
+      "{{memberAddress}}": data.memberAddress,
+      "{{certificateNumber}}": data.certificateNumber,
+      "{{issueDate}}": data.issueDate.toLocaleDateString(getLocale()),
+      "{{currentDate}}": new Date().toLocaleDateString(getLocale()),
+      "{{currentYear}}": new Date().getFullYear().toString(),
     };
 
     // Replace all variables
     Object.entries(variables).forEach(([placeholder, value]) => {
       processedHtml = processedHtml.replace(
-        new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
-        value
+        new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
+        value,
       );
     });
 
     // Replace any additional dynamic properties
     Object.entries(data).forEach(([key, value]) => {
       const placeholder = `{{${key}}}`;
-      if (typeof value === 'string' || typeof value === 'number') {
+      if (typeof value === "string" || typeof value === "number") {
         processedHtml = processedHtml.replace(
-          new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
-          value.toString()
+          new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
+          value.toString(),
         );
       }
     });
@@ -193,7 +192,7 @@ export class CertificateGenerator {
    */
   async populateCertificateData(
     transactionId: string,
-    entityId: string
+    entityId: string,
   ): Promise<CertificateData> {
     const transaction = await prisma.transaction.findUnique({
       where: { id: transactionId },
@@ -214,7 +213,7 @@ export class CertificateGenerator {
 
     if (!transaction.securityClass) {
       throw new Error(
-        `Security class not found for transaction: ${transactionId}`
+        `Security class not found for transaction: ${transactionId}`,
       );
     }
 
@@ -255,7 +254,7 @@ export class CertificateGenerator {
       transaction.entity.postcode,
       transaction.entity.country,
     ].filter(Boolean);
-    const entityAddress = entityAddressParts.join(', ');
+    const entityAddress = entityAddressParts.join(", ");
 
     // Build member address
     const memberAddressParts = [
@@ -265,24 +264,24 @@ export class CertificateGenerator {
       transaction.toMember.postcode,
       transaction.toMember.country,
     ].filter(Boolean);
-    const memberAddress = memberAddressParts.join(', ');
+    const memberAddress = memberAddressParts.join(", ");
 
     return {
       entityId: transaction.entity.id,
       entityName: transaction.entity.name,
-      entityAddress: entityAddress || 'Not specified',
-      entityPhone: transaction.entity.phone || 'Not specified',
-      entityType: transaction.entity.entityTypeId || 'Not specified',
+      entityAddress: entityAddress || "Not specified",
+      entityPhone: transaction.entity.phone || "Not specified",
+      entityType: transaction.entity.entityTypeId || "Not specified",
       entityContact: transaction.entity.name, // Use entity name as contact
-      entityEmail: transaction.entity.email || 'Not specified',
+      entityEmail: transaction.entity.email || "Not specified",
       transactionId: transaction.id,
       transactionDate: transaction.createdAt, // Use createdAt as transaction date
       transactionType: transaction.transactionType,
       transactionReason: transaction.reasonCode,
-      transactionDescription: transaction.description || 'Not specified',
+      transactionDescription: transaction.description || "Not specified",
       securityClass: transaction.securityClass.name,
       securityName: transaction.securityClass.name,
-      securitySymbol: transaction.securityClass.symbol || 'Not specified',
+      securitySymbol: transaction.securityClass.symbol || "Not specified",
       quantity: transaction.quantity,
       totalAmount,
       unitPrice,
@@ -290,12 +289,12 @@ export class CertificateGenerator {
       currency: transaction.currencyCode || getDefaultCurrencyCode(),
       memberName:
         transaction.toMember.entityName ||
-        `${transaction.toMember.givenNames || ''} ${
-          transaction.toMember.familyName || ''
+        `${transaction.toMember.givenNames || ""} ${
+          transaction.toMember.familyName || ""
         }`.trim(),
       memberId: transaction.toMember.id,
       memberType: transaction.toMember.memberType,
-      memberAddress: memberAddress || 'Not specified',
+      memberAddress: memberAddress || "Not specified",
       certificateNumber,
       issueDate: new Date(),
     };
@@ -306,49 +305,49 @@ export class CertificateGenerator {
    */
   private validateCertificateData(data: CertificateData): void {
     const requiredFields = [
-      'entityId',
-      'entityName',
-      'entityAddress',
-      'entityPhone',
-      'entityType',
-      'entityContact',
-      'entityEmail',
-      'transactionId',
-      'transactionDate',
-      'transactionType',
-      'transactionReason',
-      'transactionDescription',
-      'securityClass',
-      'securityName',
-      'securitySymbol',
-      'quantity',
-      'totalAmount',
-      'unitPrice',
-      'totalValue',
-      'memberName',
-      'memberId',
-      'memberType',
-      'memberAddress',
-      'certificateNumber',
-      'issueDate',
+      "entityId",
+      "entityName",
+      "entityAddress",
+      "entityPhone",
+      "entityType",
+      "entityContact",
+      "entityEmail",
+      "transactionId",
+      "transactionDate",
+      "transactionType",
+      "transactionReason",
+      "transactionDescription",
+      "securityClass",
+      "securityName",
+      "securitySymbol",
+      "quantity",
+      "totalAmount",
+      "unitPrice",
+      "totalValue",
+      "memberName",
+      "memberId",
+      "memberType",
+      "memberAddress",
+      "certificateNumber",
+      "issueDate",
     ];
 
     for (const field of requiredFields) {
       if (
         data[field] === null ||
         data[field] === undefined ||
-        data[field] === ''
+        data[field] === ""
       ) {
         throw new Error(`Missing required certificate data: ${field}`);
       }
     }
 
     if (data.quantity <= 0) {
-      throw new Error('Certificate quantity must be greater than 0');
+      throw new Error("Certificate quantity must be greater than 0");
     }
 
     if (data.totalAmount <= 0) {
-      throw new Error('Certificate total amount must be greater than 0');
+      throw new Error("Certificate total amount must be greater than 0");
     }
   }
 
@@ -358,9 +357,9 @@ export class CertificateGenerator {
   private generateMetadata(
     data: CertificateData,
     templateId: string,
-    format: 'PDF' | 'DOCX',
+    format: "PDF" | "DOCX",
     certificateBuffer: Buffer | Uint8Array,
-    generatedBy: string
+    generatedBy: string,
   ): CertificateMetadata {
     const certificateId = `cert_${data.entityId}_${
       data.transactionId
@@ -372,8 +371,8 @@ export class CertificateGenerator {
       : Buffer.from(certificateBuffer);
 
     // Generate simple checksum (in production, use proper cryptographic hash)
-    const checksum = Buffer.from(buffer.toString('base64'))
-      .toString('hex')
+    const checksum = Buffer.from(buffer.toString("base64"))
+      .toString("hex")
       .substring(0, 32);
 
     return {
@@ -395,7 +394,7 @@ export class CertificateGenerator {
    * Get cached certificate if available and not expired
    */
   private getCachedCertificate(
-    cacheKey: string
+    cacheKey: string,
   ): { data: Buffer; metadata: CertificateMetadata } | null {
     const cached = this.cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
@@ -411,7 +410,7 @@ export class CertificateGenerator {
   private cacheCertificate(
     cacheKey: string,
     data: Buffer,
-    metadata: CertificateMetadata
+    metadata: CertificateMetadata,
   ): void {
     this.cache.set(cacheKey, {
       data,
@@ -428,11 +427,11 @@ export class CertificateGenerator {
     transactionId: string,
     templateId: string,
     options?: Partial<PDFOptions>,
-    generatedBy: string = 'system'
+    generatedBy: string = "system",
   ): Promise<CertificateGenerationResult> {
     try {
       this.logger.log(
-        `Starting PDF certificate generation for transaction: ${transactionId}`
+        `Starting PDF certificate generation for transaction: ${transactionId}`,
       );
 
       // Get transaction data
@@ -447,7 +446,7 @@ export class CertificateGenerator {
 
       // Create cache key
       const cacheKey = `pdf_${transactionId}_${templateId}_${JSON.stringify(
-        options
+        options,
       )}`;
 
       // Check cache first
@@ -465,7 +464,7 @@ export class CertificateGenerator {
       // Populate certificate data
       const certificateData = await this.populateCertificateData(
         transactionId,
-        transaction.entityId
+        transaction.entityId,
       );
 
       // Validate data
@@ -483,23 +482,23 @@ export class CertificateGenerator {
       // Replace template variables
       const processedHtml = this.replaceTemplateVariables(
         template.templateHtml,
-        certificateData
+        certificateData,
       );
 
       // Generate PDF
       const pdfResult = await pdfGenerator.generatePDF(processedHtml, options);
 
       if (!pdfResult.success || !pdfResult.data) {
-        throw new Error(pdfResult.error || 'PDF generation failed');
+        throw new Error(pdfResult.error || "PDF generation failed");
       }
 
       // Generate metadata
       const metadata = this.generateMetadata(
         certificateData,
         templateId,
-        'PDF',
+        "PDF",
         pdfResult.data,
-        generatedBy
+        generatedBy,
       );
 
       // Cache the result
@@ -510,7 +509,7 @@ export class CertificateGenerator {
 
       // Log successful generation
       this.logger.log(
-        `PDF certificate generated successfully: ${metadata.certificateId}`
+        `PDF certificate generated successfully: ${metadata.certificateId}`,
       );
 
       return {
@@ -524,7 +523,7 @@ export class CertificateGenerator {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : 'Unknown certificate generation error';
+          : "Unknown certificate generation error";
       this.logger.error(`Certificate generation failed: ${errorMessage}`);
 
       return {
@@ -540,11 +539,11 @@ export class CertificateGenerator {
   async generateDOCXCertificate(
     transactionId: string,
     templateId: string,
-    generatedBy: string = 'system'
+    generatedBy: string = "system",
   ): Promise<CertificateGenerationResult> {
     try {
       this.logger.log(
-        `Starting DOCX certificate generation for transaction: ${transactionId}`
+        `Starting DOCX certificate generation for transaction: ${transactionId}`,
       );
 
       // For now, return error as DOCX generation is not implemented
@@ -552,13 +551,13 @@ export class CertificateGenerator {
 
       return {
         success: false,
-        error: 'DOCX certificate generation not yet implemented',
+        error: "DOCX certificate generation not yet implemented",
       };
     } catch (error) {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : 'Unknown certificate generation error';
+          : "Unknown certificate generation error";
       this.logger.error(`DOCX certificate generation failed: ${errorMessage}`);
 
       return {
@@ -574,23 +573,23 @@ export class CertificateGenerator {
   async generateCertificate(
     transactionId: string,
     templateId: string,
-    format: 'PDF' | 'DOCX' = 'PDF',
+    format: "PDF" | "DOCX" = "PDF",
     options?: Partial<PDFOptions>,
-    generatedBy: string = 'system'
+    generatedBy: string = "system",
   ): Promise<CertificateGenerationResult> {
     switch (format) {
-      case 'PDF':
+      case "PDF":
         return this.generatePDFCertificate(
           transactionId,
           templateId,
           options,
-          generatedBy
+          generatedBy,
         );
-      case 'DOCX':
+      case "DOCX":
         return this.generateDOCXCertificate(
           transactionId,
           templateId,
-          generatedBy
+          generatedBy,
         );
       default:
         return {
@@ -605,7 +604,7 @@ export class CertificateGenerator {
    */
   clearCache(): void {
     this.cache.clear();
-    this.logger.log('Certificate cache cleared');
+    this.logger.log("Certificate cache cleared");
   }
 
   /**
@@ -622,7 +621,7 @@ export class CertificateGenerator {
    * Validate certificate template
    */
   async validateTemplate(
-    templateId: string
+    templateId: string,
   ): Promise<{ valid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
@@ -637,21 +636,21 @@ export class CertificateGenerator {
       }
 
       if (!template.templateHtml) {
-        errors.push('Template HTML is missing');
+        errors.push("Template HTML is missing");
       }
 
       if (!template.name) {
-        errors.push('Template name is missing');
+        errors.push("Template name is missing");
       }
 
       // Check for required template variables
       const requiredVariables = [
-        '{{entityName}}',
-        '{{certificateNumber}}',
-        '{{memberName}}',
-        '{{quantity}}',
-        '{{totalAmount}}',
-        '{{issueDate}}',
+        "{{entityName}}",
+        "{{certificateNumber}}",
+        "{{memberName}}",
+        "{{quantity}}",
+        "{{totalAmount}}",
+        "{{issueDate}}",
       ];
 
       for (const variable of requiredVariables) {
@@ -667,8 +666,8 @@ export class CertificateGenerator {
     } catch (error) {
       errors.push(
         `Template validation failed: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       );
       return { valid: false, errors };
     }

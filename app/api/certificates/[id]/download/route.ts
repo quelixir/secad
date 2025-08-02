@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { certificateGenerator } from '@/lib/services/certificate-generator';
-import { prisma } from '@/lib/db';
-import { rateLimit } from '@/lib/utils/rate-limit';
-import { AuditLogger, AuditAction, AuditTableName } from '@/lib/audit';
+import { NextRequest, NextResponse } from "next/server";
+import { certificateGenerator } from "@/lib/services/certificate-generator";
+import { prisma } from "@/lib/db";
+import { rateLimit } from "@/lib/utils/rate-limit";
+import { AuditLogger, AuditAction, AuditTableName } from "@/lib/audit";
 
 // Rate limiting configuration
 const limiter = rateLimit({
@@ -13,7 +13,7 @@ const limiter = rateLimit({
 export interface DownloadRequest {
   transactionId: string;
   templateId: string;
-  format: 'PDF' | 'DOCX';
+  format: "PDF" | "DOCX";
   userId: string;
 }
 
@@ -28,13 +28,13 @@ export async function POST(
   try {
     // Rate limiting
     const identifier =
-      request.headers.get('x-forwarded-for') ||
-      request.headers.get('x-real-ip') ||
-      'anonymous';
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "anonymous";
     const { success } = await limiter.check(identifier, 5); // 5 generations per minute
     if (!success) {
       return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again later.' },
+        { error: "Rate limit exceeded. Please try again later." },
         { status: 429 }
       );
     }
@@ -47,16 +47,16 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            'Missing required fields: transactionId, templateId, format, userId',
+            "Missing required fields: transactionId, templateId, format, userId",
         },
         { status: 400 }
       );
     }
 
     // Validate format
-    if (!['PDF', 'DOCX'].includes(format)) {
+    if (!["PDF", "DOCX"].includes(format)) {
       return NextResponse.json(
-        { error: 'Invalid format. Must be PDF or DOCX' },
+        { error: "Invalid format. Must be PDF or DOCX" },
         { status: 400 }
       );
     }
@@ -73,7 +73,7 @@ export async function POST(
 
     if (!transaction) {
       return NextResponse.json(
-        { error: 'Transaction not found' },
+        { error: "Transaction not found" },
         { status: 404 }
       );
     }
@@ -85,7 +85,7 @@ export async function POST(
 
     if (!template) {
       return NextResponse.json(
-        { error: 'Certificate template not found' },
+        { error: "Certificate template not found" },
         { status: 404 }
       );
     }
@@ -101,31 +101,31 @@ export async function POST(
 
     if (!result.success || !result.data) {
       return NextResponse.json(
-        { error: result.error || 'Certificate generation failed' },
+        { error: result.error || "Certificate generation failed" },
         { status: 500 }
       );
     }
 
     // Set content type based on format
     const contentType =
-      format === 'PDF'
-        ? 'application/pdf'
-        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      format === "PDF"
+        ? "application/pdf"
+        : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
     // Set security headers
     const headers = new Headers({
-      'Content-Type': contentType,
-      'Content-Length': result.data.metadata.fileSize.toString(),
-      'Content-Disposition': `attachment; filename="certificate-${
+      "Content-Type": contentType,
+      "Content-Length": result.data.metadata.fileSize.toString(),
+      "Content-Disposition": `attachment; filename="certificate-${
         result.data.metadata.certificateNumber
       }.${format.toLowerCase()}"`,
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'DENY',
-      'X-XSS-Protection': '1; mode=block',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      Pragma: 'no-cache',
-      Expires: '0',
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "X-XSS-Protection": "1; mode=block",
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
     });
 
     // Log certificate generation event
@@ -140,7 +140,7 @@ export async function POST(
       result.data.metadata.checksum,
       {
         ip: identifier,
-        userAgent: request.headers.get('user-agent'),
+        userAgent: request.headers.get("user-agent"),
         templateName: template.name,
       }
     );
@@ -154,7 +154,7 @@ export async function POST(
       format,
       {
         ip: identifier,
-        userAgent: request.headers.get('user-agent'),
+        userAgent: request.headers.get("user-agent"),
         templateName: template.name,
       }
     );
@@ -169,9 +169,9 @@ export async function POST(
       headers,
     });
   } catch (error) {
-    console.error('Certificate generation error:', error);
+    console.error("Certificate generation error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -188,7 +188,7 @@ export async function GET(
   return NextResponse.json(
     {
       error:
-        'Certificates are generated on-demand. Use POST to generate and download.',
+        "Certificates are generated on-demand. Use POST to generate and download.",
     },
     { status: 405 }
   );
@@ -203,7 +203,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   return NextResponse.json(
-    { error: 'Certificates are not stored on the server. No cleanup needed.' },
+    { error: "Certificates are not stored on the server. No cleanup needed." },
     { status: 405 }
   );
 }

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse, AssociateInput } from '@/lib/types';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse, AssociateInput } from "@/lib/types";
 
 // GET /api/associates/[id] - Get a specific associate
 export async function GET(
@@ -25,7 +25,7 @@ export async function GET(
     if (!associate) {
       const response: ApiResponse = {
         success: false,
-        error: 'Associate not found',
+        error: "Associate not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -37,10 +37,10 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching associate:', error);
+    console.error("Error fetching associate:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch associate',
+      error: "Failed to fetch associate",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -66,7 +66,7 @@ export async function PUT(
     if (!existingAssociate) {
       const response: ApiResponse = {
         success: false,
-        error: 'Associate not found',
+        error: "Associate not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -78,7 +78,7 @@ export async function PUT(
           const response: ApiResponse = {
             success: false,
             error:
-              'Given names and family name are required for individual associates',
+              "Given names and family name are required for individual associates",
           };
           return NextResponse.json(response, { status: 400 });
         }
@@ -86,7 +86,7 @@ export async function PUT(
         if (!body.entityName) {
           const response: ApiResponse = {
             success: false,
-            error: 'Entity name is required for corporate associates',
+            error: "Entity name is required for corporate associates",
           };
           return NextResponse.json(response, { status: 400 });
         }
@@ -96,7 +96,7 @@ export async function PUT(
     // Automatically set status based on resignation date if not explicitly provided
     let statusToSet = body.status;
     if (!statusToSet && body.resignationDate !== undefined) {
-      statusToSet = body.resignationDate ? 'Resigned' : 'Active';
+      statusToSet = body.resignationDate ? "Resigned" : "Active";
     }
 
     const associate = await prisma.associate.update({
@@ -142,15 +142,15 @@ export async function PUT(
     const response: ApiResponse<any> = {
       success: true,
       data: associate,
-      message: 'Associate updated successfully',
+      message: "Associate updated successfully",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error updating associate:', error);
+    console.error("Error updating associate:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to update associate',
+      error: "Failed to update associate",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -172,7 +172,7 @@ export async function DELETE(
     if (!existingAssociate) {
       const response: ApiResponse = {
         success: false,
-        error: 'Associate not found',
+        error: "Associate not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -183,15 +183,15 @@ export async function DELETE(
 
     const response: ApiResponse = {
       success: true,
-      message: 'Associate deleted successfully',
+      message: "Associate deleted successfully",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error deleting associate:', error);
+    console.error("Error deleting associate:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to delete associate',
+      error: "Failed to delete associate",
     };
     return NextResponse.json(response, { status: 500 });
   }

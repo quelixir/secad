@@ -1,19 +1,19 @@
-import { z } from 'zod';
+import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
-} from '@/lib/trpc';
-import { prisma } from '@/lib/db';
-import { TRPCError } from '@trpc/server';
-import { getDefaultCurrencyCode } from '@/lib/config';
+} from "@/lib/trpc";
+import { prisma } from "@/lib/db";
+import { TRPCError } from "@trpc/server";
+import { getDefaultCurrencyCode } from "@/lib/config";
 
 const transactionInputSchema = z.object({
   entityId: z.string(),
   securityClassId: z.string(),
-  transactionType: z.string().min(1, 'Transaction type is required'),
-  reasonCode: z.string().min(1, 'Reason code is required'),
-  quantity: z.number().positive('Quantity must be positive'),
+  transactionType: z.string().min(1, "Transaction type is required"),
+  reasonCode: z.string().min(1, "Reason code is required"),
+  quantity: z.number().positive("Quantity must be positive"),
   amountPaidPerSecurity: z.number().optional(),
   amountUnpaidPerSecurity: z.number().optional(),
   currencyCode: z.string().default(getDefaultCurrencyCode()),
@@ -26,7 +26,7 @@ const transactionInputSchema = z.object({
   reference: z.string().optional(),
   description: z.string().optional(),
   certificateNumber: z.string().optional(),
-  status: z.string().default('Pending'),
+  status: z.string().default("Pending"),
 });
 
 const transactionUpdateSchema = transactionInputSchema.partial().extend({
@@ -40,8 +40,8 @@ export const transactionsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       if (!ctx.user?.id) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
         });
       }
       const access = await prisma.userEntityAccess.findUnique({
@@ -51,8 +51,8 @@ export const transactionsRouter = createTRPCRouter({
       });
       if (!access) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'No access to this entity',
+          code: "UNAUTHORIZED",
+          message: "No access to this entity",
         });
       }
       try {
@@ -65,7 +65,7 @@ export const transactionsRouter = createTRPCRouter({
             securityClass: true,
           },
           orderBy: {
-            settlementDate: 'desc',
+            settlementDate: "desc",
           },
         });
 
@@ -75,8 +75,8 @@ export const transactionsRouter = createTRPCRouter({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch transactions',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch transactions",
           cause: error,
         });
       }
@@ -99,8 +99,8 @@ export const transactionsRouter = createTRPCRouter({
 
         if (!transaction) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Transaction not found',
+            code: "NOT_FOUND",
+            message: "Transaction not found",
           });
         }
 
@@ -111,8 +111,8 @@ export const transactionsRouter = createTRPCRouter({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch transaction',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch transaction",
           cause: error,
         });
       }
@@ -149,12 +149,12 @@ export const transactionsRouter = createTRPCRouter({
         return {
           success: true,
           data: transaction,
-          message: 'Transaction created successfully',
+          message: "Transaction created successfully",
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create transaction',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create transaction",
           cause: error,
         });
       }
@@ -175,21 +175,21 @@ export const transactionsRouter = createTRPCRouter({
         return {
           success: true,
           data: transaction,
-          message: 'Transaction updated successfully',
+          message: "Transaction updated successfully",
         };
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message.includes('Record to update not found')
+          error.message.includes("Record to update not found")
         ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Transaction not found',
+            code: "NOT_FOUND",
+            message: "Transaction not found",
           });
         }
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update transaction',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update transaction",
           cause: error,
         });
       }
@@ -206,21 +206,21 @@ export const transactionsRouter = createTRPCRouter({
 
         return {
           success: true,
-          message: 'Transaction deleted successfully',
+          message: "Transaction deleted successfully",
         };
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message.includes('Record to delete does not exist')
+          error.message.includes("Record to delete does not exist")
         ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Transaction not found',
+            code: "NOT_FOUND",
+            message: "Transaction not found",
           });
         }
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete transaction',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete transaction",
           cause: error,
         });
       }

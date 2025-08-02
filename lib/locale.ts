@@ -8,7 +8,7 @@
  * @returns The configured locale or 'en-US' as fallback
  */
 export function getLocale(): string {
-  return process.env.LOCALE || 'en-US';
+  return process.env.LOCALE || "en-US";
 }
 
 /**

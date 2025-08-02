@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 import {
   EntitySettingsResponse,
   EntitySettingsUpdateRequest,
   EntitySettings,
-} from '@/lib/types/interfaces';
+} from "@/lib/types/interfaces";
 
 export async function GET(
   request: NextRequest,
@@ -23,7 +23,7 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          error: 'Entity not found',
+          error: "Entity not found",
         },
         { status: 404 }
       );
@@ -40,11 +40,11 @@ export async function GET(
       data: settings,
     });
   } catch (error) {
-    console.error('Error fetching entity settings:', error);
+    console.error("Error fetching entity settings:", error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch entity settings',
+        error: "Failed to fetch entity settings",
       },
       { status: 500 }
     );
@@ -67,7 +67,7 @@ export async function PATCH(
     if (!entity) {
       const response: EntitySettingsResponse = {
         success: false,
-        error: 'Entity not found',
+        error: "Entity not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -78,11 +78,11 @@ export async function PATCH(
     // Validate update data
     if (
       updateData.certificatesEnabled !== undefined &&
-      typeof updateData.certificatesEnabled !== 'boolean'
+      typeof updateData.certificatesEnabled !== "boolean"
     ) {
       const response: EntitySettingsResponse = {
         success: false,
-        error: 'certificatesEnabled must be a boolean',
+        error: "certificatesEnabled must be a boolean",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -118,14 +118,14 @@ export async function PATCH(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error updating entity settings:', error);
+    console.error("Error updating entity settings:", error);
 
     // Handle specific Prisma errors
     if (error instanceof Error) {
-      if (error.message.includes('Invalid JSON')) {
+      if (error.message.includes("Invalid JSON")) {
         const response: EntitySettingsResponse = {
           success: false,
-          error: 'Invalid JSON in certificateSettings',
+          error: "Invalid JSON in certificateSettings",
         };
         return NextResponse.json(response, { status: 400 });
       }
@@ -133,7 +133,7 @@ export async function PATCH(
 
     const response: EntitySettingsResponse = {
       success: false,
-      error: 'Failed to update entity settings',
+      error: "Failed to update entity settings",
     };
     return NextResponse.json(response, { status: 500 });
   }

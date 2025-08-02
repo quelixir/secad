@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse, ResolutionInput } from '@/lib/types';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse, ResolutionInput } from "@/lib/types";
 
 // GET /api/resolutions/[id] - Get a specific resolution
 export async function GET(
@@ -25,7 +25,7 @@ export async function GET(
     if (!resolution) {
       const response: ApiResponse = {
         success: false,
-        error: 'Resolution not found',
+        error: "Resolution not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -37,10 +37,10 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error: any) {
-    console.error('Error fetching resolution:', error);
+    console.error("Error fetching resolution:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch resolution',
+      error: "Failed to fetch resolution",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -63,7 +63,7 @@ export async function PUT(
     if (!existingResolution) {
       const response: ApiResponse = {
         success: false,
-        error: 'Resolution not found',
+        error: "Resolution not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -113,15 +113,15 @@ export async function PUT(
     const response: ApiResponse<any> = {
       success: true,
       data: resolution,
-      message: 'Resolution updated successfully',
+      message: "Resolution updated successfully",
     };
 
     return NextResponse.json(response);
   } catch (error: any) {
-    console.error('Error updating resolution:', error);
+    console.error("Error updating resolution:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to update resolution',
+      error: "Failed to update resolution",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -143,7 +143,7 @@ export async function DELETE(
     if (!existingResolution) {
       const response: ApiResponse = {
         success: false,
-        error: 'Resolution not found',
+        error: "Resolution not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -154,15 +154,15 @@ export async function DELETE(
 
     const response: ApiResponse = {
       success: true,
-      message: 'Resolution deleted successfully',
+      message: "Resolution deleted successfully",
     };
 
     return NextResponse.json(response);
   } catch (error: any) {
-    console.error('Error deleting resolution:', error);
+    console.error("Error deleting resolution:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to delete resolution',
+      error: "Failed to delete resolution",
     };
     return NextResponse.json(response, { status: 500 });
   }

@@ -1,24 +1,24 @@
 export enum AuditAction {
-  CREATE = 'CREATE',
-  UPDATE = 'UPDATE',
-  DELETE = 'DELETE',
-  ARCHIVE = 'ARCHIVE',
-  UNARCHIVE = 'UNARCHIVE',
-  CERTIFICATE_GENERATED = 'CERTIFICATE_GENERATED',
-  CERTIFICATE_DOWNLOADED = 'CERTIFICATE_DOWNLOADED',
-  CERTIFICATE_ACCESSED = 'CERTIFICATE_ACCESSED',
+  CREATE = "CREATE",
+  UPDATE = "UPDATE",
+  DELETE = "DELETE",
+  ARCHIVE = "ARCHIVE",
+  UNARCHIVE = "UNARCHIVE",
+  CERTIFICATE_GENERATED = "CERTIFICATE_GENERATED",
+  CERTIFICATE_DOWNLOADED = "CERTIFICATE_DOWNLOADED",
+  CERTIFICATE_ACCESSED = "CERTIFICATE_ACCESSED",
 }
 
 export enum AuditTableName {
   // Registry module
-  MEMBER = 'Member',
-  SECURITY_CLASS = 'SecurityClass',
-  TRANSACTION = 'Transaction',
-  MEMBER_CONTACT = 'MemberContact',
+  MEMBER = "Member",
+  SECURITY_CLASS = "SecurityClass",
+  TRANSACTION = "Transaction",
+  MEMBER_CONTACT = "MemberContact",
 
   // Certificate system
-  CERTIFICATE = 'Certificate',
-  CERTIFICATE_TEMPLATE = 'CertificateTemplate',
+  CERTIFICATE = "Certificate",
+  CERTIFICATE_TEMPLATE = "CertificateTemplate",
 
   // Future modules can add their table names here
   // DOCUMENT = 'Document',

@@ -1,27 +1,27 @@
-import { z } from 'zod';
+import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
-} from '@/lib/trpc';
-import { prisma } from '@/lib/db';
-import { TRPCError } from '@trpc/server';
-import { compliancePackRegistration } from '@/lib/compliance';
-import type { inferAsyncReturnType } from '@trpc/server';
-import type { createTRPCContext } from '@/lib/trpc';
-import { getDefaultCountry } from '@/lib/config';
+} from "@/lib/trpc";
+import { prisma } from "@/lib/db";
+import { TRPCError } from "@trpc/server";
+import { compliancePackRegistration } from "@/lib/compliance";
+import type { inferAsyncReturnType } from "@trpc/server";
+import type { createTRPCContext } from "@/lib/trpc";
+import { getDefaultCountry } from "@/lib/config";
 
 type Context = inferAsyncReturnType<typeof createTRPCContext>;
 
 const entityIdentifierSchema = z.object({
-  type: z.string().min(1, 'Identifier type is required'),
-  value: z.string().min(1, 'Identifier value is required'),
-  country: z.string().min(1, 'Country is required'),
+  type: z.string().min(1, "Identifier type is required"),
+  value: z.string().min(1, "Identifier value is required"),
+  country: z.string().min(1, "Country is required"),
 });
 
 const createEntitySchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  entityTypeId: z.string().min(1, 'Entity type is required'),
+  name: z.string().min(1, "Name is required"),
+  entityTypeId: z.string().min(1, "Entity type is required"),
   incorporationDate: z.string().optional(),
   incorporationCountry: z.string().default(getDefaultCountry()),
   incorporationState: z.string().optional(),
@@ -29,9 +29,9 @@ const createEntitySchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   postcode: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
+  email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
-  website: z.string().url().optional().or(z.literal('')),
+  website: z.string().url().optional().or(z.literal("")),
   identifiers: z.array(entityIdentifierSchema).optional().default([]),
 });
 
@@ -46,9 +46,9 @@ const updateEntitySchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   postcode: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
+  email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
-  website: z.string().url().optional().or(z.literal('')),
+  website: z.string().url().optional().or(z.literal("")),
   identifiers: z.array(entityIdentifierSchema).optional().default([]),
 });
 
@@ -59,8 +59,8 @@ export const entitiesRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
     if (!ctx.user?.id) {
       throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'User not authenticated',
+        code: "UNAUTHORIZED",
+        message: "User not authenticated",
       });
     }
     return await prisma.entity.findMany({
@@ -80,15 +80,15 @@ export const entitiesRouter = createTRPCRouter({
     .input(
       z
         .object({
-          include: z.enum(['details', 'basic']).default('basic'),
+          include: z.enum(["details", "basic"]).default("basic"),
         })
-        .optional()
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       if (!ctx.user?.id) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
         });
       }
       try {
@@ -99,7 +99,7 @@ export const entitiesRouter = createTRPCRouter({
             },
           },
           include:
-            input?.include === 'details'
+            input?.include === "details"
               ? {
                   identifiers: true,
                   _count: {
@@ -115,7 +115,7 @@ export const entitiesRouter = createTRPCRouter({
                   identifiers: true,
                 },
           orderBy: {
-            name: 'asc',
+            name: "asc",
           },
         });
 
@@ -125,8 +125,8 @@ export const entitiesRouter = createTRPCRouter({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch entities',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch entities",
           cause: error,
         });
       }
@@ -163,8 +163,8 @@ export const entitiesRouter = createTRPCRouter({
 
         if (!entity) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Entity not found',
+            code: "NOT_FOUND",
+            message: "Entity not found",
           });
         }
 
@@ -175,8 +175,8 @@ export const entitiesRouter = createTRPCRouter({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch entity',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch entity",
           cause: error,
         });
       }
@@ -195,13 +195,13 @@ export const entitiesRouter = createTRPCRouter({
       }) => {
         const entityType = compliancePackRegistration.getEntityType(
           entityData.incorporationCountry || getDefaultCountry(),
-          entityData.entityTypeId
+          entityData.entityTypeId,
         );
 
         if (!entityType) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Invalid entity type',
+            code: "BAD_REQUEST",
+            message: "Invalid entity type",
           });
         }
 
@@ -213,7 +213,7 @@ export const entitiesRouter = createTRPCRouter({
           const entity = await tx.entity.create({
             data: {
               ...entityDataWithoutIdentifiers,
-              status: 'Active',
+              status: "Active",
               identifiers: {
                 create: identifiers.map((identifier) => ({
                   type: identifier.type,
@@ -231,21 +231,21 @@ export const entitiesRouter = createTRPCRouter({
           // Grant Admin access to creator
           if (!ctx.user?.id) {
             throw new TRPCError({
-              code: 'UNAUTHORIZED',
-              message: 'User not authenticated',
+              code: "UNAUTHORIZED",
+              message: "User not authenticated",
             });
           }
           await tx.userEntityAccess.create({
             data: {
               userId: ctx.user.id,
               entityId: entity.id,
-              role: 'Admin',
+              role: "Admin",
             },
           });
 
           return entity;
         });
-      }
+      },
     ),
 
   // Update entity
@@ -262,13 +262,13 @@ export const entitiesRouter = createTRPCRouter({
         if (updateData.entityTypeId !== undefined) {
           const entityType = compliancePackRegistration.getEntityType(
             updateData.incorporationCountry || getDefaultCountry(),
-            updateData.entityTypeId
+            updateData.entityTypeId,
           );
 
           if (!entityType) {
             throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Invalid entity type',
+              code: "BAD_REQUEST",
+              message: "Invalid entity type",
             });
           }
         }
@@ -297,7 +297,7 @@ export const entitiesRouter = createTRPCRouter({
             identifiers: true,
           },
         });
-      }
+      },
     ),
 
   // Delete entity
@@ -311,21 +311,21 @@ export const entitiesRouter = createTRPCRouter({
 
         return {
           success: true,
-          message: 'Entity deleted successfully',
+          message: "Entity deleted successfully",
         };
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message.includes('Record to delete does not exist')
+          error.message.includes("Record to delete does not exist")
         ) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Entity not found',
+            code: "NOT_FOUND",
+            message: "Entity not found",
           });
         }
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete entity',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete entity",
           cause: error,
         });
       }

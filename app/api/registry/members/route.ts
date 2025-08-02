@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse, MemberInput, MemberType } from '@/lib/types';
-import { AuditLogger, AuditTableName } from '@/lib/audit';
-import { auth } from '@/lib/auth';
-import { getDefaultCountry } from '@/lib/config';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse, MemberInput, MemberType } from "@/lib/types";
+import { AuditLogger, AuditTableName } from "@/lib/audit";
+import { auth } from "@/lib/auth";
+import { getDefaultCountry } from "@/lib/config";
 
 // GET /api/members - List all members (optionally filtered by entity)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const entityId = searchParams.get('entityId');
+    const entityId = searchParams.get("entityId");
 
     const whereClause = entityId ? { entityId } : {};
 
@@ -19,10 +19,10 @@ export async function GET(request: NextRequest) {
         entity: true,
       },
       orderBy: [
-        { entity: { name: 'asc' } },
-        { familyName: 'asc' },
-        { givenNames: 'asc' },
-        { entityName: 'asc' },
+        { entity: { name: "asc" } },
+        { familyName: "asc" },
+        { givenNames: "asc" },
+        { entityName: "asc" },
       ],
     });
 
@@ -33,10 +33,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching members:', error);
+    console.error("Error fetching members:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch members',
+      error: "Failed to fetch members",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
       };
       return NextResponse.json(response, { status: 401 });
     }
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (!body.entityId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Entity ID is required',
+        error: "Entity ID is required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     if (!body.memberType) {
       const response: ApiResponse = {
         success: false,
-        error: 'Member type is required',
+        error: "Member type is required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -83,18 +83,18 @@ export async function POST(request: NextRequest) {
       const response: ApiResponse = {
         success: false,
         error:
-          'Given names and family name are required for individual members',
+          "Given names and family name are required for individual members",
       };
       return NextResponse.json(response, { status: 400 });
     }
 
     if (
-      body.memberType === 'Joint' &&
+      body.memberType === "Joint" &&
       (!body.jointPersons || body.jointPersons.length < 2)
     ) {
       const response: ApiResponse = {
         success: false,
-        error: 'For joint members, at least 2 persons are required',
+        error: "For joint members, at least 2 persons are required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     ) {
       const response: ApiResponse = {
         success: false,
-        error: 'Entity name is required for non-individual members',
+        error: "Entity name is required for non-individual members",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       if (existingMember) {
         const response: ApiResponse = {
           success: false,
-          error: 'Member number already exists for this entity',
+          error: "Member number already exists for this entity",
         };
         return NextResponse.json(response, { status: 409 });
       }
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
         abn: body.abn || null,
         createdBy: userId, // Use actual user ID from auth
         jointPersons:
-          body.memberType === 'Joint' && body.jointPersons
+          body.memberType === "Joint" && body.jointPersons
             ? {
                 create: body.jointPersons.map((person: any, index: number) => ({
                   givenNames: person.givenNames || null,
@@ -180,19 +180,19 @@ export async function POST(request: NextRequest) {
     const response: ApiResponse<any> = {
       success: true,
       data: member,
-      message: 'Member created successfully',
+      message: "Member created successfully",
     };
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error('Error creating member:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
+    console.error("Error creating member:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
     });
     const response: ApiResponse = {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to create member',
+      error: error instanceof Error ? error.message : "Failed to create member",
     };
     return NextResponse.json(response, { status: 500 });
   }

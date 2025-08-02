@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse, TransactionInput } from '@/lib/types';
-import { Decimal } from '@prisma/client/runtime/library';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse, TransactionInput } from "@/lib/types";
+import { Decimal } from "@prisma/client/runtime/library";
 
 // GET /api/transactions/[id] - Get a specific transaction
 export async function GET(
@@ -24,7 +24,7 @@ export async function GET(
     if (!transaction) {
       const response: ApiResponse = {
         success: false,
-        error: 'Transaction not found',
+        error: "Transaction not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -36,10 +36,10 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching transaction:', error);
+    console.error("Error fetching transaction:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch transaction',
+      error: "Failed to fetch transaction",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -62,7 +62,7 @@ export async function PUT(
     if (!existingTransaction) {
       const response: ApiResponse = {
         success: false,
-        error: 'Transaction not found',
+        error: "Transaction not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -150,15 +150,15 @@ export async function PUT(
     const response: ApiResponse = {
       success: true,
       data: transaction,
-      message: 'Transaction updated successfully',
+      message: "Transaction updated successfully",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error updating transaction:', error);
+    console.error("Error updating transaction:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to update transaction',
+      error: "Failed to update transaction",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -180,7 +180,7 @@ export async function DELETE(
     if (!existingTransaction) {
       const response: ApiResponse = {
         success: false,
-        error: 'Transaction not found',
+        error: "Transaction not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -191,15 +191,15 @@ export async function DELETE(
 
     const response: ApiResponse = {
       success: true,
-      message: 'Transaction deleted successfully',
+      message: "Transaction deleted successfully",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error deleting transaction:', error);
+    console.error("Error deleting transaction:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to delete transaction',
+      error: "Failed to delete transaction",
     };
     return NextResponse.json(response, { status: 500 });
   }

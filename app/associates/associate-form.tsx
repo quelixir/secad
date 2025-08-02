@@ -1,150 +1,198 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { Button } from '@/components/ui/button'
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { Plus, Trash2 } from 'lucide-react'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, Trash2 } from "lucide-react";
 
-import { AssociateType } from '@/lib/types'
-import { CountrySelect } from '@/components/ui/country-select'
-import { StateSelect } from '@/components/ui/state-select'
-import { getDefaultCountry } from '@/lib/config'
+import { AssociateType } from "@/lib/types";
+import { CountrySelect } from "@/components/ui/country-select";
+import { StateSelect } from "@/components/ui/state-select";
+import { getDefaultCountry } from "@/lib/config";
 
-const associateFormSchema = z.object({
-  type: z.string().min(1, 'Associate type is required'),
-  isIndividual: z.boolean(),
-  givenNames: z.string().optional(),
-  familyName: z.string().optional(),
-  dateOfBirth: z.string().optional(),
-  previousNames: z.array(z.string()).optional(),
-  entityName: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  postcode: z.string().optional().refine((val) => !val || /^\d{4}$/.test(val), 'Postcode must be 4 digits'),
-  country: z.string().optional(),
-  appointmentDate: z.string().optional(),
-  resignationDate: z.string().optional(),
-  notes: z.string().optional()
-}).refine((data) => {
-  if (data.isIndividual) {
-    return data.givenNames && data.familyName
-  } else {
-    return data.entityName
-  }
-}, {
-  message: 'For individuals, given names and family name are required. For entities, entity name is required.',
-  path: ['givenNames']
-})
+const associateFormSchema = z
+  .object({
+    type: z.string().min(1, "Associate type is required"),
+    isIndividual: z.boolean(),
+    givenNames: z.string().optional(),
+    familyName: z.string().optional(),
+    dateOfBirth: z.string().optional(),
+    previousNames: z.array(z.string()).optional(),
+    entityName: z.string().optional(),
+    email: z.string().email().optional().or(z.literal("")),
+    phone: z.string().optional(),
+    address: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    postcode: z
+      .string()
+      .optional()
+      .refine(
+        (val) => !val || /^\d{4}$/.test(val),
+        "Postcode must be 4 digits"
+      ),
+    country: z.string().optional(),
+    appointmentDate: z.string().optional(),
+    resignationDate: z.string().optional(),
+    notes: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.isIndividual) {
+        return data.givenNames && data.familyName;
+      } else {
+        return data.entityName;
+      }
+    },
+    {
+      message:
+        "For individuals, given names and family name are required. For entities, entity name is required.",
+      path: ["givenNames"],
+    }
+  );
 
-type AssociateFormValues = z.infer<typeof associateFormSchema>
+type AssociateFormValues = z.infer<typeof associateFormSchema>;
 
 interface AssociateFormProps {
-  entityId: string
-  associate?: any
-  onSaved: () => void
+  entityId: string;
+  associate?: any;
+  onSaved: () => void;
 }
 
-export function AssociateForm({ entityId, associate, onSaved }: AssociateFormProps) {
-  const [loading, setLoading] = useState(false)
-  const [newPreviousName, setNewPreviousName] = useState('')
+export function AssociateForm({
+  entityId,
+  associate,
+  onSaved,
+}: AssociateFormProps) {
+  const [loading, setLoading] = useState(false);
+  const [newPreviousName, setNewPreviousName] = useState("");
 
   const form = useForm<AssociateFormValues>({
     resolver: zodResolver(associateFormSchema),
     defaultValues: {
-      type: associate?.type || 'officeholder_director',
+      type: associate?.type || "officeholder_director",
       isIndividual: associate?.isIndividual ?? true,
-      givenNames: associate?.givenNames || '',
-      familyName: associate?.familyName || '',
-      dateOfBirth: associate?.dateOfBirth ? associate.dateOfBirth.split('T')[0] : '',
+      givenNames: associate?.givenNames || "",
+      familyName: associate?.familyName || "",
+      dateOfBirth: associate?.dateOfBirth
+        ? associate.dateOfBirth.split("T")[0]
+        : "",
       previousNames: associate?.previousNames || [],
-      entityName: associate?.entityName || '',
-      email: associate?.email || '',
-      phone: associate?.phone || '',
-      address: associate?.address || '',
-      city: associate?.city || '',
-      state: associate?.state || '',
-      postcode: associate?.postcode || '',
+      entityName: associate?.entityName || "",
+      email: associate?.email || "",
+      phone: associate?.phone || "",
+      address: associate?.address || "",
+      city: associate?.city || "",
+      state: associate?.state || "",
+      postcode: associate?.postcode || "",
       country: associate?.country || getDefaultCountry(),
-      appointmentDate: associate?.appointmentDate ? associate.appointmentDate.split('T')[0] : '',
-      resignationDate: associate?.resignationDate ? associate.resignationDate.split('T')[0] : '',
-      notes: associate?.notes || ''
-    }
-  })
+      appointmentDate: associate?.appointmentDate
+        ? associate.appointmentDate.split("T")[0]
+        : "",
+      resignationDate: associate?.resignationDate
+        ? associate.resignationDate.split("T")[0]
+        : "",
+      notes: associate?.notes || "",
+    },
+  });
 
-  const isIndividual = form.watch('isIndividual')
-  const previousNames = form.watch('previousNames') || []
-  const selectedCountry = form.watch('country')
+  const isIndividual = form.watch("isIndividual");
+  const previousNames = form.watch("previousNames") || [];
+  const selectedCountry = form.watch("country");
 
   const addPreviousName = () => {
     if (newPreviousName.trim()) {
-      const currentNames = form.getValues('previousNames') || []
-      form.setValue('previousNames', [...currentNames, newPreviousName.trim()])
-      setNewPreviousName('')
+      const currentNames = form.getValues("previousNames") || [];
+      form.setValue("previousNames", [...currentNames, newPreviousName.trim()]);
+      setNewPreviousName("");
     }
-  }
+  };
 
   const removePreviousName = (index: number) => {
-    const currentNames = form.getValues('previousNames') || []
-    const updatedNames = currentNames.filter((_, i) => i !== index)
-    form.setValue('previousNames', updatedNames)
-  }
+    const currentNames = form.getValues("previousNames") || [];
+    const updatedNames = currentNames.filter((_, i) => i !== index);
+    form.setValue("previousNames", updatedNames);
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      addPreviousName()
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addPreviousName();
     }
-  }
+  };
 
   const onSubmit = async (values: AssociateFormValues) => {
     try {
-      setLoading(true)
+      setLoading(true);
 
       const requestData = {
         entityId,
         ...values,
-        dateOfBirth: values.dateOfBirth ? new Date(values.dateOfBirth).toISOString() : undefined,
-        appointmentDate: values.appointmentDate ? new Date(values.appointmentDate).toISOString() : undefined,
-        resignationDate: values.resignationDate ? new Date(values.resignationDate).toISOString() : undefined,
-        previousNames: values.previousNames?.filter(name => name.length > 0) || []
-      }
+        dateOfBirth: values.dateOfBirth
+          ? new Date(values.dateOfBirth).toISOString()
+          : undefined,
+        appointmentDate: values.appointmentDate
+          ? new Date(values.appointmentDate).toISOString()
+          : undefined,
+        resignationDate: values.resignationDate
+          ? new Date(values.resignationDate).toISOString()
+          : undefined,
+        previousNames:
+          values.previousNames?.filter((name) => name.length > 0) || [],
+      };
 
-      const url = associate ? `/api/associates/${associate.id}` : '/api/associates'
-      const method = associate ? 'PUT' : 'POST'
+      const url = associate
+        ? `/api/associates/${associate.id}`
+        : "/api/associates";
+      const method = associate ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(requestData),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to save associate')
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save associate");
       }
 
-      onSaved()
+      onSaved();
     } catch (error) {
-      console.error('Error saving associate:', error)
-      form.setError('root', {
-        type: 'manual',
-        message: error instanceof Error ? error.message : 'An error occurred while saving'
-      })
+      console.error("Error saving associate:", error);
+      form.setError("root", {
+        type: "manual",
+        message:
+          error instanceof Error
+            ? error.message
+            : "An error occurred while saving",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="max-h-[80vh] overflow-y-auto px-1">
@@ -158,15 +206,22 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select associate type" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value={AssociateType.OFFICEHOLDER_DIRECTOR}>Director</SelectItem>
-                      <SelectItem value={AssociateType.OFFICEHOLDER_SECRETARY}>Secretary</SelectItem>
+                      <SelectItem value={AssociateType.OFFICEHOLDER_DIRECTOR}>
+                        Director
+                      </SelectItem>
+                      <SelectItem value={AssociateType.OFFICEHOLDER_SECRETARY}>
+                        Secretary
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -180,7 +235,12 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Associate Type</FormLabel>
-                  <Select onValueChange={(value: string) => field.onChange(value === 'true')} defaultValue={field.value ? 'true' : 'false'}>
+                  <Select
+                    onValueChange={(value: string) =>
+                      field.onChange(value === "true")
+                    }
+                    defaultValue={field.value ? "true" : "false"}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select associate type" />
@@ -243,7 +303,9 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
-                    <FormDescription>Date of birth for the individual</FormDescription>
+                    <FormDescription>
+                      Date of birth for the individual
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -278,7 +340,10 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                         {previousNames.length > 0 && (
                           <div className="space-y-1">
                             {previousNames.map((name, index) => (
-                              <div key={index} className="flex items-center justify-between bg-muted/50 p-2 rounded-md">
+                              <div
+                                key={index}
+                                className="flex items-center justify-between bg-muted/50 p-2 rounded-md"
+                              >
                                 <span className="text-sm">{name}</span>
                                 <Button
                                   type="button"
@@ -295,7 +360,9 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                         )}
                       </div>
                     </FormControl>
-                    <FormDescription>Previous names the individual has used</FormDescription>
+                    <FormDescription>
+                      Previous names the individual has used
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -317,7 +384,9 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                     <FormControl>
                       <Input placeholder="ABC Holdings Pty Ltd" {...field} />
                     </FormControl>
-                    <FormDescription>Full legal name of the corporate entity</FormDescription>
+                    <FormDescription>
+                      Full legal name of the corporate entity
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -337,7 +406,11 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="john@example.com" {...field} />
+                      <Input
+                        type="email"
+                        placeholder="john@example.com"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -464,14 +537,16 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                       <button
                         type="button"
                         onClick={() => {
-                          const today = new Date().toISOString().split('T')[0]
-                          form.setValue('appointmentDate', today)
+                          const today = new Date().toISOString().split("T")[0];
+                          form.setValue("appointmentDate", today);
                         }}
                         className="text-xs text-blue-600 hover:text-blue-800 underline"
                       >
                         Today
                       </button>
-                      <FormDescription>Date when the person was appointed to this role</FormDescription>
+                      <FormDescription>
+                        Date when the person was appointed to this role
+                      </FormDescription>
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -492,8 +567,10 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                         <button
                           type="button"
                           onClick={() => {
-                            const today = new Date().toISOString().split('T')[0]
-                            form.setValue('resignationDate', today)
+                            const today = new Date()
+                              .toISOString()
+                              .split("T")[0];
+                            form.setValue("resignationDate", today);
                           }}
                           className="text-xs text-blue-600 hover:text-blue-800 underline"
                         >
@@ -503,7 +580,7 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                           <button
                             type="button"
                             onClick={() => {
-                              form.setValue('resignationDate', '')
+                              form.setValue("resignationDate", "");
                             }}
                             className="text-xs text-red-600 hover:text-red-800 underline"
                           >
@@ -511,7 +588,12 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
                           </button>
                         )}
                       </div>
-                      <FormDescription>Date when the person resigned from this role. Setting this date will automatically mark the associate as "Resigned". Clearing this field will mark them as "Active".</FormDescription>
+                      <FormDescription>
+                        Date when the person resigned from this role. Setting
+                        this date will automatically mark the associate as
+                        "Resigned". Clearing this field will mark them as
+                        "Active".
+                      </FormDescription>
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -549,11 +631,15 @@ export function AssociateForm({ entityId, associate, onSaved }: AssociateFormPro
           {/* Form Actions */}
           <div className="flex justify-end space-x-4 pt-4 border-t bg-background sticky bottom-0">
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving...' : associate ? 'Update Associate' : 'Add Associate'}
+              {loading
+                ? "Saving..."
+                : associate
+                ? "Update Associate"
+                : "Add Associate"}
             </Button>
           </div>
         </form>
       </Form>
     </div>
-  )
-} 
+  );
+}

@@ -4,7 +4,7 @@ export interface CertificateTemplate {
   description?: string;
   templateHtml: string;
   templateCss?: string;
-  scope: 'GLOBAL' | 'USER' | 'ENTITY';
+  scope: "GLOBAL" | "USER" | "ENTITY";
   scopeId?: string | null;
   isDefault: boolean;
   isActive: boolean;
@@ -18,7 +18,7 @@ export interface CertificateTemplateInput {
   description?: string;
   templateHtml: string;
   templateCss?: string;
-  scope: 'GLOBAL' | 'USER' | 'ENTITY';
+  scope: "GLOBAL" | "USER" | "ENTITY";
   scopeId?: string | null;
   isDefault?: boolean;
   isActive?: boolean;
@@ -29,7 +29,7 @@ export interface CertificateTemplateUpdateInput {
   description?: string;
   templateHtml?: string;
   templateCss?: string;
-  scope?: 'GLOBAL' | 'USER' | 'ENTITY'; // Added to match test expectations
+  scope?: "GLOBAL" | "USER" | "ENTITY"; // Added to match test expectations
   scopeId?: string | null; // Added to match test expectations
   isDefault?: boolean;
   isActive?: boolean;

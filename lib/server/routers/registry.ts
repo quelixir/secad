@@ -1,11 +1,11 @@
-import { z } from 'zod';
+import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
-} from '@/lib/trpc';
-import { prisma } from '@/lib/db';
-import { TRPCError } from '@trpc/server';
+} from "@/lib/trpc";
+import { prisma } from "@/lib/db";
+import { TRPCError } from "@trpc/server";
 
 export const registryRouter = createTRPCRouter({
   // Get registry summary for an entity
@@ -14,8 +14,8 @@ export const registryRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       if (!ctx.user?.id) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
         });
       }
       const access = await prisma.userEntityAccess.findUnique({
@@ -25,8 +25,8 @@ export const registryRouter = createTRPCRouter({
       });
       if (!access) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'No access to this entity',
+          code: "UNAUTHORIZED",
+          message: "No access to this entity",
         });
       }
       try {
@@ -63,7 +63,7 @@ export const registryRouter = createTRPCRouter({
                 postedDate: true,
                 status: true,
               },
-              orderBy: { settlementDate: 'desc' },
+              orderBy: { settlementDate: "desc" },
               take: 10,
             }),
             prisma.associate.findMany({
@@ -74,26 +74,29 @@ export const registryRouter = createTRPCRouter({
 
         if (!entity) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Entity not found',
+            code: "NOT_FOUND",
+            message: "Entity not found",
           });
         }
 
         // Calculate totals
         const totalSecurities = securities.reduce(
           (sum, sec) => sum + (sec.symbol ? 1 : 0),
-          0
+          0,
         );
         const totalTransactions = transactions.length;
         const totalMembers = members.length;
         const totalAssociates = associates.length;
 
         // Calculate transaction totals by type
-        const transactionTotals = transactions.reduce((acc, txn) => {
-          acc[txn.transactionType] =
-            (acc[txn.transactionType] || 0) + txn.quantity;
-          return acc;
-        }, {} as Record<string, number>);
+        const transactionTotals = transactions.reduce(
+          (acc, txn) => {
+            acc[txn.transactionType] =
+              (acc[txn.transactionType] || 0) + txn.quantity;
+            return acc;
+          },
+          {} as Record<string, number>,
+        );
 
         return {
           success: true,
@@ -112,8 +115,8 @@ export const registryRouter = createTRPCRouter({
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch registry summary',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch registry summary",
           cause: error,
         });
       }
@@ -133,7 +136,7 @@ export const registryRouter = createTRPCRouter({
                 toMember: true,
               },
               orderBy: {
-                settlementDate: 'desc',
+                settlementDate: "desc",
               },
             },
             _count: {
@@ -143,7 +146,7 @@ export const registryRouter = createTRPCRouter({
             },
           },
           orderBy: {
-            name: 'asc',
+            name: "asc",
           },
         });
 
@@ -153,8 +156,8 @@ export const registryRouter = createTRPCRouter({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch registry securities',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch registry securities",
           cause: error,
         });
       }
@@ -180,9 +183,9 @@ export const registryRouter = createTRPCRouter({
             },
           },
           orderBy: [
-            { familyName: 'asc' },
-            { givenNames: 'asc' },
-            { entityName: 'asc' },
+            { familyName: "asc" },
+            { givenNames: "asc" },
+            { entityName: "asc" },
           ],
         });
 
@@ -197,13 +200,13 @@ export const registryRouter = createTRPCRouter({
             const key = `${securityName} (${securityId})`;
 
             if (
-              txn.transactionType === 'ISSUE' ||
-              txn.transactionType === 'TRANSFER'
+              txn.transactionType === "ISSUE" ||
+              txn.transactionType === "TRANSFER"
             ) {
               holdings[key] = (holdings[key] || 0) + txn.quantity;
             } else if (
-              txn.transactionType === 'CANCELLATION' ||
-              txn.transactionType === 'REDEMPTION'
+              txn.transactionType === "CANCELLATION" ||
+              txn.transactionType === "REDEMPTION"
             ) {
               holdings[key] = (holdings[key] || 0) - txn.quantity;
             }
@@ -215,7 +218,7 @@ export const registryRouter = createTRPCRouter({
             const securityName = txn.securityClass.name;
             const key = `${securityName} (${securityId})`;
 
-            if (txn.transactionType === 'TRANSFER') {
+            if (txn.transactionType === "TRANSFER") {
               holdings[key] = (holdings[key] || 0) - txn.quantity;
             }
           });
@@ -232,8 +235,8 @@ export const registryRouter = createTRPCRouter({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch registry members',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch registry members",
           cause: error,
         });
       }
@@ -246,7 +249,7 @@ export const registryRouter = createTRPCRouter({
         entityId: z.string(),
         limit: z.number().optional().default(50),
         offset: z.number().optional().default(0),
-      })
+      }),
     )
     .query(async ({ input }) => {
       try {
@@ -258,7 +261,7 @@ export const registryRouter = createTRPCRouter({
             securityClass: true,
           },
           orderBy: {
-            settlementDate: 'desc',
+            settlementDate: "desc",
           },
           take: input.limit,
           skip: input.offset,
@@ -278,8 +281,8 @@ export const registryRouter = createTRPCRouter({
         };
       } catch (error) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch registry transactions',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch registry transactions",
           cause: error,
         });
       }

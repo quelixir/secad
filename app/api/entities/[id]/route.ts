@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { EntityInput } from '@/lib/types';
-import { compliancePackRegistration } from '@/lib/compliance';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { EntityInput } from "@/lib/types";
+import { compliancePackRegistration } from "@/lib/compliance";
 
 interface EntityIdentifierInput {
   type: string;
@@ -38,7 +38,7 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          error: 'Entity not found',
+          error: "Entity not found",
         },
         { status: 404 }
       );
@@ -49,11 +49,11 @@ export async function GET(
       data: entity,
     });
   } catch (error) {
-    console.error('Error fetching entity:', error);
+    console.error("Error fetching entity:", error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch entity',
+        error: "Failed to fetch entity",
       },
       { status: 500 }
     );
@@ -148,18 +148,18 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       data: entity,
-      message: 'Entity updated successfully',
+      message: "Entity updated successfully",
     });
   } catch (error) {
-    console.error('Error updating entity:', error);
+    console.error("Error updating entity:", error);
     if (
       error instanceof Error &&
-      error.message.includes('Record to update not found')
+      error.message.includes("Record to update not found")
     ) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Entity not found',
+          error: "Entity not found",
         },
         { status: 404 }
       );
@@ -167,7 +167,7 @@ export async function PUT(
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to update entity',
+        error: "Failed to update entity",
       },
       { status: 500 }
     );
@@ -186,18 +186,18 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'Entity deleted successfully',
+      message: "Entity deleted successfully",
     });
   } catch (error) {
-    console.error('Error deleting entity:', error);
+    console.error("Error deleting entity:", error);
     if (
       error instanceof Error &&
-      error.message.includes('Record to delete does not exist')
+      error.message.includes("Record to delete does not exist")
     ) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Entity not found',
+          error: "Entity not found",
         },
         { status: 404 }
       );
@@ -205,7 +205,7 @@ export async function DELETE(
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to delete entity',
+        error: "Failed to delete entity",
       },
       { status: 500 }
     );

@@ -1,8 +1,8 @@
-import puppeteer, { Browser, Page } from 'puppeteer';
+import puppeteer, { Browser, Page } from "puppeteer";
 
 export interface PDFOptions {
-  format?: 'A4' | 'Letter' | 'Legal';
-  orientation?: 'portrait' | 'landscape';
+  format?: "A4" | "Letter" | "Legal";
+  orientation?: "portrait" | "landscape";
   margin?: {
     top: string;
     right: string;
@@ -26,13 +26,13 @@ export class PDFGenerator {
   private browser: Browser | null = null;
   private isInitialized = false;
   private readonly defaultOptions: PDFOptions = {
-    format: 'A4',
-    orientation: 'portrait',
+    format: "A4",
+    orientation: "portrait",
     margin: {
-      top: '20mm',
-      right: '20mm',
-      bottom: '20mm',
-      left: '20mm',
+      top: "20mm",
+      right: "20mm",
+      bottom: "20mm",
+      left: "20mm",
     },
     printBackground: true,
     preferCSSPageSize: true,
@@ -42,14 +42,14 @@ export class PDFGenerator {
   private readonly launchOptions = {
     headless: true,
     args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
-      '--disable-gpu',
-      '--single-process',
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-accelerated-2d-canvas",
+      "--no-first-run",
+      "--no-zygote",
+      "--disable-gpu",
+      "--single-process",
     ],
   };
 
@@ -69,8 +69,8 @@ export class PDFGenerator {
     } catch (error) {
       throw new Error(
         `Failed to initialize PDF generator: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       );
     }
   }
@@ -80,7 +80,7 @@ export class PDFGenerator {
    */
   async generatePDF(
     html: string,
-    options?: Partial<PDFOptions>
+    options?: Partial<PDFOptions>,
   ): Promise<PDFGenerationResult> {
     if (!this.isInitialized) {
       await this.initialize();
@@ -89,7 +89,7 @@ export class PDFGenerator {
     if (!this.browser) {
       return {
         success: false,
-        error: 'Browser not initialized',
+        error: "Browser not initialized",
       };
     }
 
@@ -108,12 +108,12 @@ export class PDFGenerator {
 
       // Set content with timeout
       await Promise.race([
-        page.setContent(html, { waitUntil: 'networkidle0' }),
+        page.setContent(html, { waitUntil: "networkidle0" }),
         new Promise((_, reject) =>
           setTimeout(
-            () => reject(new Error('Content loading timeout')),
-            this.timeout
-          )
+            () => reject(new Error("Content loading timeout")),
+            this.timeout,
+          ),
         ),
       ]);
 
@@ -123,7 +123,7 @@ export class PDFGenerator {
       const pdfBuffer = await Promise.race([
         page.pdf({
           format: pdfOptions.format,
-          landscape: pdfOptions.orientation === 'landscape',
+          landscape: pdfOptions.orientation === "landscape",
           margin: pdfOptions.margin,
           printBackground: pdfOptions.printBackground,
           preferCSSPageSize: pdfOptions.preferCSSPageSize,
@@ -133,9 +133,9 @@ export class PDFGenerator {
         }),
         new Promise<never>((_, reject) =>
           setTimeout(
-            () => reject(new Error('PDF generation timeout')),
-            this.timeout
-          )
+            () => reject(new Error("PDF generation timeout")),
+            this.timeout,
+          ),
         ),
       ]);
 
@@ -149,7 +149,7 @@ export class PDFGenerator {
         error:
           error instanceof Error
             ? error.message
-            : 'Unknown PDF generation error',
+            : "Unknown PDF generation error",
       };
     } finally {
       // Clean up page to prevent memory leaks
@@ -157,7 +157,7 @@ export class PDFGenerator {
         try {
           await page.close();
         } catch (error) {
-          console.error('Error closing page:', error);
+          console.error("Error closing page:", error);
         }
       }
     }
@@ -168,7 +168,7 @@ export class PDFGenerator {
    */
   async generatePDFFromFile(
     filePath: string,
-    options?: Partial<PDFOptions>
+    options?: Partial<PDFOptions>,
   ): Promise<PDFGenerationResult> {
     if (!this.isInitialized) {
       await this.initialize();
@@ -177,7 +177,7 @@ export class PDFGenerator {
     if (!this.browser) {
       return {
         success: false,
-        error: 'Browser not initialized',
+        error: "Browser not initialized",
       };
     }
 
@@ -195,12 +195,12 @@ export class PDFGenerator {
 
       // Navigate to file with timeout
       await Promise.race([
-        page.goto(`file://${filePath}`, { waitUntil: 'networkidle0' }),
+        page.goto(`file://${filePath}`, { waitUntil: "networkidle0" }),
         new Promise((_, reject) =>
           setTimeout(
-            () => reject(new Error('File loading timeout')),
-            this.timeout
-          )
+            () => reject(new Error("File loading timeout")),
+            this.timeout,
+          ),
         ),
       ]);
 
@@ -210,7 +210,7 @@ export class PDFGenerator {
       const pdfBuffer = await Promise.race([
         page.pdf({
           format: pdfOptions.format,
-          landscape: pdfOptions.orientation === 'landscape',
+          landscape: pdfOptions.orientation === "landscape",
           margin: pdfOptions.margin,
           printBackground: pdfOptions.printBackground,
           preferCSSPageSize: pdfOptions.preferCSSPageSize,
@@ -220,9 +220,9 @@ export class PDFGenerator {
         }),
         new Promise<never>((_, reject) =>
           setTimeout(
-            () => reject(new Error('PDF generation timeout')),
-            this.timeout
-          )
+            () => reject(new Error("PDF generation timeout")),
+            this.timeout,
+          ),
         ),
       ]);
 
@@ -236,7 +236,7 @@ export class PDFGenerator {
         error:
           error instanceof Error
             ? error.message
-            : 'Unknown PDF generation error',
+            : "Unknown PDF generation error",
       };
     } finally {
       // Clean up page to prevent memory leaks
@@ -244,7 +244,7 @@ export class PDFGenerator {
         try {
           await page.close();
         } catch (error) {
-          console.error('Error closing page:', error);
+          console.error("Error closing page:", error);
         }
       }
     }
@@ -258,7 +258,7 @@ export class PDFGenerator {
       try {
         await this.browser.close();
       } catch (error) {
-        console.error('Error closing browser:', error);
+        console.error("Error closing browser:", error);
       } finally {
         this.browser = null;
         this.isInitialized = false;
@@ -281,7 +281,7 @@ export class PDFGenerator {
         total: pages.length,
       };
     } catch (error) {
-      console.error('Error getting memory usage:', error);
+      console.error("Error getting memory usage:", error);
       return { used: 0, total: 0 };
     }
   }

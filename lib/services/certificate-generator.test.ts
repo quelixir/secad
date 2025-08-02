@@ -2,22 +2,22 @@ import {
   CertificateGenerator,
   CertificateData,
   CertificateNumberingConfig,
-} from './certificate-generator';
-import { getLocale } from '@/lib/locale';
+} from "./certificate-generator";
+import { getLocale } from "@/lib/locale";
 
 // Mock the PDF generator
-jest.mock('./pdf-generator', () => ({
+jest.mock("./pdf-generator", () => ({
   pdfGenerator: {
     generatePDF: jest.fn().mockResolvedValue({
       success: true,
-      data: Buffer.from('mock-pdf-content'),
+      data: Buffer.from("mock-pdf-content"),
     }),
   },
   PDFOptions: {},
 }));
 
 // Mock Prisma
-jest.mock('@/lib/db', () => ({
+jest.mock("@/lib/db", () => ({
   prisma: {
     transaction: {
       findUnique: jest.fn(),
@@ -29,14 +29,14 @@ jest.mock('@/lib/db', () => ({
   },
 }));
 
-describe('CertificateGenerator', () => {
+describe("CertificateGenerator", () => {
   let certificateGenerator: CertificateGenerator;
   let mockPrisma: any;
   let originalConsoleError: typeof console.error;
 
   beforeEach(() => {
     certificateGenerator = new CertificateGenerator();
-    mockPrisma = require('@/lib/db').prisma;
+    mockPrisma = require("@/lib/db").prisma;
     originalConsoleError = console.error;
     console.error = jest.fn();
   });
@@ -47,63 +47,60 @@ describe('CertificateGenerator', () => {
     console.error = originalConsoleError;
   });
 
-  describe('Certificate Numbering', () => {
-    it('should generate certificate number for new entity and year', async () => {
+  describe("Certificate Numbering", () => {
+    it("should generate certificate number for new entity and year", async () => {
       mockPrisma.transaction.findFirst.mockResolvedValue(null);
 
       const config: CertificateNumberingConfig = {
-        entityId: 'entity123',
+        entityId: "entity123",
         year: 2024,
-        prefix: 'CERT',
-        suffix: '',
+        prefix: "CERT",
+        suffix: "",
         startNumber: 1,
       };
 
-      const result = await certificateGenerator.generateCertificateNumber(
-        config
-      );
-      expect(result).toBe('CERT2024000001');
+      const result =
+        await certificateGenerator.generateCertificateNumber(config);
+      expect(result).toBe("CERT2024000001");
     });
 
-    it('should generate sequential certificate numbers', async () => {
+    it("should generate sequential certificate numbers", async () => {
       mockPrisma.transaction.findFirst.mockResolvedValue({
-        certificateNumber: 'CERT2024000005',
+        certificateNumber: "CERT2024000005",
       });
 
       const config: CertificateNumberingConfig = {
-        entityId: 'entity123',
+        entityId: "entity123",
         year: 2024,
-        prefix: 'CERT',
-        suffix: '',
+        prefix: "CERT",
+        suffix: "",
         startNumber: 1,
       };
 
-      const result = await certificateGenerator.generateCertificateNumber(
-        config
-      );
-      expect(result).toBe('CERT2024000006');
+      const result =
+        await certificateGenerator.generateCertificateNumber(config);
+      expect(result).toBe("CERT2024000006");
     });
 
-    it('should handle custom prefix and suffix', async () => {
+    it("should handle custom prefix and suffix", async () => {
       mockPrisma.transaction.findFirst.mockResolvedValue(null);
 
       const config: CertificateNumberingConfig = {
-        entityId: 'entity123',
+        entityId: "entity123",
         year: 2024,
-        prefix: 'SEC',
-        suffix: '-CERT',
+        prefix: "SEC",
+        suffix: "-CERT",
         startNumber: 1,
       };
 
-      const result = await certificateGenerator.generateCertificateNumber(
-        config
-      );
-      expect(result).toBe('SEC2024000001-CERT');
+      const result =
+        await certificateGenerator.generateCertificateNumber(config);
+      expect(result).toBe("SEC2024000001-CERT");
     });
   });
 
-  describe('Template Variable Replacement', () => {
-    it('should replace standard template variables', () => {
+  describe("Template Variable Replacement", () => {
+    it("should replace standard template variables", () => {
       const templateHtml = `
         <html>
           <body>
@@ -117,53 +114,53 @@ describe('CertificateGenerator', () => {
         </html>
       `;
 
-      const certificateIssueDate = new Date('2024-01-15');
+      const certificateIssueDate = new Date("2024-01-15");
 
       const data: CertificateData = {
-        entityId: 'entity123',
-        entityName: 'Test Entity Ltd',
-        entityAddress: '123 Test Street, Sydney, NSW, 2000, Australia',
-        entityPhone: '+61 2 1234 5678',
-        entityType: 'Company',
-        entityContact: 'Test Entity Ltd',
-        entityEmail: 'contact@testentity.com',
-        transactionId: 'txn123',
-        transactionDate: new Date('2024-01-01'),
-        transactionType: 'Issuance',
-        transactionReason: 'Initial',
-        transactionDescription: 'Initial share issuance',
-        securityClass: 'Ordinary Shares',
-        securityName: 'Ordinary Shares',
-        securitySymbol: 'ORD',
+        entityId: "entity123",
+        entityName: "Test Entity Ltd",
+        entityAddress: "123 Test Street, Sydney, NSW, 2000, Australia",
+        entityPhone: "+61 2 1234 5678",
+        entityType: "Company",
+        entityContact: "Test Entity Ltd",
+        entityEmail: "contact@testentity.com",
+        transactionId: "txn123",
+        transactionDate: new Date("2024-01-01"),
+        transactionType: "Issuance",
+        transactionReason: "Initial",
+        transactionDescription: "Initial share issuance",
+        securityClass: "Ordinary Shares",
+        securityName: "Ordinary Shares",
+        securitySymbol: "ORD",
         quantity: 1000,
         totalAmount: 50000,
         unitPrice: 50,
         totalValue: 50000,
-        currency: 'AUD',
-        memberName: 'John Doe',
-        memberId: 'member123',
-        memberType: 'Individual',
-        memberAddress: '456 Member Street, Melbourne, VIC, 3000, Australia',
-        certificateNumber: 'CERT2024000001',
+        currency: "AUD",
+        memberName: "John Doe",
+        memberId: "member123",
+        memberType: "Individual",
+        memberAddress: "456 Member Street, Melbourne, VIC, 3000, Australia",
+        certificateNumber: "CERT2024000001",
         issueDate: certificateIssueDate,
       };
 
-      const result = certificateGenerator['replaceTemplateVariables'](
+      const result = certificateGenerator["replaceTemplateVariables"](
         templateHtml,
-        data
+        data,
       );
 
-      expect(result).toContain('Test Entity Ltd');
-      expect(result).toContain('CERT2024000001');
-      expect(result).toContain('John Doe');
-      expect(result).toContain('1,000');
-      expect(result).toContain('$50,000.00');
+      expect(result).toContain("Test Entity Ltd");
+      expect(result).toContain("CERT2024000001");
+      expect(result).toContain("John Doe");
+      expect(result).toContain("1,000");
+      expect(result).toContain("$50,000.00");
       expect(result).toContain(
-        certificateIssueDate.toLocaleDateString(getLocale())
+        certificateIssueDate.toLocaleDateString(getLocale()),
       );
     });
 
-    it('should handle dynamic properties', () => {
+    it("should handle dynamic properties", () => {
       const templateHtml = `
         <html>
           <body>
@@ -174,310 +171,310 @@ describe('CertificateGenerator', () => {
       `;
 
       const data: CertificateData = {
-        entityId: 'entity123',
-        entityName: 'Test Entity',
-        entityAddress: '123 Test Street, Sydney, NSW, 2000, Australia',
-        entityPhone: '+61 2 1234 5678',
-        entityType: 'Company',
-        entityContact: 'Test Entity',
-        entityEmail: 'contact@testentity.com',
-        transactionId: 'txn123',
+        entityId: "entity123",
+        entityName: "Test Entity",
+        entityAddress: "123 Test Street, Sydney, NSW, 2000, Australia",
+        entityPhone: "+61 2 1234 5678",
+        entityType: "Company",
+        entityContact: "Test Entity",
+        entityEmail: "contact@testentity.com",
+        transactionId: "txn123",
         transactionDate: new Date(),
-        transactionType: 'Issuance',
-        transactionReason: 'Initial',
-        transactionDescription: 'Initial share issuance',
-        securityClass: 'Shares',
-        securityName: 'Shares',
-        securitySymbol: 'SHR',
+        transactionType: "Issuance",
+        transactionReason: "Initial",
+        transactionDescription: "Initial share issuance",
+        securityClass: "Shares",
+        securityName: "Shares",
+        securitySymbol: "SHR",
         quantity: 100,
         totalAmount: 1000,
         unitPrice: 10,
         totalValue: 1000,
-        currency: 'AUD',
-        memberName: 'John Doe',
-        memberId: 'member123',
-        memberType: 'Individual',
-        memberAddress: '456 Member Street, Melbourne, VIC, 3000, Australia',
-        certificateNumber: 'CERT001',
+        currency: "AUD",
+        memberName: "John Doe",
+        memberId: "member123",
+        memberType: "Individual",
+        memberAddress: "456 Member Street, Melbourne, VIC, 3000, Australia",
+        certificateNumber: "CERT001",
         issueDate: new Date(),
-        customField: 'Custom Value',
+        customField: "Custom Value",
         numberField: 42,
       };
 
-      const result = certificateGenerator['replaceTemplateVariables'](
+      const result = certificateGenerator["replaceTemplateVariables"](
         templateHtml,
-        data
+        data,
       );
 
-      expect(result).toContain('Custom Value');
-      expect(result).toContain('42');
+      expect(result).toContain("Custom Value");
+      expect(result).toContain("42");
     });
   });
 
-  describe('Data Population', () => {
-    it('should populate certificate data from transaction', async () => {
+  describe("Data Population", () => {
+    it("should populate certificate data from transaction", async () => {
       const mockTransaction = {
-        id: 'txn123',
-        entityId: 'entity123',
+        id: "txn123",
+        entityId: "entity123",
         quantity: 1000,
         totalAmountPaid: 50000,
         totalAmountUnpaid: 0,
-        currencyCode: 'AUD',
-        transactionType: 'Issuance',
-        reasonCode: 'Initial',
-        description: 'Initial share issuance',
-        createdAt: new Date('2024-01-01'),
+        currencyCode: "AUD",
+        transactionType: "Issuance",
+        reasonCode: "Initial",
+        description: "Initial share issuance",
+        createdAt: new Date("2024-01-01"),
         entity: {
-          id: 'entity123',
-          name: 'Test Entity Ltd',
-          address: '123 Test Street',
-          city: 'Sydney',
-          state: 'NSW',
-          postcode: '2000',
-          country: 'Australia',
-          phone: '+61 2 1234 5678',
-          email: 'contact@testentity.com',
-          entityTypeId: 'Company',
+          id: "entity123",
+          name: "Test Entity Ltd",
+          address: "123 Test Street",
+          city: "Sydney",
+          state: "NSW",
+          postcode: "2000",
+          country: "Australia",
+          phone: "+61 2 1234 5678",
+          email: "contact@testentity.com",
+          entityTypeId: "Company",
         },
         securityClass: {
-          id: 'sec123',
-          name: 'Ordinary Shares',
-          symbol: 'ORD',
+          id: "sec123",
+          name: "Ordinary Shares",
+          symbol: "ORD",
         },
         toMember: {
-          id: 'member123',
-          entityName: 'John Doe Ltd',
-          givenNames: 'John',
-          familyName: 'Doe',
-          memberType: 'Individual',
-          address: '456 Member Street',
-          city: 'Melbourne',
-          state: 'VIC',
-          postcode: '3000',
-          country: 'Australia',
+          id: "member123",
+          entityName: "John Doe Ltd",
+          givenNames: "John",
+          familyName: "Doe",
+          memberType: "Individual",
+          address: "456 Member Street",
+          city: "Melbourne",
+          state: "VIC",
+          postcode: "3000",
+          country: "Australia",
         },
       };
 
       mockPrisma.transaction.findUnique.mockResolvedValue(mockTransaction);
       mockPrisma.transaction.findFirst.mockResolvedValue(null); // For certificate numbering
 
-      const result = await certificateGenerator['populateCertificateData'](
-        'txn123',
-        'entity123'
+      const result = await certificateGenerator["populateCertificateData"](
+        "txn123",
+        "entity123",
       );
 
-      expect(result.entityId).toBe('entity123');
-      expect(result.entityName).toBe('Test Entity Ltd');
-      expect(result.transactionId).toBe('txn123');
-      expect(result.securityClass).toBe('Ordinary Shares');
+      expect(result.entityId).toBe("entity123");
+      expect(result.entityName).toBe("Test Entity Ltd");
+      expect(result.transactionId).toBe("txn123");
+      expect(result.securityClass).toBe("Ordinary Shares");
       expect(result.quantity).toBe(1000);
       expect(result.totalAmount).toBe(50000);
-      expect(result.memberName).toBe('John Doe Ltd');
-      expect(result.memberId).toBe('member123');
+      expect(result.memberName).toBe("John Doe Ltd");
+      expect(result.memberId).toBe("member123");
       expect(result.certificateNumber).toMatch(/CERT\d{10}/);
     });
 
-    it('should handle member name fallback', async () => {
+    it("should handle member name fallback", async () => {
       const mockTransaction = {
-        id: 'txn123',
-        entityId: 'entity123',
+        id: "txn123",
+        entityId: "entity123",
         quantity: 1000,
         totalAmountPaid: 50000,
         totalAmountUnpaid: 0,
-        transactionType: 'Issuance',
-        reasonCode: 'Initial',
-        description: 'Initial share issuance',
-        createdAt: new Date('2024-01-01'),
+        transactionType: "Issuance",
+        reasonCode: "Initial",
+        description: "Initial share issuance",
+        createdAt: new Date("2024-01-01"),
         entity: {
-          id: 'entity123',
-          name: 'Test Entity Ltd',
-          address: '123 Test Street',
-          city: 'Sydney',
-          state: 'NSW',
-          postcode: '2000',
-          country: 'Australia',
-          phone: '+61 2 1234 5678',
-          email: 'contact@testentity.com',
-          entityTypeId: 'Company',
+          id: "entity123",
+          name: "Test Entity Ltd",
+          address: "123 Test Street",
+          city: "Sydney",
+          state: "NSW",
+          postcode: "2000",
+          country: "Australia",
+          phone: "+61 2 1234 5678",
+          email: "contact@testentity.com",
+          entityTypeId: "Company",
         },
         securityClass: {
-          id: 'sec123',
-          name: 'Ordinary Shares',
-          symbol: 'ORD',
+          id: "sec123",
+          name: "Ordinary Shares",
+          symbol: "ORD",
         },
         toMember: {
-          id: 'member123',
+          id: "member123",
           entityName: null,
-          givenNames: 'John',
-          familyName: 'Doe',
-          memberType: 'Individual',
-          address: '456 Member Street',
-          city: 'Melbourne',
-          state: 'VIC',
-          postcode: '3000',
-          country: 'Australia',
+          givenNames: "John",
+          familyName: "Doe",
+          memberType: "Individual",
+          address: "456 Member Street",
+          city: "Melbourne",
+          state: "VIC",
+          postcode: "3000",
+          country: "Australia",
         },
       };
 
       mockPrisma.transaction.findUnique.mockResolvedValue(mockTransaction);
       mockPrisma.transaction.findFirst.mockResolvedValue(null);
 
-      const result = await certificateGenerator['populateCertificateData'](
-        'txn123',
-        'entity123'
+      const result = await certificateGenerator["populateCertificateData"](
+        "txn123",
+        "entity123",
       );
 
-      expect(result.memberName).toBe('John Doe');
+      expect(result.memberName).toBe("John Doe");
     });
   });
 
-  describe('Data Validation', () => {
-    it('should validate required fields', () => {
+  describe("Data Validation", () => {
+    it("should validate required fields", () => {
       const validData: CertificateData = {
-        entityId: 'entity123',
-        entityName: 'Test Entity',
-        entityAddress: '123 Test Street, Sydney, NSW, 2000, Australia',
-        entityPhone: '+61 2 1234 5678',
-        entityType: 'Company',
-        entityContact: 'Test Entity',
-        entityEmail: 'contact@testentity.com',
-        transactionId: 'txn123',
+        entityId: "entity123",
+        entityName: "Test Entity",
+        entityAddress: "123 Test Street, Sydney, NSW, 2000, Australia",
+        entityPhone: "+61 2 1234 5678",
+        entityType: "Company",
+        entityContact: "Test Entity",
+        entityEmail: "contact@testentity.com",
+        transactionId: "txn123",
         transactionDate: new Date(),
-        transactionType: 'Issuance',
-        transactionReason: 'Initial',
-        transactionDescription: 'Initial share issuance',
-        securityClass: 'Shares',
-        securityName: 'Shares',
-        securitySymbol: 'SHR',
+        transactionType: "Issuance",
+        transactionReason: "Initial",
+        transactionDescription: "Initial share issuance",
+        securityClass: "Shares",
+        securityName: "Shares",
+        securitySymbol: "SHR",
         quantity: 100,
         totalAmount: 1000,
         unitPrice: 10,
         totalValue: 1000,
-        currency: 'AUD',
-        memberName: 'John Doe',
-        memberId: 'member123',
-        memberType: 'Individual',
-        memberAddress: '456 Member Street, Melbourne, VIC, 3000, Australia',
-        certificateNumber: 'CERT001',
+        currency: "AUD",
+        memberName: "John Doe",
+        memberId: "member123",
+        memberType: "Individual",
+        memberAddress: "456 Member Street, Melbourne, VIC, 3000, Australia",
+        certificateNumber: "CERT001",
         issueDate: new Date(),
       };
 
       expect(() =>
-        certificateGenerator['validateCertificateData'](validData)
+        certificateGenerator["validateCertificateData"](validData),
       ).not.toThrow();
     });
 
-    it('should throw error for missing required fields', () => {
+    it("should throw error for missing required fields", () => {
       const invalidData: CertificateData = {
-        entityId: 'entity123',
-        entityName: '', // Missing
-        entityAddress: '123 Test Street, Sydney, NSW, 2000, Australia',
-        entityPhone: '+61 2 1234 5678',
-        entityType: 'Company',
-        entityContact: 'Test Entity',
-        entityEmail: 'contact@testentity.com',
-        transactionId: 'txn123',
+        entityId: "entity123",
+        entityName: "", // Missing
+        entityAddress: "123 Test Street, Sydney, NSW, 2000, Australia",
+        entityPhone: "+61 2 1234 5678",
+        entityType: "Company",
+        entityContact: "Test Entity",
+        entityEmail: "contact@testentity.com",
+        transactionId: "txn123",
         transactionDate: new Date(),
-        transactionType: 'Issuance',
-        transactionReason: 'Initial',
-        transactionDescription: 'Initial share issuance',
-        securityClass: 'Shares',
-        securityName: 'Shares',
-        securitySymbol: 'SHR',
+        transactionType: "Issuance",
+        transactionReason: "Initial",
+        transactionDescription: "Initial share issuance",
+        securityClass: "Shares",
+        securityName: "Shares",
+        securitySymbol: "SHR",
         quantity: 100,
         totalAmount: 1000,
         unitPrice: 10,
         totalValue: 1000,
-        currency: 'AUD',
-        memberName: 'John Doe',
-        memberId: 'member123',
-        memberType: 'Individual',
-        memberAddress: '456 Member Street, Melbourne, VIC, 3000, Australia',
-        certificateNumber: 'CERT001',
+        currency: "AUD",
+        memberName: "John Doe",
+        memberId: "member123",
+        memberType: "Individual",
+        memberAddress: "456 Member Street, Melbourne, VIC, 3000, Australia",
+        certificateNumber: "CERT001",
         issueDate: new Date(),
       };
 
       expect(() =>
-        certificateGenerator['validateCertificateData'](invalidData)
-      ).toThrow('Missing required certificate data: entityName');
+        certificateGenerator["validateCertificateData"](invalidData),
+      ).toThrow("Missing required certificate data: entityName");
     });
 
-    it('should throw error for invalid quantity', () => {
+    it("should throw error for invalid quantity", () => {
       const invalidData: CertificateData = {
-        entityId: 'entity123',
-        entityName: 'Test Entity',
-        entityAddress: '123 Test Street, Sydney, NSW, 2000, Australia',
-        entityPhone: '+61 2 1234 5678',
-        entityType: 'Company',
-        entityContact: 'Test Entity',
-        entityEmail: 'contact@testentity.com',
-        transactionId: 'txn123',
+        entityId: "entity123",
+        entityName: "Test Entity",
+        entityAddress: "123 Test Street, Sydney, NSW, 2000, Australia",
+        entityPhone: "+61 2 1234 5678",
+        entityType: "Company",
+        entityContact: "Test Entity",
+        entityEmail: "contact@testentity.com",
+        transactionId: "txn123",
         transactionDate: new Date(),
-        transactionType: 'Issuance',
-        transactionReason: 'Initial',
-        transactionDescription: 'Initial share issuance',
-        securityClass: 'Shares',
-        securityName: 'Shares',
-        securitySymbol: 'SHR',
+        transactionType: "Issuance",
+        transactionReason: "Initial",
+        transactionDescription: "Initial share issuance",
+        securityClass: "Shares",
+        securityName: "Shares",
+        securitySymbol: "SHR",
         quantity: 0, // Invalid
         totalAmount: 1000,
         unitPrice: 10,
         totalValue: 0,
-        currency: 'AUD',
-        memberName: 'John Doe',
-        memberId: 'member123',
-        memberType: 'Individual',
-        memberAddress: '456 Member Street, Melbourne, VIC, 3000, Australia',
-        certificateNumber: 'CERT001',
+        currency: "AUD",
+        memberName: "John Doe",
+        memberId: "member123",
+        memberType: "Individual",
+        memberAddress: "456 Member Street, Melbourne, VIC, 3000, Australia",
+        certificateNumber: "CERT001",
         issueDate: new Date(),
       };
 
       expect(() =>
-        certificateGenerator['validateCertificateData'](invalidData)
-      ).toThrow('Certificate quantity must be greater than 0');
+        certificateGenerator["validateCertificateData"](invalidData),
+      ).toThrow("Certificate quantity must be greater than 0");
     });
 
-    it('should throw error for invalid total amount', () => {
+    it("should throw error for invalid total amount", () => {
       const invalidData: CertificateData = {
-        entityId: 'entity123',
-        entityName: 'Test Entity',
-        entityAddress: '123 Test Street, Sydney, NSW, 2000, Australia',
-        entityPhone: '+61 2 1234 5678',
-        entityType: 'Company',
-        entityContact: 'Test Entity',
-        entityEmail: 'contact@testentity.com',
-        transactionId: 'txn123',
+        entityId: "entity123",
+        entityName: "Test Entity",
+        entityAddress: "123 Test Street, Sydney, NSW, 2000, Australia",
+        entityPhone: "+61 2 1234 5678",
+        entityType: "Company",
+        entityContact: "Test Entity",
+        entityEmail: "contact@testentity.com",
+        transactionId: "txn123",
         transactionDate: new Date(),
-        transactionType: 'Issuance',
-        transactionReason: 'Initial',
-        transactionDescription: 'Initial share issuance',
-        securityClass: 'Shares',
-        securityName: 'Shares',
-        securitySymbol: 'SHR',
+        transactionType: "Issuance",
+        transactionReason: "Initial",
+        transactionDescription: "Initial share issuance",
+        securityClass: "Shares",
+        securityName: "Shares",
+        securitySymbol: "SHR",
         quantity: 100,
         totalAmount: -100, // Invalid
         unitPrice: 10,
         totalValue: 1000,
-        currency: 'AUD',
-        memberName: 'John Doe',
-        memberId: 'member123',
-        memberType: 'Individual',
-        memberAddress: '456 Member Street, Melbourne, VIC, 3000, Australia',
-        certificateNumber: 'CERT001',
+        currency: "AUD",
+        memberName: "John Doe",
+        memberId: "member123",
+        memberType: "Individual",
+        memberAddress: "456 Member Street, Melbourne, VIC, 3000, Australia",
+        certificateNumber: "CERT001",
         issueDate: new Date(),
       };
 
       expect(() =>
-        certificateGenerator['validateCertificateData'](invalidData)
-      ).toThrow('Certificate total amount must be greater than 0');
+        certificateGenerator["validateCertificateData"](invalidData),
+      ).toThrow("Certificate total amount must be greater than 0");
     });
   });
 
-  describe('Template Validation', () => {
-    it('should validate template with all required variables', async () => {
+  describe("Template Validation", () => {
+    it("should validate template with all required variables", async () => {
       const mockTemplate = {
-        id: 'template123',
-        name: 'Standard Certificate',
+        id: "template123",
+        name: "Standard Certificate",
         templateHtml: `
           <html>
             <body>
@@ -494,16 +491,16 @@ describe('CertificateGenerator', () => {
 
       mockPrisma.certificateTemplate.findUnique.mockResolvedValue(mockTemplate);
 
-      const result = await certificateGenerator.validateTemplate('template123');
+      const result = await certificateGenerator.validateTemplate("template123");
 
       expect(result.valid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
 
-    it('should detect missing required variables', async () => {
+    it("should detect missing required variables", async () => {
       const mockTemplate = {
-        id: 'template123',
-        name: 'Standard Certificate',
+        id: "template123",
+        name: "Standard Certificate",
         templateHtml: `
           <html>
             <body>
@@ -517,80 +514,80 @@ describe('CertificateGenerator', () => {
 
       mockPrisma.certificateTemplate.findUnique.mockResolvedValue(mockTemplate);
 
-      const result = await certificateGenerator.validateTemplate('template123');
+      const result = await certificateGenerator.validateTemplate("template123");
 
       expect(result.valid).toBe(false);
       expect(result.errors).toContain(
-        'Missing required template variable: {{memberName}}'
+        "Missing required template variable: {{memberName}}",
       );
       expect(result.errors).toContain(
-        'Missing required template variable: {{quantity}}'
+        "Missing required template variable: {{quantity}}",
       );
       expect(result.errors).toContain(
-        'Missing required template variable: {{totalAmount}}'
+        "Missing required template variable: {{totalAmount}}",
       );
       expect(result.errors).toContain(
-        'Missing required template variable: {{issueDate}}'
+        "Missing required template variable: {{issueDate}}",
       );
     });
 
-    it('should handle missing template', async () => {
+    it("should handle missing template", async () => {
       mockPrisma.certificateTemplate.findUnique.mockResolvedValue(null);
 
-      const result = await certificateGenerator.validateTemplate('nonexistent');
+      const result = await certificateGenerator.validateTemplate("nonexistent");
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Template not found: nonexistent');
+      expect(result.errors).toContain("Template not found: nonexistent");
     });
   });
 
-  describe('Certificate Generation', () => {
-    it('should generate PDF certificate successfully', async () => {
+  describe("Certificate Generation", () => {
+    it("should generate PDF certificate successfully", async () => {
       const mockTransaction = {
-        id: 'txn123',
-        entityId: 'entity123',
+        id: "txn123",
+        entityId: "entity123",
         quantity: 1000,
         totalAmountPaid: 50000,
         totalAmountUnpaid: 0,
-        currencyCode: 'AUD',
-        transactionType: 'Issuance',
-        reasonCode: 'Initial',
-        description: 'Initial share issuance',
-        createdAt: new Date('2024-01-01'),
+        currencyCode: "AUD",
+        transactionType: "Issuance",
+        reasonCode: "Initial",
+        description: "Initial share issuance",
+        createdAt: new Date("2024-01-01"),
         entity: {
-          id: 'entity123',
-          name: 'Test Entity Ltd',
-          address: '123 Test Street',
-          city: 'Sydney',
-          state: 'NSW',
-          postcode: '2000',
-          country: 'Australia',
-          phone: '+61 2 1234 5678',
-          email: 'contact@testentity.com',
-          entityTypeId: 'Company',
+          id: "entity123",
+          name: "Test Entity Ltd",
+          address: "123 Test Street",
+          city: "Sydney",
+          state: "NSW",
+          postcode: "2000",
+          country: "Australia",
+          phone: "+61 2 1234 5678",
+          email: "contact@testentity.com",
+          entityTypeId: "Company",
         },
         securityClass: {
-          id: 'sec123',
-          name: 'Ordinary Shares',
-          symbol: 'ORD',
+          id: "sec123",
+          name: "Ordinary Shares",
+          symbol: "ORD",
         },
         toMember: {
-          id: 'member123',
-          entityName: 'John Doe Ltd',
-          givenNames: 'John',
-          familyName: 'Doe',
-          memberType: 'Individual',
-          address: '456 Member Street',
-          city: 'Melbourne',
-          state: 'VIC',
-          postcode: '3000',
-          country: 'Australia',
+          id: "member123",
+          entityName: "John Doe Ltd",
+          givenNames: "John",
+          familyName: "Doe",
+          memberType: "Individual",
+          address: "456 Member Street",
+          city: "Melbourne",
+          state: "VIC",
+          postcode: "3000",
+          country: "Australia",
         },
       };
 
       const mockTemplate = {
-        id: 'template123',
-        name: 'Standard Certificate',
+        id: "template123",
+        name: "Standard Certificate",
         templateHtml: `
           <html>
             <body>
@@ -606,8 +603,8 @@ describe('CertificateGenerator', () => {
       mockPrisma.transaction.findFirst.mockResolvedValue(null);
 
       const result = await certificateGenerator.generatePDFCertificate(
-        'txn123',
-        'template123'
+        "txn123",
+        "template123",
       );
 
       expect(result.success).toBe(true);
@@ -615,63 +612,63 @@ describe('CertificateGenerator', () => {
       expect(result.data?.certificateBuffer).toBeInstanceOf(Buffer);
       expect(result.data?.metadata).toBeDefined();
       expect(result.data?.metadata.certificateId).toMatch(
-        /cert_entity123_txn123_\d+/
+        /cert_entity123_txn123_\d+/,
       );
-      expect(result.data?.metadata.format).toBe('PDF');
+      expect(result.data?.metadata.format).toBe("PDF");
     });
 
-    it('should handle missing transaction', async () => {
+    it("should handle missing transaction", async () => {
       mockPrisma.transaction.findUnique.mockResolvedValue(null);
 
       const result = await certificateGenerator.generatePDFCertificate(
-        'nonexistent',
-        'template123'
+        "nonexistent",
+        "template123",
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Transaction not found: nonexistent');
+      expect(result.error).toBe("Transaction not found: nonexistent");
     });
 
-    it('should handle missing template', async () => {
+    it("should handle missing template", async () => {
       const mockTransaction = {
-        id: 'txn123',
-        entityId: 'entity123',
+        id: "txn123",
+        entityId: "entity123",
         quantity: 1000,
         totalAmountPaid: 50000,
         totalAmountUnpaid: 0,
-        currencyCode: 'AUD',
-        transactionType: 'Issuance',
-        reasonCode: 'Initial',
-        description: 'Initial share issuance',
-        createdAt: new Date('2024-01-01'),
+        currencyCode: "AUD",
+        transactionType: "Issuance",
+        reasonCode: "Initial",
+        description: "Initial share issuance",
+        createdAt: new Date("2024-01-01"),
         entity: {
-          id: 'entity123',
-          name: 'Test Entity Ltd',
-          address: '123 Test Street',
-          city: 'Sydney',
-          state: 'NSW',
-          postcode: '2000',
-          country: 'Australia',
-          phone: '+61 2 1234 5678',
-          email: 'contact@testentity.com',
-          entityTypeId: 'Company',
+          id: "entity123",
+          name: "Test Entity Ltd",
+          address: "123 Test Street",
+          city: "Sydney",
+          state: "NSW",
+          postcode: "2000",
+          country: "Australia",
+          phone: "+61 2 1234 5678",
+          email: "contact@testentity.com",
+          entityTypeId: "Company",
         },
         securityClass: {
-          id: 'sec123',
-          name: 'Ordinary Shares',
-          symbol: 'ORD',
+          id: "sec123",
+          name: "Ordinary Shares",
+          symbol: "ORD",
         },
         toMember: {
-          id: 'member123',
-          entityName: 'John Doe Ltd',
-          givenNames: 'John',
-          familyName: 'Doe',
-          memberType: 'Individual',
-          address: '456 Member Street',
-          city: 'Melbourne',
-          state: 'VIC',
-          postcode: '3000',
-          country: 'Australia',
+          id: "member123",
+          entityName: "John Doe Ltd",
+          givenNames: "John",
+          familyName: "Doe",
+          memberType: "Individual",
+          address: "456 Member Street",
+          city: "Melbourne",
+          state: "VIC",
+          postcode: "3000",
+          country: "Australia",
         },
       };
 
@@ -679,75 +676,75 @@ describe('CertificateGenerator', () => {
       mockPrisma.certificateTemplate.findUnique.mockResolvedValue(null);
 
       const result = await certificateGenerator.generatePDFCertificate(
-        'txn123',
-        'nonexistent'
+        "txn123",
+        "nonexistent",
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Certificate template not found: nonexistent');
+      expect(result.error).toBe("Certificate template not found: nonexistent");
     });
 
-    it('should return error for DOCX format', async () => {
+    it("should return error for DOCX format", async () => {
       const result = await certificateGenerator.generateDOCXCertificate(
-        'txn123',
-        'template123'
+        "txn123",
+        "template123",
       );
 
       expect(result.success).toBe(false);
       expect(result.error).toBe(
-        'DOCX certificate generation not yet implemented'
+        "DOCX certificate generation not yet implemented",
       );
     });
   });
 
-  describe('Caching', () => {
-    it('should cache generated certificates', async () => {
+  describe("Caching", () => {
+    it("should cache generated certificates", async () => {
       const mockTransaction = {
-        id: 'txn123',
-        entityId: 'entity123',
+        id: "txn123",
+        entityId: "entity123",
         quantity: 1000,
         totalAmountPaid: 50000,
         totalAmountUnpaid: 0,
-        currencyCode: 'AUD',
-        transactionType: 'Issuance',
-        reasonCode: 'Initial',
-        description: 'Initial share issuance',
-        createdAt: new Date('2024-01-01'),
+        currencyCode: "AUD",
+        transactionType: "Issuance",
+        reasonCode: "Initial",
+        description: "Initial share issuance",
+        createdAt: new Date("2024-01-01"),
         entity: {
-          id: 'entity123',
-          name: 'Test Entity Ltd',
-          address: '123 Test Street',
-          city: 'Sydney',
-          state: 'NSW',
-          postcode: '2000',
-          country: 'Australia',
-          phone: '+61 2 1234 5678',
-          email: 'contact@testentity.com',
-          entityTypeId: 'Company',
+          id: "entity123",
+          name: "Test Entity Ltd",
+          address: "123 Test Street",
+          city: "Sydney",
+          state: "NSW",
+          postcode: "2000",
+          country: "Australia",
+          phone: "+61 2 1234 5678",
+          email: "contact@testentity.com",
+          entityTypeId: "Company",
         },
         securityClass: {
-          id: 'sec123',
-          name: 'Ordinary Shares',
-          symbol: 'ORD',
+          id: "sec123",
+          name: "Ordinary Shares",
+          symbol: "ORD",
         },
         toMember: {
-          id: 'member123',
-          entityName: 'John Doe Ltd',
-          givenNames: 'John',
-          familyName: 'Doe',
-          memberType: 'Individual',
-          address: '456 Member Street',
-          city: 'Melbourne',
-          state: 'VIC',
-          postcode: '3000',
-          country: 'Australia',
+          id: "member123",
+          entityName: "John Doe Ltd",
+          givenNames: "John",
+          familyName: "Doe",
+          memberType: "Individual",
+          address: "456 Member Street",
+          city: "Melbourne",
+          state: "VIC",
+          postcode: "3000",
+          country: "Australia",
         },
       };
 
       const mockTemplate = {
-        id: 'template123',
-        name: 'Standard Certificate',
-        templateHtml: '<html><body>Test</body></html>',
+        id: "template123",
+        name: "Standard Certificate",
+        templateHtml: "<html><body>Test</body></html>",
       };
 
       mockPrisma.transaction.findUnique.mockResolvedValue(mockTransaction);
@@ -756,15 +753,15 @@ describe('CertificateGenerator', () => {
 
       // First generation
       const result1 = await certificateGenerator.generatePDFCertificate(
-        'txn123',
-        'template123'
+        "txn123",
+        "template123",
       );
       expect(result1.success).toBe(true);
 
       // Second generation should use cache
       const result2 = await certificateGenerator.generatePDFCertificate(
-        'txn123',
-        'template123'
+        "txn123",
+        "template123",
       );
       expect(result2.success).toBe(true);
 
@@ -773,61 +770,61 @@ describe('CertificateGenerator', () => {
       expect(cacheStats.entries).toBeGreaterThan(0);
     });
 
-    it('should clear cache', () => {
+    it("should clear cache", () => {
       certificateGenerator.clearCache();
       const cacheStats = certificateGenerator.getCacheStats();
       expect(cacheStats.entries).toBe(0);
     });
   });
 
-  describe('Performance Testing', () => {
-    it('should handle multiple certificate generations', async () => {
+  describe("Performance Testing", () => {
+    it("should handle multiple certificate generations", async () => {
       const mockTransaction = {
-        id: 'txn123',
-        entityId: 'entity123',
+        id: "txn123",
+        entityId: "entity123",
         quantity: 1000,
         totalAmountPaid: 50000,
         totalAmountUnpaid: 0,
-        currencyCode: 'AUD',
-        transactionType: 'Issuance',
-        reasonCode: 'Initial',
-        description: 'Initial share issuance',
-        createdAt: new Date('2024-01-01'),
+        currencyCode: "AUD",
+        transactionType: "Issuance",
+        reasonCode: "Initial",
+        description: "Initial share issuance",
+        createdAt: new Date("2024-01-01"),
         entity: {
-          id: 'entity123',
-          name: 'Test Entity Ltd',
-          address: '123 Test Street',
-          city: 'Sydney',
-          state: 'NSW',
-          postcode: '2000',
-          country: 'Australia',
-          phone: '+61 2 1234 5678',
-          email: 'contact@testentity.com',
-          entityTypeId: 'Company',
+          id: "entity123",
+          name: "Test Entity Ltd",
+          address: "123 Test Street",
+          city: "Sydney",
+          state: "NSW",
+          postcode: "2000",
+          country: "Australia",
+          phone: "+61 2 1234 5678",
+          email: "contact@testentity.com",
+          entityTypeId: "Company",
         },
         securityClass: {
-          id: 'sec123',
-          name: 'Ordinary Shares',
-          symbol: 'ORD',
+          id: "sec123",
+          name: "Ordinary Shares",
+          symbol: "ORD",
         },
         toMember: {
-          id: 'member123',
-          entityName: 'John Doe Ltd',
-          givenNames: 'John',
-          familyName: 'Doe',
-          memberType: 'Individual',
-          address: '456 Member Street',
-          city: 'Melbourne',
-          state: 'VIC',
-          postcode: '3000',
-          country: 'Australia',
+          id: "member123",
+          entityName: "John Doe Ltd",
+          givenNames: "John",
+          familyName: "Doe",
+          memberType: "Individual",
+          address: "456 Member Street",
+          city: "Melbourne",
+          state: "VIC",
+          postcode: "3000",
+          country: "Australia",
         },
       };
 
       const mockTemplate = {
-        id: 'template123',
-        name: 'Standard Certificate',
-        templateHtml: '<html><body>Test</body></html>',
+        id: "template123",
+        name: "Standard Certificate",
+        templateHtml: "<html><body>Test</body></html>",
       };
 
       mockPrisma.transaction.findUnique.mockImplementation((args: any) => {
@@ -842,7 +839,7 @@ describe('CertificateGenerator', () => {
 
       const startTime = Date.now();
       const promises = Array.from({ length: 5 }, (_, i) =>
-        certificateGenerator.generatePDFCertificate(`txn${i}`, 'template123')
+        certificateGenerator.generatePDFCertificate(`txn${i}`, "template123"),
       );
 
       const results = await Promise.all(promises);
@@ -858,60 +855,60 @@ describe('CertificateGenerator', () => {
     });
   });
 
-  describe('Error Scenarios', () => {
-    it('should handle PDF generation failure', async () => {
-      const { pdfGenerator } = require('./pdf-generator');
+  describe("Error Scenarios", () => {
+    it("should handle PDF generation failure", async () => {
+      const { pdfGenerator } = require("./pdf-generator");
       pdfGenerator.generatePDF.mockResolvedValue({
         success: false,
-        error: 'PDF generation failed',
+        error: "PDF generation failed",
       });
 
       const mockTransaction = {
-        id: 'txn123',
-        entityId: 'entity123',
+        id: "txn123",
+        entityId: "entity123",
         quantity: 1000,
         totalAmountPaid: 50000,
         totalAmountUnpaid: 0,
-        currencyCode: 'AUD',
-        transactionType: 'Issuance',
-        reasonCode: 'Initial',
-        description: 'Initial share issuance',
-        createdAt: new Date('2024-01-01'),
+        currencyCode: "AUD",
+        transactionType: "Issuance",
+        reasonCode: "Initial",
+        description: "Initial share issuance",
+        createdAt: new Date("2024-01-01"),
         entity: {
-          id: 'entity123',
-          name: 'Test Entity Ltd',
-          address: '123 Test Street',
-          city: 'Sydney',
-          state: 'NSW',
-          postcode: '2000',
-          country: 'Australia',
-          phone: '+61 2 1234 5678',
-          email: 'contact@testentity.com',
-          entityTypeId: 'Company',
+          id: "entity123",
+          name: "Test Entity Ltd",
+          address: "123 Test Street",
+          city: "Sydney",
+          state: "NSW",
+          postcode: "2000",
+          country: "Australia",
+          phone: "+61 2 1234 5678",
+          email: "contact@testentity.com",
+          entityTypeId: "Company",
         },
         securityClass: {
-          id: 'sec123',
-          name: 'Ordinary Shares',
-          symbol: 'ORD',
+          id: "sec123",
+          name: "Ordinary Shares",
+          symbol: "ORD",
         },
         toMember: {
-          id: 'member123',
-          entityName: 'John Doe Ltd',
-          givenNames: 'John',
-          familyName: 'Doe',
-          memberType: 'Individual',
-          address: '456 Member Street',
-          city: 'Melbourne',
-          state: 'VIC',
-          postcode: '3000',
-          country: 'Australia',
+          id: "member123",
+          entityName: "John Doe Ltd",
+          givenNames: "John",
+          familyName: "Doe",
+          memberType: "Individual",
+          address: "456 Member Street",
+          city: "Melbourne",
+          state: "VIC",
+          postcode: "3000",
+          country: "Australia",
         },
       };
 
       const mockTemplate = {
-        id: 'template123',
-        name: 'Standard Certificate',
-        templateHtml: '<html><body>Test</body></html>',
+        id: "template123",
+        name: "Standard Certificate",
+        templateHtml: "<html><body>Test</body></html>",
       };
 
       mockPrisma.transaction.findUnique.mockResolvedValue(mockTransaction);
@@ -919,26 +916,26 @@ describe('CertificateGenerator', () => {
       mockPrisma.transaction.findFirst.mockResolvedValue(null);
 
       const result = await certificateGenerator.generatePDFCertificate(
-        'txn123',
-        'template123'
+        "txn123",
+        "template123",
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('PDF generation failed');
+      expect(result.error).toBe("PDF generation failed");
     });
 
-    it('should handle database errors gracefully', async () => {
+    it("should handle database errors gracefully", async () => {
       mockPrisma.transaction.findUnique.mockRejectedValue(
-        new Error('Database connection failed')
+        new Error("Database connection failed"),
       );
 
       const result = await certificateGenerator.generatePDFCertificate(
-        'txn123',
-        'template123'
+        "txn123",
+        "template123",
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Database connection failed');
+      expect(result.error).toBe("Database connection failed");
     });
   });
 });

@@ -1,6 +1,6 @@
-import { CompliancePack } from './CompliancePack';
-import { australiaCompliancePack } from './australia';
-import { newZealandCompliancePack } from './new_zealand';
+import { CompliancePack } from "./CompliancePack";
+import { australiaCompliancePack } from "./australia";
+import { newZealandCompliancePack } from "./new_zealand";
 
 // Registry of all available compliance packs
 const COMPLIANCE_PACKS: Record<string, CompliancePack> = {

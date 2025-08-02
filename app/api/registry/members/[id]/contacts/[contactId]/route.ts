@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse } from '@/lib/types';
-import { AuditLogger } from '@/lib/audit';
-import { AuditAction, AuditTableName } from '@/lib/audit';
-import { auth } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse } from "@/lib/types";
+import { AuditLogger } from "@/lib/audit";
+import { AuditAction, AuditTableName } from "@/lib/audit";
+import { auth } from "@/lib/auth";
 
 // GET /api/members/[id]/contacts/[contactId] - Get a specific contact
 export async function GET(
@@ -28,7 +28,7 @@ export async function GET(
     if (!contact) {
       const response: ApiResponse = {
         success: false,
-        error: 'Contact not found',
+        error: "Contact not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -40,10 +40,10 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching contact:', error);
+    console.error("Error fetching contact:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch contact',
+      error: "Failed to fetch contact",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -61,7 +61,7 @@ export async function PUT(
     if (!userId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
       };
       return NextResponse.json(response, { status: 401 });
     }
@@ -84,7 +84,7 @@ export async function PUT(
     if (!existingContact) {
       const response: ApiResponse = {
         success: false,
-        error: 'Contact not found',
+        error: "Contact not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -93,7 +93,7 @@ export async function PUT(
     if (!body.name) {
       const response: ApiResponse = {
         success: false,
-        error: 'Contact name is required',
+        error: "Contact name is required",
       };
       return NextResponse.json(response, { status: 400 });
     }
@@ -148,15 +148,15 @@ export async function PUT(
     const response: ApiResponse = {
       success: true,
       data: contact,
-      message: 'Contact updated successfully',
+      message: "Contact updated successfully",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error updating contact:', error);
+    console.error("Error updating contact:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to update contact',
+      error: "Failed to update contact",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -174,7 +174,7 @@ export async function DELETE(
     if (!userId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
       };
       return NextResponse.json(response, { status: 401 });
     }
@@ -196,7 +196,7 @@ export async function DELETE(
     if (!existingContact) {
       const response: ApiResponse = {
         success: false,
-        error: 'Contact not found',
+        error: "Contact not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -216,15 +216,15 @@ export async function DELETE(
 
     const response: ApiResponse = {
       success: true,
-      message: 'Contact deleted successfully',
+      message: "Contact deleted successfully",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error deleting contact:', error);
+    console.error("Error deleting contact:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to delete contact',
+      error: "Failed to delete contact",
     };
     return NextResponse.json(response, { status: 500 });
   }

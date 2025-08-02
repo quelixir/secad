@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { ApiResponse, SecurityInput } from '@/lib/types';
-import { AuditLogger } from '@/lib/audit';
-import { AuditAction, AuditTableName } from '@/lib/audit';
-import { auth } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { ApiResponse, SecurityInput } from "@/lib/types";
+import { AuditLogger } from "@/lib/audit";
+import { AuditAction, AuditTableName } from "@/lib/audit";
+import { auth } from "@/lib/auth";
 
 // GET /api/securities/[id] - Get a specific security class
 export async function GET(
@@ -13,7 +13,7 @@ export async function GET(
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
-    const includeHoldings = searchParams.get('include')?.includes('holdings');
+    const includeHoldings = searchParams.get("include")?.includes("holdings");
 
     const securityClass = await prisma.securityClass.findUnique({
       where: { id },
@@ -56,7 +56,7 @@ export async function GET(
     if (!securityClass) {
       const response: ApiResponse = {
         success: false,
-        error: 'Security class not found',
+        error: "Security class not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -68,10 +68,10 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching security class:', error);
+    console.error("Error fetching security class:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to fetch security class',
+      error: "Failed to fetch security class",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -89,7 +89,7 @@ export async function PUT(
     if (!userId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
       };
       return NextResponse.json(response, { status: 401 });
     }
@@ -104,7 +104,7 @@ export async function PUT(
     if (!existingSecurityClass) {
       const response: ApiResponse = {
         success: false,
-        error: 'Security class not found',
+        error: "Security class not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -122,7 +122,7 @@ export async function PUT(
       if (duplicate) {
         const response: ApiResponse = {
           success: false,
-          error: 'Security class name already exists for this entity',
+          error: "Security class name already exists for this entity",
         };
         return NextResponse.json(response, { status: 409 });
       }
@@ -187,15 +187,15 @@ export async function PUT(
     const response: ApiResponse = {
       success: true,
       data: securityClass,
-      message: 'Security class updated successfully',
+      message: "Security class updated successfully",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error updating security class:', error);
+    console.error("Error updating security class:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to update security class',
+      error: "Failed to update security class",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -213,12 +213,12 @@ export async function PATCH(
     if (!userId) {
       const response: ApiResponse = {
         success: false,
-        error: 'Unauthorized',
+        error: "Unauthorized",
       };
       return NextResponse.json(response, { status: 401 });
     }
     const { id } = await params;
-    const body: { action: 'archive' | 'unarchive' } = await request.json();
+    const body: { action: "archive" | "unarchive" } = await request.json();
 
     // Check if security class exists
     const existingSecurityClass = await prisma.securityClass.findUnique({
@@ -228,19 +228,19 @@ export async function PATCH(
     if (!existingSecurityClass) {
       const response: ApiResponse = {
         success: false,
-        error: 'Security class not found',
+        error: "Security class not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
 
-    const isArchived = body.action === 'archive';
+    const isArchived = body.action === "archive";
 
     // Check if already in desired state
     if (existingSecurityClass.isArchived === isArchived) {
       const response: ApiResponse = {
         success: false,
         error: `Security class is already ${
-          isArchived ? 'archived' : 'active'
+          isArchived ? "archived" : "active"
         }`,
       };
       return NextResponse.json(response, { status: 409 });
@@ -272,16 +272,16 @@ export async function PATCH(
       success: true,
       data: securityClass,
       message: `Security class ${
-        isArchived ? 'archived' : 'unarchived'
+        isArchived ? "archived" : "unarchived"
       } successfully`,
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error archiving/unarchiving security class:', error);
+    console.error("Error archiving/unarchiving security class:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to archive/unarchive security class',
+      error: "Failed to archive/unarchive security class",
     };
     return NextResponse.json(response, { status: 500 });
   }
@@ -310,7 +310,7 @@ export async function DELETE(
     if (!existingSecurityClass) {
       const response: ApiResponse = {
         success: false,
-        error: 'Security class not found',
+        error: "Security class not found",
       };
       return NextResponse.json(response, { status: 404 });
     }
@@ -319,7 +319,7 @@ export async function DELETE(
     if (existingSecurityClass._count.transactions > 0) {
       const response: ApiResponse = {
         success: false,
-        error: 'Cannot delete security class with existing transactions',
+        error: "Cannot delete security class with existing transactions",
       };
       return NextResponse.json(response, { status: 409 });
     }
@@ -330,15 +330,15 @@ export async function DELETE(
 
     const response: ApiResponse = {
       success: true,
-      message: 'Security class deleted successfully',
+      message: "Security class deleted successfully",
     };
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error deleting security class:', error);
+    console.error("Error deleting security class:", error);
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to delete security class',
+      error: "Failed to delete security class",
     };
     return NextResponse.json(response, { status: 500 });
   }
