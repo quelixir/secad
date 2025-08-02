@@ -49,12 +49,11 @@ export default function SignUpPage() {
     const password = (form.password as HTMLInputElement).value;
     const name = (form.name as unknown as HTMLInputElement).value;
     try {
-      // @ts-expect-error: username is supported by the Better Auth username plugin
       const result = await authClient.signUp.email({
         email,
         password,
-        username,
         name,
+        ...(username && { username }),
       });
       if (result.error) {
         setError(result.error.message || "Sign up failed");
