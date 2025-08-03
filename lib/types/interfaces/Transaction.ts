@@ -21,7 +21,7 @@ export interface Transaction {
   settlementDate: Date;
   reference?: string;
   description?: string;
-  certificateNumber?: string;
+  certificateData?: any;
   status: string;
   createdAt: Date;
   updatedAt: Date;
@@ -52,7 +52,7 @@ export interface TransactionInput {
   settlementDate?: Date;
   reference?: string;
   description?: string;
-  certificateNumber?: string;
+  certificateData?: any;
   status?: string;
 }
 

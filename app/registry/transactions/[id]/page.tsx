@@ -31,6 +31,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  CertificateGenerationDialog,
+  CertificateGenerationOptions,
+} from "@/components/ui/certificate-generation-dialog";
 
 import {
   ArrowLeft,
@@ -69,6 +73,7 @@ export default function ViewTransactionPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
+  const [isCertificateDialogOpen, setIsCertificateDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchTransaction = async () => {
@@ -207,37 +212,15 @@ export default function ViewTransactionPage() {
     }
   };
 
-  const handleDownloadCertificate = async () => {
-    if (!transaction) return;
-
-    if (!user) {
-      setError("You must be logged in to generate certificates");
-      return;
+  const handleGenerateCertificate = async (
+    options: CertificateGenerationOptions,
+  ) => {
+    if (!transaction || !user) {
+      throw new Error("You must be logged in to generate certificates");
     }
 
     try {
       setIsGeneratingCertificate(true);
-
-      // Get available certificate templates for the entity
-      const templateResponse = await fetch(
-        `/api/registry/certificate-templates?scopeId=${transaction.entityId}`,
-      );
-      const templateResult = await templateResponse.json();
-
-      if (
-        !templateResult.success ||
-        !templateResult.data ||
-        !templateResult.data.templates ||
-        templateResult.data.templates.length === 0
-      ) {
-        setError("No certificate templates available for this entity");
-        return;
-      }
-
-      // Find the best template (prefer default, then first available)
-      const templates = templateResult.data.templates;
-      const defaultTemplate = templates.find((t: any) => t.isDefault);
-      const template = defaultTemplate || templates[0];
 
       // Generate and download the certificate
       const response = await fetch(
@@ -249,8 +232,13 @@ export default function ViewTransactionPage() {
           },
           body: JSON.stringify({
             transactionId: transaction.id,
-            templateId: template.id,
-            format: "PDF",
+            templateId: options.templateId,
+            format: options.format,
+            certificateNumber: options.certificateNumber,
+            issueDate: options.issueDate.toISOString(),
+            includeWatermark: options.includeWatermark,
+            includeQRCode: options.includeQRCode,
+            customFields: options.customFields,
             userId: user?.id || "anonymous",
           }),
         },
@@ -268,18 +256,16 @@ export default function ViewTransactionPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `certificate-${transaction.id}.pdf`;
+      a.download = `certificate-${
+        transaction.id
+      }.${options.format.toLowerCase()}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
       console.error("Error generating certificate:", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to generate certificate",
-      );
+      throw error;
     } finally {
       setIsGeneratingCertificate(false);
     }
@@ -379,33 +365,24 @@ export default function ViewTransactionPage() {
               {transaction.status}
             </Badge>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={isGeneratingCertificate || !user}
-                >
-                  {isGeneratingCertificate ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      Generate Certificate
-                      <ChevronDown className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleDownloadCertificate}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download PDF...
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isGeneratingCertificate || !user}
+              onClick={() => setIsCertificateDialogOpen(true)}
+            >
+              {isGeneratingCertificate ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Generate Certificate
+                </>
+              )}
+            </Button>
 
             <Link href={`/registry/transactions/${transaction.id}/edit`}>
               <Button variant="outline" size="sm">
@@ -579,7 +556,10 @@ export default function ViewTransactionPage() {
                     Certificate Number
                   </label>
                   <p className="text-sm">
-                    {transaction.certificateNumber || "N/A"}
+                    {transaction.certificateData
+                      ? (transaction.certificateData as any)
+                          .certificateNumber || "N/A"
+                      : "N/A"}
                   </p>
                 </div>
               </div>
@@ -838,6 +818,29 @@ export default function ViewTransactionPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Certificate Generation Dialog */}
+        {transaction && (
+          <CertificateGenerationDialog
+            transactionId={transaction.id}
+            entityId={transaction.entityId}
+            entityName={transaction.entity?.name || "Unknown Entity"}
+            memberName={
+              transaction.toMember
+                ? formatMemberName(transaction.toMember)
+                : transaction.fromMember
+                  ? formatMemberName(transaction.fromMember)
+                  : "Unknown Member"
+            }
+            securityClass={
+              transaction.securityClass?.name || "Unknown Security Class"
+            }
+            quantity={transaction.quantity}
+            isOpen={isCertificateDialogOpen}
+            onOpenChange={setIsCertificateDialogOpen}
+            onGenerate={handleGenerateCertificate}
+          />
+        )}
       </div>
     </MainLayout>
   );

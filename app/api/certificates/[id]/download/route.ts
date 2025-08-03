@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { certificateGenerator } from "@/lib/services/certificate-generator";
+import { certificateNumberingService } from "@/lib/services/certificate-numbering";
 import { prisma } from "@/lib/db";
 import { rateLimit } from "@/lib/utils/rate-limit";
 import { AuditLogger, AuditAction, AuditTableName } from "@/lib/audit";
@@ -15,6 +16,11 @@ export interface DownloadRequest {
   templateId: string;
   format: "PDF" | "DOCX";
   userId: string;
+  certificateNumber?: string;
+  issueDate?: string;
+  includeWatermark?: boolean;
+  includeQRCode?: boolean;
+  customFields?: Record<string, string>;
 }
 
 /**
@@ -40,7 +46,17 @@ export async function POST(
     }
 
     const body: DownloadRequest = await request.json();
-    const { transactionId, templateId, format, userId } = body;
+    const {
+      transactionId,
+      templateId,
+      format,
+      userId,
+      certificateNumber,
+      issueDate,
+      includeWatermark = true,
+      includeQRCode = true,
+      customFields,
+    } = body;
 
     // Validate required fields
     if (!transactionId || !templateId || !format || !userId) {
@@ -89,6 +105,53 @@ export async function POST(
         { status: 404 },
       );
     }
+
+    // Generate certificate number if not provided
+    let finalCertificateNumber = certificateNumber;
+    if (!finalCertificateNumber) {
+      const numberingResult =
+        await certificateNumberingService.generateCertificateNumber(
+          {
+            entityId: transaction.entityId,
+            year: new Date().getFullYear(),
+          },
+          userId,
+        );
+
+      if (!numberingResult.success) {
+        return NextResponse.json(
+          {
+            error:
+              numberingResult.error || "Failed to generate certificate number",
+          },
+          { status: 500 },
+        );
+      }
+
+      finalCertificateNumber = numberingResult.data!.certificateNumber;
+    }
+
+    // Prepare certificate data to store in transaction
+    const certificateData = {
+      certificateNumber: finalCertificateNumber,
+      templateId,
+      format,
+      issueDate: issueDate || new Date().toISOString(),
+      includeWatermark,
+      includeQRCode,
+      customFields,
+      generatedBy: userId,
+      generatedAt: new Date().toISOString(),
+    };
+
+    // Update transaction with certificate data
+    await prisma.transaction.update({
+      where: { id: transactionId },
+      data: {
+        certificateData,
+        updatedBy: userId,
+      },
+    });
 
     // Generate certificate on-the-fly
     const result = await certificateGenerator.generateCertificate(

@@ -95,8 +95,8 @@ export async function PUT(
     if (body.reference !== undefined) updateData.reference = body.reference;
     if (body.description !== undefined)
       updateData.description = body.description;
-    if (body.certificateNumber !== undefined)
-      updateData.certificateNumber = body.certificateNumber;
+    if (body.certificateData !== undefined)
+      updateData.certificateData = body.certificateData;
     if (body.status) updateData.status = body.status;
 
     // Recalculate totals if quantity or prices changed

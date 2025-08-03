@@ -128,9 +128,9 @@ export async function PUT(
       oldValues.description = existingTransaction.description;
       updateData.description = body.description;
     }
-    if (body.certificateNumber !== undefined) {
-      oldValues.certificateNumber = existingTransaction.certificateNumber;
-      updateData.certificateNumber = body.certificateNumber;
+    if (body.certificateData !== undefined) {
+      oldValues.certificateData = existingTransaction.certificateData;
+      updateData.certificateData = body.certificateData;
     }
     if (body.status) {
       oldValues.status = existingTransaction.status;

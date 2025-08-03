@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       settlementDate,
       reference,
       description,
-      certificateNumber,
+      certificateData,
       status = "Completed",
     } = body;
 
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
         settlementDate,
         reference,
         description,
-        certificateNumber,
+        certificateData: certificateData ? certificateData : undefined,
         status,
       },
       include: {

@@ -90,8 +90,8 @@ export class CertificateGenerator {
     const lastTransaction = await prisma.transaction.findFirst({
       where: {
         entityId,
-        certificateNumber: {
-          not: null,
+        certificateData: {
+          not: null as any,
         },
         createdAt: {
           gte: new Date(year, 0, 1),
@@ -99,16 +99,19 @@ export class CertificateGenerator {
         },
       },
       orderBy: {
-        certificateNumber: "desc",
+        createdAt: "desc",
       },
     });
 
     let nextNumber = startNumber;
-    if (lastTransaction && lastTransaction.certificateNumber) {
-      // Extract number from existing certificate number
-      const match = lastTransaction.certificateNumber.match(/(\d{6})$/);
-      if (match) {
-        nextNumber = parseInt(match[1]) + 1;
+    if (lastTransaction && lastTransaction.certificateData) {
+      const certData = lastTransaction.certificateData as any;
+      if (certData.certificateNumber) {
+        // Extract number from existing certificate number
+        const match = certData.certificateNumber.match(/(\d{6})$/);
+        if (match) {
+          nextNumber = parseInt(match[1]) + 1;
+        }
       }
     }
 
@@ -221,11 +224,22 @@ export class CertificateGenerator {
       throw new Error(`Member not found for transaction: ${transactionId}`);
     }
 
-    // Generate certificate number
-    const certificateNumber = await this.generateCertificateNumber({
-      entityId,
-      year: new Date().getFullYear(),
-    });
+    // Get certificate number from transaction data or generate new one
+    let certificateNumber: string;
+    if (transaction.certificateData) {
+      const certData = transaction.certificateData as any;
+      certificateNumber =
+        certData.certificateNumber ||
+        (await this.generateCertificateNumber({
+          entityId,
+          year: new Date().getFullYear(),
+        }));
+    } else {
+      certificateNumber = await this.generateCertificateNumber({
+        entityId,
+        year: new Date().getFullYear(),
+      });
+    }
 
     // Calculate total amount safely
     const totalAmountPaid = transaction.totalAmountPaid
@@ -296,7 +310,9 @@ export class CertificateGenerator {
       memberType: transaction.toMember.memberType,
       memberAddress: memberAddress || "Not specified",
       certificateNumber,
-      issueDate: new Date(),
+      issueDate: transaction.certificateData
+        ? new Date((transaction.certificateData as any).issueDate || new Date())
+        : new Date(),
     };
   }
 

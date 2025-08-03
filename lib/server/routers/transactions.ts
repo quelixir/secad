@@ -141,7 +141,9 @@ export const transactionsRouter = createTRPCRouter({
             settlementDate: input.settlementDate || new Date(),
             reference: input.reference || null,
             description: input.description || null,
-            certificateNumber: input.certificateNumber || null,
+            certificateData: input.certificateNumber
+              ? { certificateNumber: input.certificateNumber }
+              : undefined,
             status: input.status,
           },
         });

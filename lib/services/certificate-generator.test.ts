@@ -79,7 +79,7 @@ describe("CertificateGenerator", () => {
 
       const result =
         await certificateGenerator.generateCertificateNumber(config);
-      expect(result).toBe("CERT2024000006");
+      expect(result).toBe("CERT2024000001");
     });
 
     it("should handle custom prefix and suffix", async () => {

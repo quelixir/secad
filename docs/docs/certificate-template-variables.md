@@ -245,7 +245,7 @@ Variables that provide current system information.
 All template variables are populated from the following data sources:
 
 - **Entity Data**: From the `Entity` model in the database
-- **Transaction Data**: From the `Transaction` model
+- **Transaction Data**: From the `Transaction` model (including `certificateData` JSON field)
 - **Security Data**: From the `SecurityClass` model
 - **Member Data**: From the `Member` model
 - **System Data**: Generated at certificate creation time
@@ -289,7 +289,33 @@ All template variables are validated during certificate generation. If required 
 
 ## Custom Variables
 
-The system also supports dynamic properties that can be added to the `CertificateData` object. These will be automatically available as template variables with the same naming convention.
+The system supports dynamic properties that can be added to the `certificateData` JSON field in the `Transaction` model. These will be automatically available as template variables with the same naming convention.
+
+### Certificate Data Structure
+
+The `certificateData` field stores comprehensive certificate generation information:
+
+```json
+{
+  "certificateNumber": "CERT-2024-0001",
+  "issueDate": "2024-01-15",
+  "templateId": "default",
+  "format": "pdf",
+  "includeWatermark": true,
+  "includeQRCode": false,
+  "customFields": {
+    "customField1": "value1",
+    "customField2": "value2"
+  }
+}
+```
+
+### Custom Field Variables
+
+Any properties added to the `customFields` object will be available as template variables:
+
+- `{{customField1}}` → "value1"
+- `{{customField2}}` → "value2"
 
 ## Best Practices
 
@@ -299,6 +325,37 @@ The system also supports dynamic properties that can be added to the `Certificat
 4. **Test templates** with various data scenarios
 5. **Keep templates simple** and focused on readability
 
+## Certificate Generation Dialog
+
+The certificate generation process is now handled through a comprehensive dialog interface that allows users to:
+
+### Available Options
+
+- **Template Selection**: Choose from available certificate templates
+- **Format Selection**: Generate certificates in PDF or DOCX format
+- **Certificate Number**: Use auto-generated sequential numbers or specify custom numbers
+- **Issue Date**: Set the certificate issue date (defaults to current date)
+- **Features**: Enable/disable watermarks and QR codes
+- **Custom Fields**: Add additional data that will be available as template variables
+
+### Generation Process
+
+1. **Template Loading**: Available templates are loaded from the certificate template registry
+2. **Number Generation**: Sequential certificate numbers are generated per entity per year
+3. **Data Validation**: All required data is validated before generation
+4. **Certificate Creation**: The certificate is generated with the selected options
+5. **Database Update**: The transaction's `certificateData` field is updated with generation metadata
+6. **Download**: The generated certificate is automatically downloaded
+
+### Certificate Numbering
+
+Certificate numbers follow a configurable format:
+
+- **Default Format**: `CERT-{YEAR}-{SEQUENCE}` (e.g., "CERT-2024-0001")
+- **Sequential**: Numbers increment automatically within each year
+- **Per-Entity**: Each entity maintains its own numbering sequence
+- **Year Rollover**: Sequence resets to 1 at the start of each new year
+
 ## Troubleshooting
 
 ### Common Issues
@@ -307,6 +364,7 @@ The system also supports dynamic properties that can be added to the `Certificat
 2. **Missing data**: Verify that the transaction has all required related data
 3. **Formatting issues**: Ensure proper HTML structure
 4. **Currency display**: Check that the transaction has a valid currency code
+5. **Certificate number conflicts**: Check for duplicate certificate numbers in the same year
 
 ### Debugging
 
@@ -316,3 +374,4 @@ To debug template variable issues:
 2. Verify transaction data in the database
 3. Test with a simple template first
 4. Use the template validation API endpoint
+5. Review the `certificateData` JSON field in the transaction record
