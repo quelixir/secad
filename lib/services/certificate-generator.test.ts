@@ -39,18 +39,26 @@ describe("CertificateGenerator", () => {
   let certificateGenerator: CertificateGenerator;
   let mockPrisma: any;
   let originalConsoleError: typeof console.error;
+  let originalConsoleWarn: typeof console.warn;
+  let originalConsoleLog: typeof console.log;
 
   beforeEach(() => {
     certificateGenerator = new CertificateGenerator();
     mockPrisma = require("@/lib/db").prisma;
     originalConsoleError = console.error;
+    originalConsoleWarn = console.warn;
+    originalConsoleLog = console.log;
     console.error = jest.fn();
+    console.warn = jest.fn();
+    console.log = jest.fn();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
     certificateGenerator.clearCache();
     console.error = originalConsoleError;
+    console.warn = originalConsoleWarn;
+    console.log = originalConsoleLog;
   });
 
   describe("Certificate Numbering", () => {

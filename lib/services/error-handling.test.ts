@@ -327,8 +327,20 @@ describe("Certificate Error Handling", () => {
   });
 
   describe("CertificateErrorRecovery", () => {
+    let originalConsoleError: typeof console.error;
+    let originalConsoleWarn: typeof console.warn;
+
     beforeEach(() => {
       jest.clearAllMocks();
+      originalConsoleError = console.error;
+      originalConsoleWarn = console.warn;
+      console.error = jest.fn();
+      console.warn = jest.fn();
+    });
+
+    afterEach(() => {
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
     });
 
     it("should execute operation successfully on first try", async () => {
