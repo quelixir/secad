@@ -16,8 +16,6 @@ import {
   ErrorContext,
   CertificateGenerationError,
 } from "./error-handling";
-import { certificateProgressTracker } from "./certificate-progress-tracker";
-import { CertificateGenerationStage } from "@/lib/types/interfaces/CertificateProgress";
 
 export interface CertificateData {
   entityId: string;
@@ -542,7 +540,6 @@ export class CertificateGenerator {
     templateId: string,
     options?: Partial<PDFOptions>,
     generatedBy: string = "system",
-    progressId?: string,
   ): Promise<CertificateGenerationResult> {
     const generationStartTime = Date.now();
     const context: ErrorContext = {
@@ -556,17 +553,6 @@ export class CertificateGenerator {
     this.logger.log(
       `Starting PDF certificate generation for transaction: ${transactionId}`,
     );
-
-    // Initialize progress tracking if progressId is provided
-    if (progressId) {
-      certificateProgressTracker.updateProgress(
-        progressId,
-        "initializing",
-        10,
-        "Starting certificate generation...",
-        { templateId, format: "PDF" },
-      );
-    }
 
     const cacheKey = `pdf_${transactionId}_${templateId}_${JSON.stringify(
       options || {},
@@ -624,16 +610,6 @@ export class CertificateGenerator {
 
       this.activeGenerations++;
 
-      // Update progress - template loading
-      if (progressId) {
-        certificateProgressTracker.updateProgress(
-          progressId,
-          "template_loading",
-          20,
-          "Loading certificate template...",
-        );
-      }
-
       // Get template with retry
       const template = await CertificateErrorRecovery.withRetry(
         () =>
@@ -647,25 +623,6 @@ export class CertificateGenerator {
         throw CertificateErrorFactory.templateError(
           `Certificate template not found: ${templateId}`,
           context,
-        );
-      }
-
-      // Complete template loading stage
-      if (progressId) {
-        certificateProgressTracker.completeStage(
-          progressId,
-          "template_loading",
-          "Template loaded successfully",
-        );
-      }
-
-      // Update progress - data validation
-      if (progressId) {
-        certificateProgressTracker.updateProgress(
-          progressId,
-          "data_validation",
-          40,
-          "Validating certificate data...",
         );
       }
 
@@ -691,25 +648,6 @@ export class CertificateGenerator {
         );
       }
 
-      // Complete data validation stage
-      if (progressId) {
-        certificateProgressTracker.completeStage(
-          progressId,
-          "data_validation",
-          "Data validation completed",
-        );
-      }
-
-      // Update progress - PDF generation
-      if (progressId) {
-        certificateProgressTracker.updateProgress(
-          progressId,
-          "pdf_generation",
-          60,
-          "Generating PDF certificate...",
-        );
-      }
-
       // Replace template variables
       const processedHtml = this.replaceTemplateVariables(
         template.templateHtml,
@@ -729,25 +667,6 @@ export class CertificateGenerator {
         );
       }
 
-      // Complete PDF generation stage
-      if (progressId) {
-        certificateProgressTracker.completeStage(
-          progressId,
-          "pdf_generation",
-          "PDF generation completed",
-        );
-      }
-
-      // Update progress - file preparation
-      if (progressId) {
-        certificateProgressTracker.updateProgress(
-          progressId,
-          "file_preparation",
-          80,
-          "Preparing certificate file...",
-        );
-      }
-
       // Generate metadata
       const metadata = this.generateMetadata(
         certificateData,
@@ -762,30 +681,6 @@ export class CertificateGenerator {
         ? pdfResult.data
         : Buffer.from(pdfResult.data);
       this.cacheCertificate(cacheKey, bufferData, metadata);
-
-      // Complete file preparation stage
-      if (progressId) {
-        certificateProgressTracker.completeStage(
-          progressId,
-          "file_preparation",
-          "File preparation completed",
-        );
-      }
-
-      // Update progress - download ready
-      if (progressId) {
-        certificateProgressTracker.updateProgress(
-          progressId,
-          "download_ready",
-          95,
-          "Certificate ready for download...",
-          {
-            certificateNumber: metadata.certificateNumber,
-            fileSize: metadata.fileSize,
-            checksum: metadata.checksum,
-          },
-        );
-      }
 
       this.logger.log(
         `PDF certificate generated successfully: ${metadata.certificateId}`,
@@ -822,15 +717,6 @@ export class CertificateGenerator {
         // Don't fail the generation if audit logging fails
       }
 
-      // Complete generation
-      if (progressId) {
-        certificateProgressTracker.completeGeneration(progressId, {
-          certificateNumber: metadata.certificateNumber,
-          fileSize: metadata.fileSize,
-          checksum: metadata.checksum,
-        });
-      }
-
       return {
         success: true,
         data: {
@@ -839,17 +725,6 @@ export class CertificateGenerator {
         },
       };
     } catch (error) {
-      // Update progress with error
-      if (progressId) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
-        certificateProgressTracker.failGeneration(
-          progressId,
-          errorMessage,
-          "pdf_generation",
-        );
-      }
-
       // Log and handle the error
       if (error instanceof CertificateGenerationError) {
         await CertificateErrorLogger.logError(error, {
@@ -935,7 +810,6 @@ export class CertificateGenerator {
     transactionId: string,
     templateId: string,
     generatedBy: string = "system",
-    progressId?: string,
   ): Promise<CertificateGenerationResult> {
     this.logger.log(
       `Starting DOCX certificate generation for transaction: ${transactionId}`,
@@ -957,7 +831,6 @@ export class CertificateGenerator {
     format: "PDF" | "DOCX" = "PDF",
     options?: Partial<PDFOptions>,
     generatedBy: string = "system",
-    progressId?: string,
   ): Promise<CertificateGenerationResult> {
     if (format === "PDF") {
       return this.generatePDFCertificate(
@@ -965,14 +838,12 @@ export class CertificateGenerator {
         templateId,
         options,
         generatedBy,
-        progressId,
       );
     } else {
       return this.generateDOCXCertificate(
         transactionId,
         templateId,
         generatedBy,
-        progressId,
       );
     }
   }
