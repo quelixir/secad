@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { certificateGenerator } from "@/lib/services/certificate-generator";
+import { AuditLogger } from "@/lib/audit";
 
 export interface PreviewRequest {
   transactionId: string;
@@ -115,6 +116,36 @@ export async function POST(
         },
         { status: 500 },
       );
+    }
+
+    // Log certificate access event for preview
+    try {
+      await AuditLogger.logCertificateAccessed(
+        body.entityId,
+        userId,
+        body.transactionId,
+        body.certificateNumber || "CERT-2024-0001",
+        "PDF", // Preview is always HTML but we log as PDF for consistency
+        "view",
+        {
+          templateId,
+          templateName: template.name,
+          templateScope: template.scope,
+          previewType: "template_preview",
+          customFields: body.customFields,
+          ip:
+            request.headers.get("x-forwarded-for") ||
+            request.headers.get("x-real-ip") ||
+            "unknown",
+          userAgent: request.headers.get("user-agent"),
+        },
+      );
+    } catch (auditError) {
+      console.error(
+        "Failed to log certificate preview access event:",
+        auditError,
+      );
+      // Don't fail the preview if audit logging fails
     }
 
     return NextResponse.json({

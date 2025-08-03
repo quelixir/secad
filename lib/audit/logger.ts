@@ -592,4 +592,194 @@ export class AuditLogger {
       recordId: templateId,
     });
   }
+
+  /**
+   * Get certificate generation analytics
+   */
+  static async getCertificateGenerationAnalytics(
+    entityId: string,
+    options: AuditLogOptions = {},
+  ): Promise<{
+    totalGenerations: number;
+    totalDownloads: number;
+    totalAccesses: number;
+    averageFileSize: number;
+    mostUsedTemplates: Array<{
+      templateId: string;
+      templateName: string;
+      count: number;
+    }>;
+    generationTrends: Array<{ date: string; count: number }>;
+    formatDistribution: { PDF: number; DOCX: number };
+  }> {
+    const certificateLogs = await this.getCertificateAuditLogs(
+      entityId,
+      options,
+    );
+
+    const generations = certificateLogs.logs.filter(
+      (log) => log.action === AuditAction.CERTIFICATE_GENERATED,
+    );
+    const downloads = certificateLogs.logs.filter(
+      (log) => log.action === AuditAction.CERTIFICATE_DOWNLOADED,
+    );
+    const accesses = certificateLogs.logs.filter(
+      (log) => log.action === AuditAction.CERTIFICATE_ACCESSED,
+    );
+
+    // Calculate analytics
+    const totalGenerations = generations.length;
+    const totalDownloads = downloads.length;
+    const totalAccesses = accesses.length;
+
+    // Calculate average file size
+    const fileSizes = generations
+      .map((log) => log.metadata?.fileSize)
+      .filter((size) => typeof size === "number");
+    const averageFileSize =
+      fileSizes.length > 0
+        ? fileSizes.reduce((sum, size) => sum + size, 0) / fileSizes.length
+        : 0;
+
+    // Most used templates
+    const templateUsage = new Map<
+      string,
+      { templateId: string; templateName: string; count: number }
+    >();
+    generations.forEach((log) => {
+      const templateId = log.metadata?.templateId;
+      const templateName = log.metadata?.templateName || "Unknown";
+      if (templateId) {
+        const existing = templateUsage.get(templateId);
+        templateUsage.set(templateId, {
+          templateId,
+          templateName,
+          count: (existing?.count || 0) + 1,
+        });
+      }
+    });
+    const mostUsedTemplates = Array.from(templateUsage.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    // Generation trends (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const recentGenerations = generations.filter(
+      (log) => new Date(log.timestamp) >= thirtyDaysAgo,
+    );
+
+    const trendMap = new Map<string, number>();
+    recentGenerations.forEach((log) => {
+      const date = new Date(log.timestamp).toISOString().split("T")[0];
+      trendMap.set(date, (trendMap.get(date) || 0) + 1);
+    });
+
+    const generationTrends = Array.from(trendMap.entries())
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    // Format distribution
+    const formatCounts: { PDF: number; DOCX: number } = { PDF: 0, DOCX: 0 };
+    generations.forEach((log) => {
+      const format = log.metadata?.format;
+      if (format === "PDF" || format === "DOCX") {
+        formatCounts[format as "PDF" | "DOCX"]++;
+      }
+    });
+
+    return {
+      totalGenerations,
+      totalDownloads,
+      totalAccesses,
+      averageFileSize,
+      mostUsedTemplates,
+      generationTrends,
+      formatDistribution: formatCounts,
+    };
+  }
+
+  /**
+   * Get certificate event summary for dashboard
+   */
+  static async getCertificateEventSummary(
+    entityId: string,
+    days: number = 30,
+  ): Promise<{
+    recentGenerations: number;
+    recentDownloads: number;
+    recentAccesses: number;
+    topTemplates: Array<{
+      templateId: string;
+      templateName: string;
+      count: number;
+    }>;
+    recentActivity: Array<{
+      timestamp: string;
+      action: string;
+      certificateNumber: string;
+      templateName: string;
+      user: string;
+    }>;
+  }> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const certificateLogs = await this.getCertificateAuditLogs(entityId, {
+      startDate,
+    });
+
+    const recentGenerations = certificateLogs.logs.filter(
+      (log) => log.action === AuditAction.CERTIFICATE_GENERATED,
+    ).length;
+
+    const recentDownloads = certificateLogs.logs.filter(
+      (log) => log.action === AuditAction.CERTIFICATE_DOWNLOADED,
+    ).length;
+
+    const recentAccesses = certificateLogs.logs.filter(
+      (log) => log.action === AuditAction.CERTIFICATE_ACCESSED,
+    ).length;
+
+    // Top templates in recent period
+    const templateUsage = new Map<
+      string,
+      { templateId: string; templateName: string; count: number }
+    >();
+    certificateLogs.logs
+      .filter((log) => log.action === AuditAction.CERTIFICATE_GENERATED)
+      .forEach((log) => {
+        const templateId = log.metadata?.templateId;
+        const templateName = log.metadata?.templateName || "Unknown";
+        if (templateId) {
+          const existing = templateUsage.get(templateId);
+          templateUsage.set(templateId, {
+            templateId,
+            templateName,
+            count: (existing?.count || 0) + 1,
+          });
+        }
+      });
+
+    const topTemplates = Array.from(templateUsage.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Recent activity
+    const recentActivity = certificateLogs.logs.slice(0, 20).map((log) => ({
+      timestamp: log.timestamp,
+      action: log.action,
+      certificateNumber: log.metadata?.certificateNumber || "Unknown",
+      templateName: log.metadata?.templateName || "Unknown",
+      user: log.user?.name || log.user?.email || "Unknown",
+    }));
+
+    return {
+      recentGenerations,
+      recentDownloads,
+      recentAccesses,
+      topTemplates,
+      recentActivity,
+    };
+  }
 }

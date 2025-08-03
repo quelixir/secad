@@ -7,6 +7,7 @@ import {
   TemplateValidationService,
   TemplateData,
 } from "@/lib/certificate-templates/template-validation";
+import { AuditLogger } from "@/lib/audit";
 
 export interface CertificateData {
   entityId: string;
@@ -443,7 +444,7 @@ export class CertificateGenerator {
    */
   private getCachedCertificate(
     cacheKey: string,
-  ): { data: Buffer; metadata: CertificateMetadata } | null {
+  ): { data: Buffer; metadata: CertificateMetadata; timestamp: number } | null {
     const cached = this.cache.get(cacheKey);
     if (!cached) {
       return null;
@@ -495,6 +496,30 @@ export class CertificateGenerator {
     // Check cache first
     const cached = this.getCachedCertificate(cacheKey);
     if (cached) {
+      // Log certificate access event for cache hit
+      try {
+        await AuditLogger.logCertificateAccessed(
+          cached.metadata.entityId,
+          generatedBy,
+          transactionId,
+          cached.metadata.certificateNumber,
+          "PDF",
+          "generate",
+          {
+            cacheHit: true,
+            templateId,
+            originalGeneratedAt: cached.metadata.generatedAt,
+            cacheAge: Date.now() - cached.timestamp,
+          },
+        );
+      } catch (auditError) {
+        this.logger.error(
+          "Failed to log certificate cache access event:",
+          auditError,
+        );
+        // Don't fail the generation if audit logging fails
+      }
+
       return {
         success: true,
         data: {
@@ -576,6 +601,39 @@ export class CertificateGenerator {
       this.logger.log(
         `PDF certificate generated successfully: ${metadata.certificateId}`,
       );
+
+      // Log certificate generation event
+      try {
+        await AuditLogger.logCertificateGenerated(
+          certificateData.entityId,
+          generatedBy,
+          transactionId,
+          templateId,
+          "PDF",
+          metadata.certificateNumber,
+          metadata.fileSize,
+          metadata.checksum,
+          {
+            templateScope: template.scope,
+            templateName: template.name,
+            generationDuration:
+              Date.now() -
+              (this.activeGenerations > 0 ? Date.now() : Date.now()), // Placeholder for actual duration tracking
+            templateVariables: Object.keys(templateData),
+            validationScore: templateValidation.completenessScore,
+            validationWarnings: templateValidation.warnings,
+            cacheHit: false,
+            concurrentGenerations: this.activeGenerations,
+            options: options || {},
+          },
+        );
+      } catch (auditError) {
+        this.logger.error(
+          "Failed to log certificate generation event:",
+          auditError,
+        );
+        // Don't fail the generation if audit logging fails
+      }
 
       return {
         success: true,

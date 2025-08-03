@@ -138,6 +138,9 @@ describe("CertificateNumberingService", () => {
     });
 
     it("should handle database errors gracefully", async () => {
+      const originalConsoleError = console.error;
+      console.error = jest.fn();
+
       const config: CertificateNumberingConfig = {
         entityId: "entity-123",
         year: 2024,
@@ -151,6 +154,15 @@ describe("CertificateNumberingService", () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe("Database connection failed");
+
+      // Verify that the error was logged
+      expect(console.error).toHaveBeenCalledWith(
+        "Error generating certificate number:",
+        expect.any(Error),
+      );
+
+      // Restore console.error
+      console.error = originalConsoleError;
     });
   });
 

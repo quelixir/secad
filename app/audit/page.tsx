@@ -159,6 +159,10 @@ export default function AuditPage() {
         return "bg-purple-100 text-purple-800";
       case AuditAction.CERTIFICATE_GENERATED:
         return "bg-indigo-100 text-indigo-800";
+      case AuditAction.CERTIFICATE_DOWNLOADED:
+        return "bg-blue-100 text-blue-800";
+      case AuditAction.CERTIFICATE_ACCESSED:
+        return "bg-purple-100 text-purple-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -345,6 +349,9 @@ export default function AuditPage() {
                     <SelectItem value={AuditAction.CERTIFICATE_DOWNLOADED}>
                       Certificate Downloaded
                     </SelectItem>
+                    <SelectItem value={AuditAction.CERTIFICATE_ACCESSED}>
+                      Certificate Accessed
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -485,6 +492,22 @@ export default function AuditPage() {
                             <div className="text-sm">
                               <span className="text-indigo-600">
                                 Certificate Generated
+                              </span>
+                            </div>
+                          )}
+                          {event.action ===
+                            AuditAction.CERTIFICATE_DOWNLOADED && (
+                            <div className="text-sm">
+                              <span className="text-blue-600">
+                                Certificate Downloaded
+                              </span>
+                            </div>
+                          )}
+                          {event.action ===
+                            AuditAction.CERTIFICATE_ACCESSED && (
+                            <div className="text-sm">
+                              <span className="text-purple-600">
+                                Certificate Accessed
                               </span>
                             </div>
                           )}

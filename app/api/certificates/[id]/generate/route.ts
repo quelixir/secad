@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { certificateGenerator } from "@/lib/services/certificate-generator";
 import { certificateNumberingService } from "@/lib/services/certificate-numbering";
 import { rateLimit } from "@/lib/utils/rate-limit";
+import { AuditLogger } from "@/lib/audit";
 
 // Rate limiter: 5 generations per minute per user
 const limiter = rateLimit({
@@ -270,6 +271,33 @@ export async function POST(
     }
 
     const generationTime = Date.now() - startTime;
+
+    // Log certificate generation event
+    try {
+      await AuditLogger.logCertificateGenerated(
+        transaction.entityId,
+        userId,
+        transactionId,
+        templateId,
+        format,
+        finalCertificateNumber,
+        result.data.metadata.fileSize,
+        result.data.metadata.checksum,
+        {
+          generationTime: `${generationTime}ms`,
+          ip: identifier,
+          userAgent: request.headers.get("user-agent"),
+          templateName: template.name,
+          templateScope: template.scope,
+          includeWatermark,
+          includeQRCode,
+          customFields,
+        },
+      );
+    } catch (auditError) {
+      console.error("Failed to log certificate generation event:", auditError);
+      // Don't fail the generation if audit logging fails
+    }
 
     // Log generation event
     console.log(`Certificate generated successfully`, {

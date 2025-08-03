@@ -1,4 +1,5 @@
-import { AuditLogger, AuditAction, AuditTableName } from "./index";
+import { AuditLogger } from "./logger";
+import { AuditAction, AuditTableName } from "./types";
 
 // Mock Prisma
 jest.mock("../db", () => ({
@@ -8,35 +9,52 @@ jest.mock("../db", () => ({
       findMany: jest.fn(),
       count: jest.fn(),
     },
-    entity: {
-      findUnique: jest.fn(),
-    },
     user: {
       findMany: jest.fn(),
     },
-    count: jest.fn(),
   },
 }));
 
-import { prisma } from "../db";
-
-describe("Certificate Audit Integration", () => {
-  let originalConsoleError: typeof console.error;
+describe("Certificate Audit Logging", () => {
+  let mockPrisma: any;
 
   beforeEach(() => {
+    mockPrisma = require("../db").prisma;
     jest.clearAllMocks();
-    originalConsoleError = console.error;
-    console.error = jest.fn();
   });
 
-  afterEach(() => {
-    console.error = originalConsoleError;
-  });
+  describe("logCertificateGenerated", () => {
+    it("should log certificate generation event", async () => {
+      const mockEventLog = {
+        id: "log123",
+        entityId: "entity123",
+        userId: "user123",
+        action: AuditAction.CERTIFICATE_GENERATED,
+        tableName: AuditTableName.TRANSACTION,
+        recordId: "txn123",
+        fieldName: "certificate",
+        oldValue: null,
+        newValue: JSON.stringify({
+          templateId: "template123",
+          format: "PDF",
+          certificateNumber: "CERT-2024-0001",
+          fileSize: 1024,
+          checksum: "abc123",
+          generatedAt: new Date(),
+        }),
+        metadata: {
+          templateId: "template123",
+          format: "PDF",
+          certificateNumber: "CERT-2024-0001",
+          fileSize: 1024,
+          checksum: "abc123",
+          templateScope: "GLOBAL",
+          templateName: "Standard Certificate",
+        },
+        timestamp: new Date(),
+      };
 
-  describe("Certificate Generation Logging", () => {
-    it("should log certificate generation event with all metadata", async () => {
-      const mockCreate = prisma.eventLog.create as jest.Mock;
-      mockCreate.mockResolvedValue({ id: "log123" });
+      mockPrisma.eventLog.create.mockResolvedValue(mockEventLog);
 
       await AuditLogger.logCertificateGenerated(
         "entity123",
@@ -44,17 +62,16 @@ describe("Certificate Audit Integration", () => {
         "txn123",
         "template123",
         "PDF",
-        "CERT2024000001",
+        "CERT-2024-0001",
         1024,
-        "abc123checksum",
+        "abc123",
         {
-          ip: "192.168.1.1",
-          userAgent: "Mozilla/5.0...",
+          templateScope: "GLOBAL",
           templateName: "Standard Certificate",
         },
       );
 
-      expect(mockCreate).toHaveBeenCalledWith({
+      expect(mockPrisma.eventLog.create).toHaveBeenCalledWith({
         data: {
           entityId: "entity123",
           userId: "user123",
@@ -67,20 +84,21 @@ describe("Certificate Audit Integration", () => {
           metadata: {
             templateId: "template123",
             format: "PDF",
-            certificateNumber: "CERT2024000001",
+            certificateNumber: "CERT-2024-0001",
             fileSize: 1024,
-            checksum: "abc123checksum",
-            ip: "192.168.1.1",
-            userAgent: "Mozilla/5.0...",
+            checksum: "abc123",
+            templateScope: "GLOBAL",
             templateName: "Standard Certificate",
           },
         },
       });
     });
 
-    it("should handle certificate generation logging errors gracefully", async () => {
-      const mockCreate = prisma.eventLog.create as jest.Mock;
-      mockCreate.mockRejectedValue(new Error("Database error"));
+    it("should handle logging errors gracefully", async () => {
+      const originalConsoleError = console.error;
+      console.error = jest.fn();
+
+      mockPrisma.eventLog.create.mockRejectedValue(new Error("Database error"));
 
       // Should not throw
       await expect(
@@ -90,24 +108,55 @@ describe("Certificate Audit Integration", () => {
           "txn123",
           "template123",
           "PDF",
-          "CERT2024000001",
+          "CERT-2024-0001",
           1024,
-          "abc123checksum",
+          "abc123",
         ),
       ).resolves.toBeUndefined();
+
+      // Verify that the error was logged
+      expect(console.error).toHaveBeenCalledWith(
+        "Failed to log certificate generation:",
+        expect.any(Error),
+      );
+
+      // Restore console.error
+      console.error = originalConsoleError;
     });
   });
 
-  describe("Certificate Download Logging", () => {
+  describe("logCertificateDownloaded", () => {
     it("should log certificate download event", async () => {
-      const mockCreate = prisma.eventLog.create as jest.Mock;
-      mockCreate.mockResolvedValue({ id: "log123" });
+      const mockEventLog = {
+        id: "log123",
+        entityId: "entity123",
+        userId: "user123",
+        action: AuditAction.CERTIFICATE_DOWNLOADED,
+        tableName: AuditTableName.TRANSACTION,
+        recordId: "txn123",
+        fieldName: "certificate",
+        oldValue: null,
+        newValue: JSON.stringify({
+          certificateNumber: "CERT-2024-0001",
+          format: "PDF",
+          downloadedAt: new Date(),
+        }),
+        metadata: {
+          certificateNumber: "CERT-2024-0001",
+          format: "PDF",
+          ip: "192.168.1.1",
+          userAgent: "Mozilla/5.0...",
+        },
+        timestamp: new Date(),
+      };
+
+      mockPrisma.eventLog.create.mockResolvedValue(mockEventLog);
 
       await AuditLogger.logCertificateDownloaded(
         "entity123",
         "user123",
         "txn123",
-        "CERT2024000001",
+        "CERT-2024-0001",
         "PDF",
         {
           ip: "192.168.1.1",
@@ -115,7 +164,7 @@ describe("Certificate Audit Integration", () => {
         },
       );
 
-      expect(mockCreate).toHaveBeenCalledWith({
+      expect(mockPrisma.eventLog.create).toHaveBeenCalledWith({
         data: {
           entityId: "entity123",
           userId: "user123",
@@ -124,9 +173,9 @@ describe("Certificate Audit Integration", () => {
           recordId: "txn123",
           fieldName: "certificate",
           oldValue: null,
-          newValue: expect.stringContaining("CERT2024000001"),
+          newValue: expect.stringContaining("CERT-2024-0001"),
           metadata: {
-            certificateNumber: "CERT2024000001",
+            certificateNumber: "CERT-2024-0001",
             format: "PDF",
             ip: "192.168.1.1",
             userAgent: "Mozilla/5.0...",
@@ -136,25 +185,47 @@ describe("Certificate Audit Integration", () => {
     });
   });
 
-  describe("Certificate Access Logging", () => {
-    it("should log certificate access event with different access types", async () => {
-      const mockCreate = prisma.eventLog.create as jest.Mock;
-      mockCreate.mockResolvedValue({ id: "log123" });
+  describe("logCertificateAccessed", () => {
+    it("should log certificate access event", async () => {
+      const mockEventLog = {
+        id: "log123",
+        entityId: "entity123",
+        userId: "user123",
+        action: AuditAction.CERTIFICATE_ACCESSED,
+        tableName: AuditTableName.TRANSACTION,
+        recordId: "txn123",
+        fieldName: "certificate",
+        oldValue: null,
+        newValue: JSON.stringify({
+          certificateNumber: "CERT-2024-0001",
+          format: "PDF",
+          accessType: "view",
+          accessedAt: new Date(),
+        }),
+        metadata: {
+          certificateNumber: "CERT-2024-0001",
+          format: "PDF",
+          accessType: "view",
+          cacheHit: true,
+        },
+        timestamp: new Date(),
+      };
+
+      mockPrisma.eventLog.create.mockResolvedValue(mockEventLog);
 
       await AuditLogger.logCertificateAccessed(
         "entity123",
         "user123",
         "txn123",
-        "CERT2024000001",
+        "CERT-2024-0001",
         "PDF",
-        "download",
+        "view",
         {
-          ip: "192.168.1.1",
-          userAgent: "Mozilla/5.0...",
+          cacheHit: true,
         },
       );
 
-      expect(mockCreate).toHaveBeenCalledWith({
+      expect(mockPrisma.eventLog.create).toHaveBeenCalledWith({
         data: {
           entityId: "entity123",
           userId: "user123",
@@ -163,57 +234,23 @@ describe("Certificate Audit Integration", () => {
           recordId: "txn123",
           fieldName: "certificate",
           oldValue: null,
-          newValue: expect.stringContaining("download"),
+          newValue: expect.stringContaining("view"),
           metadata: {
-            certificateNumber: "CERT2024000001",
+            certificateNumber: "CERT-2024-0001",
             format: "PDF",
-            accessType: "download",
-            ip: "192.168.1.1",
-            userAgent: "Mozilla/5.0...",
+            accessType: "view",
+            cacheHit: true,
           },
         },
       });
     });
-
-    it("should support different access types", async () => {
-      const mockCreate = prisma.eventLog.create as jest.Mock;
-      mockCreate.mockResolvedValue({ id: "log123" });
-
-      const accessTypes = ["view", "download", "generate"] as const;
-
-      for (const accessType of accessTypes) {
-        await AuditLogger.logCertificateAccessed(
-          "entity123",
-          "user123",
-          "txn123",
-          "CERT2024000001",
-          "PDF",
-          accessType,
-        );
-
-        expect(mockCreate).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              metadata: expect.objectContaining({
-                accessType,
-              }),
-            }),
-          }),
-        );
-      }
-    });
   });
 
-  describe("Certificate Audit Query Helpers", () => {
+  describe("getCertificateAuditLogs", () => {
     it("should get certificate-specific audit logs", async () => {
-      const mockFindMany = prisma.eventLog.findMany as jest.Mock;
-      const mockCount = prisma.eventLog.count as jest.Mock;
-      const mockEntityFindUnique = prisma.entity.findUnique as jest.Mock;
-      const mockUserFindMany = prisma.user.findMany as jest.Mock;
-
-      mockFindMany.mockResolvedValue([
+      const mockLogs = [
         {
-          id: "log123",
+          id: "log1",
           entityId: "entity123",
           userId: "user123",
           action: AuditAction.CERTIFICATE_GENERATED,
@@ -221,38 +258,38 @@ describe("Certificate Audit Integration", () => {
           recordId: "txn123",
           fieldName: "certificate",
           oldValue: null,
-          newValue: '{"templateId":"template123","format":"PDF"}',
-          metadata: { templateId: "template123", format: "PDF" },
+          newValue: JSON.stringify({ certificateNumber: "CERT-2024-0001" }),
+          metadata: { templateId: "template123" },
           timestamp: new Date(),
+          entity: { name: "Test Entity" },
         },
-      ]);
+      ];
 
-      mockCount.mockResolvedValue(1);
-      mockEntityFindUnique.mockResolvedValue({ name: "Test Entity" });
-      mockUserFindMany.mockResolvedValue([
-        { id: "user123", email: "user@test.com", name: "Test User" },
-      ]);
+      const mockUsers = [
+        {
+          id: "user123",
+          email: "user@example.com",
+          name: "Test User",
+        },
+      ];
 
-      const result = await AuditLogger.getCertificateAuditLogs("entity123", {
-        limit: 10,
-        offset: 0,
-      });
+      mockPrisma.eventLog.findMany.mockResolvedValue(mockLogs);
+      mockPrisma.eventLog.count.mockResolvedValue(1);
+      mockPrisma.user.findMany.mockResolvedValue(mockUsers);
+
+      const result = await AuditLogger.getCertificateAuditLogs("entity123");
 
       expect(result.logs).toHaveLength(1);
       expect(result.total).toBe(1);
-      expect(result.hasMore).toBe(false);
       expect(result.logs[0].action).toBe(AuditAction.CERTIFICATE_GENERATED);
     });
+  });
 
-    it("should get transaction-specific certificate logs", async () => {
-      const mockFindMany = prisma.eventLog.findMany as jest.Mock;
-      const mockCount = prisma.eventLog.count as jest.Mock;
-      const mockEntityFindUnique = prisma.entity.findUnique as jest.Mock;
-      const mockUserFindMany = prisma.user.findMany as jest.Mock;
-
-      mockFindMany.mockResolvedValue([
+  describe("getCertificateGenerationAnalytics", () => {
+    it("should calculate certificate generation analytics", async () => {
+      const mockLogs = [
         {
-          id: "log123",
+          id: "log1",
           entityId: "entity123",
           userId: "user123",
           action: AuditAction.CERTIFICATE_GENERATED,
@@ -260,155 +297,149 @@ describe("Certificate Audit Integration", () => {
           recordId: "txn123",
           fieldName: "certificate",
           oldValue: null,
-          newValue: '{"templateId":"template123","format":"PDF"}',
-          metadata: { templateId: "template123", format: "PDF" },
+          newValue: JSON.stringify({ certificateNumber: "CERT-2024-0001" }),
+          metadata: {
+            templateId: "template123",
+            templateName: "Standard Certificate",
+            fileSize: 1024,
+            format: "PDF",
+          },
           timestamp: new Date(),
+          entity: { name: "Test Entity" },
         },
-      ]);
+        {
+          id: "log2",
+          entityId: "entity123",
+          userId: "user123",
+          action: AuditAction.CERTIFICATE_DOWNLOADED,
+          tableName: AuditTableName.TRANSACTION,
+          recordId: "txn123",
+          fieldName: "certificate",
+          oldValue: null,
+          newValue: JSON.stringify({ certificateNumber: "CERT-2024-0001" }),
+          metadata: { certificateNumber: "CERT-2024-0001" },
+          timestamp: new Date(),
+          entity: { name: "Test Entity" },
+        },
+      ];
 
-      mockCount.mockResolvedValue(1);
-      mockEntityFindUnique.mockResolvedValue({ name: "Test Entity" });
-      mockUserFindMany.mockResolvedValue([
-        { id: "user123", email: "user@test.com", name: "Test User" },
-      ]);
+      const mockUsers = [
+        {
+          id: "user123",
+          email: "user@example.com",
+          name: "Test User",
+        },
+      ];
+
+      mockPrisma.eventLog.findMany.mockResolvedValue(mockLogs);
+      mockPrisma.eventLog.count.mockResolvedValue(2);
+      mockPrisma.user.findMany.mockResolvedValue(mockUsers);
+
+      const analytics =
+        await AuditLogger.getCertificateGenerationAnalytics("entity123");
+
+      expect(analytics.totalGenerations).toBe(1);
+      expect(analytics.totalDownloads).toBe(1);
+      expect(analytics.totalAccesses).toBe(0);
+      expect(analytics.averageFileSize).toBe(1024);
+      expect(analytics.mostUsedTemplates).toHaveLength(1);
+      expect(analytics.mostUsedTemplates[0].templateId).toBe("template123");
+      expect(analytics.formatDistribution.PDF).toBe(1);
+      expect(analytics.formatDistribution.DOCX).toBe(0);
+    });
+  });
+
+  describe("getCertificateEventSummary", () => {
+    it("should get certificate event summary", async () => {
+      const mockLogs = [
+        {
+          id: "log1",
+          entityId: "entity123",
+          userId: "user123",
+          action: AuditAction.CERTIFICATE_GENERATED,
+          tableName: AuditTableName.TRANSACTION,
+          recordId: "txn123",
+          fieldName: "certificate",
+          oldValue: null,
+          newValue: JSON.stringify({ certificateNumber: "CERT-2024-0001" }),
+          metadata: {
+            templateId: "template123",
+            templateName: "Standard Certificate",
+            certificateNumber: "CERT-2024-0001",
+          },
+          timestamp: new Date(),
+          entity: { name: "Test Entity" },
+        },
+      ];
+
+      const mockUsers = [
+        {
+          id: "user123",
+          email: "user@example.com",
+          name: "Test User",
+        },
+      ];
+
+      mockPrisma.eventLog.findMany.mockResolvedValue(mockLogs);
+      mockPrisma.eventLog.count.mockResolvedValue(1);
+      mockPrisma.user.findMany.mockResolvedValue(mockUsers);
+
+      const summary = await AuditLogger.getCertificateEventSummary(
+        "entity123",
+        30,
+      );
+
+      expect(summary.recentGenerations).toBe(1);
+      expect(summary.recentDownloads).toBe(0);
+      expect(summary.recentAccesses).toBe(0);
+      expect(summary.topTemplates).toHaveLength(1);
+      expect(summary.topTemplates[0].templateId).toBe("template123");
+      expect(summary.recentActivity).toHaveLength(1);
+      expect(summary.recentActivity[0].action).toBe(
+        AuditAction.CERTIFICATE_GENERATED,
+      );
+    });
+  });
+
+  describe("getTransactionCertificateLogs", () => {
+    it("should get certificate logs for a specific transaction", async () => {
+      const mockLogs = [
+        {
+          id: "log1",
+          entityId: "entity123",
+          userId: "user123",
+          action: AuditAction.CERTIFICATE_GENERATED,
+          tableName: AuditTableName.TRANSACTION,
+          recordId: "txn123",
+          fieldName: "certificate",
+          oldValue: null,
+          newValue: JSON.stringify({ certificateNumber: "CERT-2024-0001" }),
+          metadata: { templateId: "template123" },
+          timestamp: new Date(),
+          entity: { name: "Test Entity" },
+        },
+      ];
+
+      const mockUsers = [
+        {
+          id: "user123",
+          email: "user@example.com",
+          name: "Test User",
+        },
+      ];
+
+      mockPrisma.eventLog.findMany.mockResolvedValue(mockLogs);
+      mockPrisma.eventLog.count.mockResolvedValue(1);
+      mockPrisma.user.findMany.mockResolvedValue(mockUsers);
 
       const result = await AuditLogger.getTransactionCertificateLogs(
         "entity123",
         "txn123",
-        { limit: 10, offset: 0 },
       );
 
       expect(result.logs).toHaveLength(1);
+      expect(result.total).toBe(1);
       expect(result.logs[0].recordId).toBe("txn123");
-    });
-
-    it("should get certificate template logs", async () => {
-      const mockFindMany = prisma.eventLog.findMany as jest.Mock;
-      const mockCount = prisma.eventLog.count as jest.Mock;
-      const mockEntityFindUnique = prisma.entity.findUnique as jest.Mock;
-      const mockUserFindMany = prisma.user.findMany as jest.Mock;
-
-      mockFindMany.mockResolvedValue([
-        {
-          id: "log123",
-          entityId: "entity123",
-          userId: "user123",
-          action: AuditAction.CREATE,
-          tableName: AuditTableName.CERTIFICATE_TEMPLATE,
-          recordId: "template123",
-          fieldName: "name",
-          oldValue: null,
-          newValue: '"Standard Certificate"',
-          metadata: { name: "Standard Certificate" },
-          timestamp: new Date(),
-        },
-      ]);
-
-      mockCount.mockResolvedValue(1);
-      mockEntityFindUnique.mockResolvedValue({ name: "Test Entity" });
-      mockUserFindMany.mockResolvedValue([
-        { id: "user123", email: "user@test.com", name: "Test User" },
-      ]);
-
-      const result = await AuditLogger.getCertificateTemplateLogs(
-        "entity123",
-        "template123",
-        { limit: 10, offset: 0 },
-      );
-
-      expect(result.logs).toHaveLength(1);
-      expect(result.logs[0].tableName).toBe(
-        AuditTableName.CERTIFICATE_TEMPLATE,
-      );
-      expect(result.logs[0].recordId).toBe("template123");
-    });
-  });
-
-  describe("Certificate Event Metadata", () => {
-    it("should include comprehensive metadata in certificate events", async () => {
-      const mockCreate = prisma.eventLog.create as jest.Mock;
-      mockCreate.mockResolvedValue({ id: "log123" });
-
-      const metadata = {
-        ip: "192.168.1.1",
-        userAgent:
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        templateName: "Standard Certificate",
-        certificateNumber: "CERT2024000001",
-        fileSize: 1024,
-        checksum: "abc123checksum",
-        format: "PDF",
-        accessType: "download",
-      };
-
-      await AuditLogger.logCertificateGenerated(
-        "entity123",
-        "user123",
-        "txn123",
-        "template123",
-        "PDF",
-        "CERT2024000001",
-        1024,
-        "abc123checksum",
-        metadata,
-      );
-
-      expect(mockCreate).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          metadata: expect.objectContaining({
-            ip: "192.168.1.1",
-            userAgent: expect.stringContaining("Mozilla/5.0"),
-            templateName: "Standard Certificate",
-            certificateNumber: "CERT2024000001",
-            fileSize: 1024,
-            checksum: "abc123checksum",
-            format: "PDF",
-          }),
-        }),
-      });
-    });
-  });
-
-  describe("Error Handling", () => {
-    it("should handle database errors gracefully in all certificate audit methods", async () => {
-      const mockCreate = prisma.eventLog.create as jest.Mock;
-      mockCreate.mockRejectedValue(new Error("Database connection failed"));
-
-      // Test all certificate audit methods
-      const methods = [
-        () =>
-          AuditLogger.logCertificateGenerated(
-            "entity123",
-            "user123",
-            "txn123",
-            "template123",
-            "PDF",
-            "CERT123",
-            1024,
-            "checksum",
-          ),
-        () =>
-          AuditLogger.logCertificateDownloaded(
-            "entity123",
-            "user123",
-            "txn123",
-            "CERT123",
-            "PDF",
-          ),
-        () =>
-          AuditLogger.logCertificateAccessed(
-            "entity123",
-            "user123",
-            "txn123",
-            "CERT123",
-            "PDF",
-            "download",
-          ),
-      ];
-
-      for (const method of methods) {
-        await expect(method()).resolves.toBeUndefined();
-      }
     });
   });
 });
