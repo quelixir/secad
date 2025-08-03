@@ -70,7 +70,7 @@ export class TemplateValidationService {
     {
       field: "transactionId",
       required: true,
-      format: /^[A-Z0-9\-_]+$/,
+      format: /^[a-z0-9]+$/,
       minLength: 5,
       maxLength: 50,
     },
