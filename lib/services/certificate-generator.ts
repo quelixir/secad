@@ -979,7 +979,7 @@ export class CertificateGenerator {
         totalValue: previewData.quantity * 10,
         currency: "USD",
         memberName: previewData.memberName,
-        memberId: "member-123",
+        memberId: "ge5qwju028wfh08e8ssvbyul",
         memberType: "Individual",
         memberAddress: "456 Member Ave, Member City, ST 67890",
         certificateNumber: previewData.certificateNumber || "CERT-2024-0001",

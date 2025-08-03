@@ -320,7 +320,7 @@ describe("CertificateTemplate Interface", () => {
         name: "Entity Template",
         templateHtml: "<html><body><h1>{{entityName}}</h1></body></html>",
         scope: "ENTITY",
-        scopeId: "entity-123",
+        scopeId: "d5vaqv2ed5pb3gulopy9z5ao",
         isDefault: false,
         isActive: true,
         createdAt: new Date("2020-01-01"),
@@ -328,7 +328,7 @@ describe("CertificateTemplate Interface", () => {
       };
 
       expect(template.scope).toBe("ENTITY");
-      expect(template.scopeId).toBe("entity-123");
+      expect(template.scopeId).toBe("d5vaqv2ed5pb3gulopy9z5ao");
     });
   });
 

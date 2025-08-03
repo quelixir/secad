@@ -181,7 +181,7 @@ describe("AuditLogger", () => {
       mockCreate.mockResolvedValue({ id: "log-123" });
 
       const auditData = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         userId: "user-456",
         action: AuditAction.UPDATE,
         tableName: AuditTableName.MEMBER,
@@ -196,7 +196,7 @@ describe("AuditLogger", () => {
 
       expect(mockCreate).toHaveBeenCalledWith({
         data: {
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           userId: "user-456",
           action: AuditAction.UPDATE,
           tableName: AuditTableName.MEMBER,
@@ -214,7 +214,7 @@ describe("AuditLogger", () => {
       mockCreate.mockResolvedValue({ id: "log-123" });
 
       const auditData = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         userId: "user-456",
         action: AuditAction.CERTIFICATE_GENERATED,
         tableName: AuditTableName.TRANSACTION,
@@ -237,7 +237,7 @@ describe("AuditLogger", () => {
 
       expect(mockCreate).toHaveBeenCalledWith({
         data: {
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           userId: "user-456",
           action: AuditAction.CERTIFICATE_GENERATED,
           tableName: AuditTableName.TRANSACTION,
@@ -255,7 +255,7 @@ describe("AuditLogger", () => {
       mockCreate.mockResolvedValue({ id: "log-123" });
 
       const auditData = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         userId: "user-456",
         action: AuditAction.UPDATE,
         tableName: AuditTableName.MEMBER,
@@ -270,7 +270,7 @@ describe("AuditLogger", () => {
 
       expect(mockCreate).toHaveBeenCalledWith({
         data: {
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           userId: "user-456",
           action: AuditAction.UPDATE,
           tableName: AuditTableName.MEMBER,
@@ -288,7 +288,7 @@ describe("AuditLogger", () => {
       mockCreate.mockRejectedValue(new Error("Database error"));
 
       const auditData = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         userId: "user-456",
         action: AuditAction.UPDATE,
         tableName: AuditTableName.MEMBER,
@@ -316,7 +316,7 @@ describe("AuditLogger", () => {
       };
 
       await AuditLogger.logRecordChanges(
-        "entity-123",
+        "d5vaqv2ed5pb3gulopy9z5ao",
         "user-456",
         AuditAction.UPDATE,
         AuditTableName.MEMBER,
@@ -329,7 +329,7 @@ describe("AuditLogger", () => {
       // Check first call
       expect(mockCreate).toHaveBeenNthCalledWith(1, {
         data: {
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           userId: "user-456",
           action: AuditAction.UPDATE,
           tableName: AuditTableName.MEMBER,
@@ -344,7 +344,7 @@ describe("AuditLogger", () => {
       // Check second call
       expect(mockCreate).toHaveBeenNthCalledWith(2, {
         data: {
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           userId: "user-456",
           action: AuditAction.UPDATE,
           tableName: AuditTableName.MEMBER,
@@ -370,7 +370,7 @@ describe("AuditLogger", () => {
       };
 
       await AuditLogger.logCreate(
-        "entity-123",
+        "d5vaqv2ed5pb3gulopy9z5ao",
         "user-456",
         AuditTableName.MEMBER,
         "member-789",
@@ -379,7 +379,7 @@ describe("AuditLogger", () => {
 
       expect(mockCreate).toHaveBeenCalledWith({
         data: {
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           userId: "user-456",
           action: AuditAction.CREATE,
           tableName: AuditTableName.MEMBER,
@@ -403,7 +403,7 @@ describe("AuditLogger", () => {
       };
 
       await AuditLogger.logDelete(
-        "entity-123",
+        "d5vaqv2ed5pb3gulopy9z5ao",
         "user-456",
         AuditTableName.MEMBER,
         "member-789",
@@ -412,7 +412,7 @@ describe("AuditLogger", () => {
 
       expect(mockCreate).toHaveBeenCalledWith({
         data: {
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           userId: "user-456",
           action: AuditAction.DELETE,
           tableName: AuditTableName.MEMBER,
@@ -430,7 +430,7 @@ describe("AuditLogger", () => {
       mockCreate.mockResolvedValue({ id: "log-123" });
 
       await AuditLogger.logArchive(
-        "entity-123",
+        "d5vaqv2ed5pb3gulopy9z5ao",
         "user-456",
         AuditTableName.SECURITY_CLASS,
         "security-789",
@@ -439,7 +439,7 @@ describe("AuditLogger", () => {
 
       expect(mockCreate).toHaveBeenCalledWith({
         data: {
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           userId: "user-456",
           action: AuditAction.ARCHIVE,
           tableName: AuditTableName.SECURITY_CLASS,
@@ -455,7 +455,7 @@ describe("AuditLogger", () => {
       mockCreate.mockResolvedValue({ id: "log-123" });
 
       await AuditLogger.logArchive(
-        "entity-123",
+        "d5vaqv2ed5pb3gulopy9z5ao",
         "user-456",
         AuditTableName.SECURITY_CLASS,
         "security-789",
@@ -464,7 +464,7 @@ describe("AuditLogger", () => {
 
       expect(mockCreate).toHaveBeenCalledWith({
         data: {
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           userId: "user-456",
           action: AuditAction.UNARCHIVE,
           tableName: AuditTableName.SECURITY_CLASS,
@@ -485,7 +485,7 @@ describe("AuditLogger", () => {
       const mockLogs = [
         {
           id: "log-1",
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           userId: "user-456",
           action: AuditAction.UPDATE,
           tableName: AuditTableName.MEMBER,
@@ -511,10 +511,10 @@ describe("AuditLogger", () => {
       mockCount.mockResolvedValue(1);
       mockUserFindMany.mockResolvedValue(mockUsers);
 
-      const result = await AuditLogger.getAuditLogs("entity-123");
+      const result = await AuditLogger.getAuditLogs("d5vaqv2ed5pb3gulopy9z5ao");
 
       expect(mockFindMany).toHaveBeenCalledWith({
-        where: { entityId: "entity-123" },
+        where: { entityId: "d5vaqv2ed5pb3gulopy9z5ao" },
         include: {
           entity: {
             select: { name: true },
@@ -567,7 +567,7 @@ describe("AuditLogger", () => {
       const startDate = new Date("2023-01-01");
       const endDate = new Date("2023-12-31");
 
-      await AuditLogger.getAuditLogs("entity-123", {
+      await AuditLogger.getAuditLogs("d5vaqv2ed5pb3gulopy9z5ao", {
         startDate,
         endDate,
         userId: "user-456",
@@ -580,7 +580,7 @@ describe("AuditLogger", () => {
 
       expect(mockFindMany).toHaveBeenCalledWith({
         where: {
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           timestamp: { gte: startDate, lte: endDate },
           userId: "user-456",
           tableName: AuditTableName.MEMBER,
@@ -618,10 +618,13 @@ describe("AuditLogger", () => {
       mockCount.mockResolvedValue(100);
       mockUserFindMany.mockResolvedValue([]);
 
-      const result = await AuditLogger.getAuditLogs("entity-123", {
-        limit: 50,
-        offset: 25,
-      });
+      const result = await AuditLogger.getAuditLogs(
+        "d5vaqv2ed5pb3gulopy9z5ao",
+        {
+          limit: 50,
+          offset: 25,
+        },
+      );
 
       expect(result.hasMore).toBe(true);
     });
@@ -635,7 +638,7 @@ describe("AuditLogger", () => {
       const mockLogs = [
         {
           id: "log-1",
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           userId: "user-456",
           action: AuditAction.UPDATE,
           tableName: AuditTableName.MEMBER,
@@ -660,7 +663,9 @@ describe("AuditLogger", () => {
       mockFindMany.mockResolvedValue(mockLogs);
       mockUserFindMany.mockResolvedValue(mockUsers);
 
-      const result = await AuditLogger.exportAuditLogs("entity-123");
+      const result = await AuditLogger.exportAuditLogs(
+        "d5vaqv2ed5pb3gulopy9z5ao",
+      );
 
       const expectedCsv = [
         '"Timestamp","Entity","User ID","User Name","User Email","Action","Table","Record ID","Field Name","Old Value","New Value"',
@@ -677,7 +682,9 @@ describe("AuditLogger", () => {
       mockFindMany.mockResolvedValue([]);
       mockUserFindMany.mockResolvedValue([]);
 
-      const result = await AuditLogger.exportAuditLogs("entity-123");
+      const result = await AuditLogger.exportAuditLogs(
+        "d5vaqv2ed5pb3gulopy9z5ao",
+      );
 
       const expectedCsv =
         '"Timestamp","Entity","User ID","User Name","User Email","Action","Table","Record ID","Field Name","Old Value","New Value"';

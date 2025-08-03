@@ -56,8 +56,8 @@ describe("Member Interface", () => {
   describe("Member interface", () => {
     it("should allow creation of valid Member object", () => {
       const member: Member = {
-        id: "member-123",
-        entityId: "entity-123",
+        id: "ge5qwju028wfh08e8ssvbyul",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         givenNames: "John",
         familyName: "Doe",
         memberType: MemberType.INDIVIDUAL,
@@ -84,7 +84,7 @@ describe("Member Interface", () => {
         jointPersons: [],
       };
 
-      expect(member.id).toBe("member-123");
+      expect(member.id).toBe("ge5qwju028wfh08e8ssvbyul");
       expect(member.givenNames).toBe("John");
       expect(member.familyName).toBe("Doe");
       expect(member.memberType).toBe(MemberType.INDIVIDUAL);
@@ -93,8 +93,8 @@ describe("Member Interface", () => {
 
     it("should allow optional fields to be undefined", () => {
       const member: Member = {
-        id: "member-123",
-        entityId: "entity-123",
+        id: "ge5qwju028wfh08e8ssvbyul",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         memberType: MemberType.INDIVIDUAL,
         country: "Australia",
         beneficiallyHeld: true,
@@ -125,8 +125,8 @@ describe("Member Interface", () => {
 
     it("should allow null values for optional fields", () => {
       const member: Member = {
-        id: "member-123",
-        entityId: "entity-123",
+        id: "ge5qwju028wfh08e8ssvbyul",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         givenNames: null,
         familyName: null,
         entityName: null,
@@ -172,7 +172,7 @@ describe("Member Interface", () => {
     it("should allow creation of valid MemberContact object", () => {
       const contact: MemberContact = {
         id: "contact-123",
-        memberId: "member-123",
+        memberId: "ge5qwju028wfh08e8ssvbyul",
         name: "Jane Smith",
         email: "jane.smith@example.com",
         phone: "+61 2 1234 5678",
@@ -183,7 +183,7 @@ describe("Member Interface", () => {
       };
 
       expect(contact.id).toBe("contact-123");
-      expect(contact.memberId).toBe("member-123");
+      expect(contact.memberId).toBe("ge5qwju028wfh08e8ssvbyul");
       expect(contact.name).toBe("Jane Smith");
       expect(contact.isPrimary).toBe(true);
     });
@@ -191,7 +191,7 @@ describe("Member Interface", () => {
     it("should allow optional fields to be undefined", () => {
       const contact: MemberContact = {
         id: "contact-123",
-        memberId: "member-123",
+        memberId: "ge5qwju028wfh08e8ssvbyul",
         name: "Jane Smith",
         isPrimary: true,
         createdAt: new Date("2020-01-01"),
@@ -206,7 +206,7 @@ describe("Member Interface", () => {
     it("should allow null values for optional fields", () => {
       const contact: MemberContact = {
         id: "contact-123",
-        memberId: "member-123",
+        memberId: "ge5qwju028wfh08e8ssvbyul",
         name: "Jane Smith",
         email: null,
         phone: null,
@@ -226,7 +226,7 @@ describe("Member Interface", () => {
     it("should allow creation of valid JointMemberPerson object", () => {
       const jointPerson: JointMemberPerson = {
         id: "joint-person-123",
-        memberId: "member-123",
+        memberId: "ge5qwju028wfh08e8ssvbyul",
         givenNames: "John",
         familyName: "Doe",
         entityName: null,
@@ -236,7 +236,7 @@ describe("Member Interface", () => {
       };
 
       expect(jointPerson.id).toBe("joint-person-123");
-      expect(jointPerson.memberId).toBe("member-123");
+      expect(jointPerson.memberId).toBe("ge5qwju028wfh08e8ssvbyul");
       expect(jointPerson.givenNames).toBe("John");
       expect(jointPerson.familyName).toBe("Doe");
       expect(jointPerson.order).toBe(1);
@@ -245,7 +245,7 @@ describe("Member Interface", () => {
     it("should allow optional fields to be undefined", () => {
       const jointPerson: JointMemberPerson = {
         id: "joint-person-123",
-        memberId: "member-123",
+        memberId: "ge5qwju028wfh08e8ssvbyul",
         order: 1,
         createdAt: new Date("2020-01-01"),
         updatedAt: new Date("2020-01-01"),
@@ -259,7 +259,7 @@ describe("Member Interface", () => {
     it("should allow null values for optional fields", () => {
       const jointPerson: JointMemberPerson = {
         id: "joint-person-123",
-        memberId: "member-123",
+        memberId: "ge5qwju028wfh08e8ssvbyul",
         givenNames: null,
         familyName: null,
         entityName: null,
@@ -277,7 +277,7 @@ describe("Member Interface", () => {
   describe("MemberInput interface", () => {
     it("should allow creation of valid MemberInput object", () => {
       const memberInput: MemberInput = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         givenNames: "John",
         familyName: "Doe",
         memberType: MemberType.INDIVIDUAL,
@@ -297,7 +297,7 @@ describe("Member Interface", () => {
         jointPersons: [],
       };
 
-      expect(memberInput.entityId).toBe("entity-123");
+      expect(memberInput.entityId).toBe("d5vaqv2ed5pb3gulopy9z5ao");
       expect(memberInput.givenNames).toBe("John");
       expect(memberInput.familyName).toBe("Doe");
       expect(memberInput.memberType).toBe(MemberType.INDIVIDUAL);
@@ -305,7 +305,7 @@ describe("Member Interface", () => {
 
     it("should allow optional fields to be undefined", () => {
       const memberInput: MemberInput = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         memberType: MemberType.INDIVIDUAL,
         beneficiallyHeld: true,
         country: "Australia",
@@ -383,8 +383,8 @@ describe("Member Interface", () => {
   describe("MemberWithRelations interface", () => {
     it("should extend Member with optional entity relation", () => {
       const memberWithRelations: MemberWithRelations = {
-        id: "member-123",
-        entityId: "entity-123",
+        id: "ge5qwju028wfh08e8ssvbyul",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         memberType: MemberType.INDIVIDUAL,
         country: "Australia",
         beneficiallyHeld: true,
@@ -393,7 +393,7 @@ describe("Member Interface", () => {
         createdAt: new Date("2020-01-01"),
         updatedAt: new Date("2020-01-01"),
         entity: {
-          id: "entity-123",
+          id: "d5vaqv2ed5pb3gulopy9z5ao",
           name: "Acme Corporation Ltd",
           entityTypeId: "company",
           status: "Active",
@@ -415,7 +415,7 @@ describe("Member Interface", () => {
           id: "security-class-123",
           name: "Ordinary Shares",
           symbol: "ORD",
-          entityId: "entity-123",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           votingRights: true,
           dividendRights: true,
           isActive: true,
@@ -435,8 +435,8 @@ describe("Member Interface", () => {
     describe("getFormattedMemberName", () => {
       it("should return entity name when available", () => {
         const member: Member = {
-          id: "member-123",
-          entityId: "entity-123",
+          id: "ge5qwju028wfh08e8ssvbyul",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           entityName: "Acme Corporation Ltd",
           memberType: MemberType.COMPANY,
           country: "Australia",
@@ -453,8 +453,8 @@ describe("Member Interface", () => {
 
       it("should return concatenated names when entity name is not available", () => {
         const member: Member = {
-          id: "member-123",
-          entityId: "entity-123",
+          id: "ge5qwju028wfh08e8ssvbyul",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           givenNames: "John",
           familyName: "Doe",
           memberType: MemberType.INDIVIDUAL,
@@ -472,8 +472,8 @@ describe("Member Interface", () => {
 
       it("should handle missing names gracefully", () => {
         const member: Member = {
-          id: "member-123",
-          entityId: "entity-123",
+          id: "ge5qwju028wfh08e8ssvbyul",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           memberType: MemberType.INDIVIDUAL,
           country: "Australia",
           beneficiallyHeld: true,
@@ -489,8 +489,8 @@ describe("Member Interface", () => {
 
       it("should handle partial names", () => {
         const member: Member = {
-          id: "member-123",
-          entityId: "entity-123",
+          id: "ge5qwju028wfh08e8ssvbyul",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           givenNames: "John",
           memberType: MemberType.INDIVIDUAL,
           country: "Australia",
@@ -509,8 +509,8 @@ describe("Member Interface", () => {
     describe("addFormattedNameMethod", () => {
       it("should add getFormattedName method to member object", () => {
         const member: Member = {
-          id: "member-123",
-          entityId: "entity-123",
+          id: "ge5qwju028wfh08e8ssvbyul",
+          entityId: "d5vaqv2ed5pb3gulopy9z5ao",
           givenNames: "John",
           familyName: "Doe",
           memberType: MemberType.INDIVIDUAL,
@@ -530,11 +530,11 @@ describe("Member Interface", () => {
 
     describe("calculateMemberHoldings", () => {
       it("should calculate holdings from transactions", () => {
-        const memberId = "member-123";
+        const memberId = "ge5qwju028wfh08e8ssvbyul";
         const transactions = [
           {
             id: "txn-1",
-            entityId: "entity-123",
+            entityId: "d5vaqv2ed5pb3gulopy9z5ao",
             securityClassId: "security-class-1",
             quantity: 100,
             transactionType: TransactionType.ISSUE,
@@ -542,14 +542,14 @@ describe("Member Interface", () => {
             postedDate: new Date("2020-01-01"),
             settlementDate: new Date("2020-01-01"),
             status: "Completed",
-            toMemberId: "member-123",
+            toMemberId: "ge5qwju028wfh08e8ssvbyul",
             createdAt: new Date("2020-01-01"),
             updatedAt: new Date("2020-01-01"),
             securityClass: {
               id: "security-class-1",
               name: "Ordinary Shares",
               symbol: "ORD",
-              entityId: "entity-123",
+              entityId: "d5vaqv2ed5pb3gulopy9z5ao",
               votingRights: true,
               dividendRights: true,
               isActive: true,
@@ -560,7 +560,7 @@ describe("Member Interface", () => {
           },
           {
             id: "txn-2",
-            entityId: "entity-123",
+            entityId: "d5vaqv2ed5pb3gulopy9z5ao",
             securityClassId: "security-class-1",
             quantity: 50,
             transactionType: TransactionType.ISSUE,
@@ -568,14 +568,14 @@ describe("Member Interface", () => {
             postedDate: new Date("2020-02-01"),
             settlementDate: new Date("2020-02-01"),
             status: "Completed",
-            toMemberId: "member-123",
+            toMemberId: "ge5qwju028wfh08e8ssvbyul",
             createdAt: new Date("2020-02-01"),
             updatedAt: new Date("2020-02-01"),
             securityClass: {
               id: "security-class-1",
               name: "Ordinary Shares",
               symbol: "ORD",
-              entityId: "entity-123",
+              entityId: "d5vaqv2ed5pb3gulopy9z5ao",
               votingRights: true,
               dividendRights: true,
               isActive: true,
@@ -592,7 +592,7 @@ describe("Member Interface", () => {
       });
 
       it("should handle empty transactions", () => {
-        const memberId = "member-123";
+        const memberId = "ge5qwju028wfh08e8ssvbyul";
         const transactions: any[] = [];
 
         const holdings = calculateMemberHoldings(memberId, transactions);
@@ -604,8 +604,8 @@ describe("Member Interface", () => {
   describe("Type validation", () => {
     it("should validate Member object structure", () => {
       const member: Member = {
-        id: "member-123",
-        entityId: "entity-123",
+        id: "ge5qwju028wfh08e8ssvbyul",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         memberType: MemberType.INDIVIDUAL,
         country: "Australia",
         beneficiallyHeld: true,
@@ -628,7 +628,7 @@ describe("Member Interface", () => {
 
     it("should validate MemberInput object structure", () => {
       const memberInput: MemberInput = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         memberType: MemberType.INDIVIDUAL,
         beneficiallyHeld: true,
         country: "Australia",
@@ -643,7 +643,7 @@ describe("Member Interface", () => {
     it("should validate MemberContact object structure", () => {
       const contact: MemberContact = {
         id: "contact-123",
-        memberId: "member-123",
+        memberId: "ge5qwju028wfh08e8ssvbyul",
         name: "Jane Smith",
         isPrimary: true,
         createdAt: new Date("2020-01-01"),
@@ -661,7 +661,7 @@ describe("Member Interface", () => {
     it("should validate JointMemberPerson object structure", () => {
       const jointPerson: JointMemberPerson = {
         id: "joint-person-123",
-        memberId: "member-123",
+        memberId: "ge5qwju028wfh08e8ssvbyul",
         order: 1,
         createdAt: new Date("2020-01-01"),
         updatedAt: new Date("2020-01-01"),

@@ -29,7 +29,7 @@ describe("CertificateNumberingService", () => {
   describe("generateCertificateNumber", () => {
     it("should generate certificate number with default format", async () => {
       const config: CertificateNumberingConfig = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
       };
 
@@ -47,13 +47,13 @@ describe("CertificateNumberingService", () => {
       expect(result.data?.certificateNumber).toBe("2024-0001");
       expect(result.data?.year).toBe(2024);
       expect(result.data?.sequence).toBe(1);
-      expect(result.data?.entityId).toBe("entity-123");
+      expect(result.data?.entityId).toBe("d5vaqv2ed5pb3gulopy9z5ao");
       expect(result.data?.generatedBy).toBe("user-123");
     });
 
     it("should generate certificate number with custom format", async () => {
       const config: CertificateNumberingConfig = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
         format: "CERT-{YEAR}-{SEQUENTIAL_NUMBER}",
         prefix: "CUSTOM",
@@ -72,7 +72,7 @@ describe("CertificateNumberingService", () => {
 
     it("should increment sequence number for existing certificates", async () => {
       const config: CertificateNumberingConfig = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
       };
 
@@ -98,7 +98,7 @@ describe("CertificateNumberingService", () => {
 
     it("should handle year rollover correctly", async () => {
       const config: CertificateNumberingConfig = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2025,
       };
 
@@ -117,7 +117,7 @@ describe("CertificateNumberingService", () => {
 
     it("should return cached number if available", async () => {
       const config: CertificateNumberingConfig = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
       };
 
@@ -142,7 +142,7 @@ describe("CertificateNumberingService", () => {
       console.error = jest.fn();
 
       const config: CertificateNumberingConfig = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
       };
 
@@ -169,7 +169,7 @@ describe("CertificateNumberingService", () => {
   describe("validateConfig", () => {
     it("should validate correct configuration", () => {
       const config: CertificateNumberingConfig = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
         format: "{YEAR}-{SEQUENTIAL_NUMBER}",
       };
@@ -194,7 +194,7 @@ describe("CertificateNumberingService", () => {
 
     it("should reject invalid year", () => {
       const config: CertificateNumberingConfig = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 1800,
       };
 
@@ -206,7 +206,7 @@ describe("CertificateNumberingService", () => {
 
     it("should reject format without required placeholders", () => {
       const config: CertificateNumberingConfig = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
         format: "CERT-{SEQUENTIAL_NUMBER}", // Missing {YEAR}
       };
@@ -221,7 +221,7 @@ describe("CertificateNumberingService", () => {
   describe("resolveConflict", () => {
     it("should resolve conflicts by generating new number", async () => {
       const config: CertificateNumberingConfig = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
       };
 
@@ -236,7 +236,7 @@ describe("CertificateNumberingService", () => {
         });
 
       const result = await service.resolveConflict(
-        "entity-123",
+        "d5vaqv2ed5pb3gulopy9z5ao",
         2024,
         "2024-0001",
         "user-123",
@@ -248,7 +248,7 @@ describe("CertificateNumberingService", () => {
 
     it("should fail after multiple conflict attempts", async () => {
       const config: CertificateNumberingConfig = {
-        entityId: "entity-123",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
       };
 
@@ -258,7 +258,7 @@ describe("CertificateNumberingService", () => {
       });
 
       const result = await service.resolveConflict(
-        "entity-123",
+        "d5vaqv2ed5pb3gulopy9z5ao",
         2024,
         "2024-0001",
         "user-123",
@@ -274,24 +274,24 @@ describe("CertificateNumberingService", () => {
   describe("cache management", () => {
     it("should clear specific cache entry", () => {
       // Populate cache
-      const cacheKey = "entity-123-2024";
+      const cacheKey = "d5vaqv2ed5pb3gulopy9z5ao-2024";
       (service as any).cache.set(cacheKey, {
         number: "2024-0001",
         timestamp: Date.now(),
       });
 
-      service.clearCache("entity-123", 2024);
+      service.clearCache("d5vaqv2ed5pb3gulopy9z5ao", 2024);
 
       expect((service as any).cache.has(cacheKey)).toBe(false);
     });
 
     it("should clear all cache entries for entity", () => {
       // Populate cache with multiple entries
-      (service as any).cache.set("entity-123-2024", {
+      (service as any).cache.set("d5vaqv2ed5pb3gulopy9z5ao-2024", {
         number: "2024-0001",
         timestamp: Date.now(),
       });
-      (service as any).cache.set("entity-123-2025", {
+      (service as any).cache.set("d5vaqv2ed5pb3gulopy9z5ao-2025", {
         number: "2025-0001",
         timestamp: Date.now(),
       });
@@ -300,16 +300,20 @@ describe("CertificateNumberingService", () => {
         timestamp: Date.now(),
       });
 
-      service.clearCache("entity-123");
+      service.clearCache("d5vaqv2ed5pb3gulopy9z5ao");
 
-      expect((service as any).cache.has("entity-123-2024")).toBe(false);
-      expect((service as any).cache.has("entity-123-2025")).toBe(false);
+      expect((service as any).cache.has("d5vaqv2ed5pb3gulopy9z5ao-2024")).toBe(
+        false,
+      );
+      expect((service as any).cache.has("d5vaqv2ed5pb3gulopy9z5ao-2025")).toBe(
+        false,
+      );
       expect((service as any).cache.has("entity-456-2024")).toBe(true); // Should remain
     });
 
     it("should clear entire cache", () => {
       // Populate cache
-      (service as any).cache.set("entity-123-2024", {
+      (service as any).cache.set("d5vaqv2ed5pb3gulopy9z5ao-2024", {
         number: "2024-0001",
         timestamp: Date.now(),
       });
@@ -321,7 +325,7 @@ describe("CertificateNumberingService", () => {
 
     it("should return cache statistics", () => {
       // Populate cache
-      (service as any).cache.set("entity-123-2024", {
+      (service as any).cache.set("d5vaqv2ed5pb3gulopy9z5ao-2024", {
         number: "2024-0001",
         timestamp: Date.now(),
       });

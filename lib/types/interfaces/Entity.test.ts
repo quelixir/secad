@@ -28,7 +28,7 @@ describe("Entity Interface", () => {
   describe("Entity interface", () => {
     it("should allow creation of valid Entity object", () => {
       const entity: Entity = {
-        id: "entity-123",
+        id: "d5vaqv2ed5pb3gulopy9z5ao",
         name: "Acme Corporation Ltd",
         entityTypeId: "company",
         status: EntityStatus.ACTIVE,
@@ -52,7 +52,7 @@ describe("Entity Interface", () => {
         },
       };
 
-      expect(entity.id).toBe("entity-123");
+      expect(entity.id).toBe("d5vaqv2ed5pb3gulopy9z5ao");
       expect(entity.name).toBe("Acme Corporation Ltd");
       expect(entity.status).toBe(EntityStatus.ACTIVE);
       expect(entity._count?.members).toBe(5);
@@ -60,7 +60,7 @@ describe("Entity Interface", () => {
 
     it("should allow optional fields to be undefined", () => {
       const entity: Entity = {
-        id: "entity-123",
+        id: "d5vaqv2ed5pb3gulopy9z5ao",
         name: "Acme Corporation Ltd",
         entityTypeId: "company",
         status: EntityStatus.ACTIVE,
@@ -77,7 +77,7 @@ describe("Entity Interface", () => {
 
     it("should allow null values for optional fields", () => {
       const entity: Entity = {
-        id: "entity-123",
+        id: "d5vaqv2ed5pb3gulopy9z5ao",
         name: "Acme Corporation Ltd",
         entityTypeId: "company",
         status: EntityStatus.ACTIVE,
@@ -104,7 +104,7 @@ describe("Entity Interface", () => {
   describe("EntityWithRelations interface", () => {
     it("should extend Entity with optional relations", () => {
       const entityWithRelations: EntityWithRelations = {
-        id: "entity-123",
+        id: "d5vaqv2ed5pb3gulopy9z5ao",
         name: "Acme Corporation Ltd",
         entityTypeId: "company",
         status: EntityStatus.ACTIVE,
@@ -171,7 +171,7 @@ describe("Entity Interface", () => {
   describe("EntityApiResponse interface", () => {
     it("should have string dates instead of Date objects", () => {
       const entityApiResponse: EntityApiResponse = {
-        id: "entity-123",
+        id: "d5vaqv2ed5pb3gulopy9z5ao",
         name: "Acme Corporation Ltd",
         entityTypeId: "company",
         status: EntityStatus.ACTIVE,
@@ -197,7 +197,7 @@ describe("Entity Interface", () => {
 
     it("should allow members with string dates", () => {
       const entityApiResponse: EntityApiResponse = {
-        id: "entity-123",
+        id: "d5vaqv2ed5pb3gulopy9z5ao",
         name: "Acme Corporation Ltd",
         entityTypeId: "company",
         status: EntityStatus.ACTIVE,
@@ -206,8 +206,8 @@ describe("Entity Interface", () => {
         updatedAt: "2020-01-01T00:00:00.000Z",
         members: [
           {
-            id: "member-123",
-            entityId: "entity-123",
+            id: "ge5qwju028wfh08e8ssvbyul",
+            entityId: "d5vaqv2ed5pb3gulopy9z5ao",
             memberType: "INDIVIDUAL",
             country: "Australia",
             beneficiallyHeld: true,
@@ -228,7 +228,7 @@ describe("Entity Interface", () => {
   describe("Type validation", () => {
     it("should validate Entity object structure", () => {
       const entity: Entity = {
-        id: "entity-123",
+        id: "d5vaqv2ed5pb3gulopy9z5ao",
         name: "Acme Corporation Ltd",
         entityTypeId: "company",
         status: EntityStatus.ACTIVE,
@@ -260,7 +260,7 @@ describe("Entity Interface", () => {
 
     it("should validate EntityApiResponse object structure", () => {
       const entityApiResponse: EntityApiResponse = {
-        id: "entity-123",
+        id: "d5vaqv2ed5pb3gulopy9z5ao",
         name: "Acme Corporation Ltd",
         entityTypeId: "company",
         status: EntityStatus.ACTIVE,
@@ -282,7 +282,7 @@ describe("Entity Interface", () => {
   describe("Interface compatibility", () => {
     it("should allow Entity to be assigned to EntityWithRelations", () => {
       const entity: Entity = {
-        id: "entity-123",
+        id: "d5vaqv2ed5pb3gulopy9z5ao",
         name: "Acme Corporation Ltd",
         entityTypeId: "company",
         status: EntityStatus.ACTIVE,
@@ -319,7 +319,7 @@ describe("Entity Interface", () => {
 
       // Simulate entity creation
       const createdEntity: Entity = {
-        id: "entity-123",
+        id: "d5vaqv2ed5pb3gulopy9z5ao",
         name: entityInput.name,
         entityTypeId: entityInput.entityTypeId,
         status: EntityStatus.ACTIVE,
