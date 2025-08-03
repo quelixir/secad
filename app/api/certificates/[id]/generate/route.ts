@@ -5,6 +5,13 @@ import { certificateGenerator } from "@/lib/services/certificate-generator";
 import { certificateNumberingService } from "@/lib/services/certificate-numbering";
 import { rateLimit } from "@/lib/utils/rate-limit";
 import { AuditLogger } from "@/lib/audit";
+import {
+  CertificateErrorFactory,
+  CertificateErrorLogger,
+  CertificateErrorResponse,
+  ErrorContext,
+  CertificateGenerationError,
+} from "@/lib/services/error-handling";
 
 // Rate limiter: 5 generations per minute per user
 const limiter = rateLimit({
@@ -37,6 +44,34 @@ export interface GenerateResponse {
 }
 
 /**
+ * Get HTTP status code for certificate generation error
+ */
+function getHttpStatusForError(error: CertificateGenerationError): number {
+  switch (error.category) {
+    case "validation":
+      return 400;
+    case "authentication":
+      return 401;
+    case "authorization":
+      return 403;
+    case "rate_limit":
+      return 429;
+    case "timeout":
+      return 408;
+    case "system":
+    case "database":
+    case "memory":
+    case "file_system":
+    case "pdf_generation":
+    case "template":
+    case "network":
+    case "unknown":
+    default:
+      return 500;
+  }
+}
+
+/**
  * POST /api/certificates/[id]/generate
  * Generate a certificate for a transaction and return metadata
  */
@@ -47,20 +82,26 @@ export async function POST(
   const startTime = Date.now();
   const { id: transactionId } = await params;
   let userId: string | undefined;
+  const identifier =
+    request.headers.get("x-forwarded-for") ||
+    request.headers.get("x-real-ip") ||
+    "anonymous";
 
   try {
     // Rate limiting
-    const identifier =
-      request.headers.get("x-forwarded-for") ||
-      request.headers.get("x-real-ip") ||
-      "anonymous";
     const { success } = await limiter.check(identifier, 5); // 5 generations per minute
     if (!success) {
-      return NextResponse.json(
+      const rateLimitError = CertificateErrorFactory.rateLimitError(
+        "Rate limit exceeded. Please try again later.",
         {
-          success: false,
-          error: "Rate limit exceeded. Please try again later.",
+          transactionId,
+          ipAddress: identifier,
+          userAgent: request.headers.get("user-agent") || undefined,
         },
+      );
+      await CertificateErrorLogger.logError(rateLimitError);
+      return NextResponse.json(
+        CertificateErrorResponse.formatError(rateLimitError),
         { status: 429 },
       );
     }
@@ -69,11 +110,17 @@ export async function POST(
     const session = await auth.api.getSession({ headers: request.headers });
     userId = session?.user?.id;
     if (!userId) {
-      return NextResponse.json(
+      const authError = CertificateErrorFactory.authenticationError(
+        "Unauthorized - User session not found",
         {
-          success: false,
-          error: "Unauthorized",
+          transactionId,
+          ipAddress: identifier,
+          userAgent: request.headers.get("user-agent") || undefined,
         },
+      );
+      await CertificateErrorLogger.logError(authError);
+      return NextResponse.json(
+        CertificateErrorResponse.formatError(authError),
         { status: 401 },
       );
     }
@@ -92,33 +139,58 @@ export async function POST(
 
     // Validate required fields
     if (!templateId || !format || !requestUserId) {
-      return NextResponse.json(
+      const validationError = CertificateErrorFactory.validationError(
+        "Missing required fields: templateId, format, userId",
         {
-          success: false,
-          error: "Missing required fields: templateId, format, userId",
+          transactionId,
+          userId,
+          templateId,
+          format,
+          ipAddress: identifier,
+          userAgent: request.headers.get("user-agent") || undefined,
         },
+      );
+      await CertificateErrorLogger.logError(validationError);
+      return NextResponse.json(
+        CertificateErrorResponse.formatError(validationError),
         { status: 400 },
       );
     }
 
     // Validate format
     if (!["PDF", "DOCX"].includes(format)) {
-      return NextResponse.json(
+      const validationError = CertificateErrorFactory.validationError(
+        "Invalid format. Must be PDF or DOCX",
         {
-          success: false,
-          error: "Invalid format. Must be PDF or DOCX",
+          transactionId,
+          userId,
+          templateId,
+          format,
+          ipAddress: identifier,
+          userAgent: request.headers.get("user-agent") || undefined,
         },
+      );
+      await CertificateErrorLogger.logError(validationError);
+      return NextResponse.json(
+        CertificateErrorResponse.formatError(validationError),
         { status: 400 },
       );
     }
 
     // Validate user ID matches session
     if (requestUserId !== userId) {
-      return NextResponse.json(
+      const authError = CertificateErrorFactory.authorizationError(
+        "User ID mismatch",
         {
-          success: false,
-          error: "User ID mismatch",
+          transactionId,
+          userId,
+          ipAddress: identifier,
+          userAgent: request.headers.get("user-agent") || undefined,
         },
+      );
+      await CertificateErrorLogger.logError(authError);
+      return NextResponse.json(
+        CertificateErrorResponse.formatError(authError),
         { status: 403 },
       );
     }
@@ -134,11 +206,18 @@ export async function POST(
     });
 
     if (!transaction) {
-      return NextResponse.json(
+      const notFoundError = CertificateErrorFactory.validationError(
+        "Transaction not found",
         {
-          success: false,
-          error: "Transaction not found",
+          transactionId,
+          userId,
+          ipAddress: identifier,
+          userAgent: request.headers.get("user-agent") || undefined,
         },
+      );
+      await CertificateErrorLogger.logError(notFoundError);
+      return NextResponse.json(
+        CertificateErrorResponse.formatError(notFoundError),
         { status: 404 },
       );
     }
@@ -154,11 +233,19 @@ export async function POST(
     });
 
     if (!userAccess) {
-      return NextResponse.json(
+      const authError = CertificateErrorFactory.authorizationError(
+        "Access denied to transaction entity",
         {
-          success: false,
-          error: "Access denied to transaction entity",
+          transactionId,
+          userId,
+          entityId: transaction.entityId,
+          ipAddress: identifier,
+          userAgent: request.headers.get("user-agent") || undefined,
         },
+      );
+      await CertificateErrorLogger.logError(authError);
+      return NextResponse.json(
+        CertificateErrorResponse.formatError(authError),
         { status: 403 },
       );
     }
@@ -169,11 +256,20 @@ export async function POST(
     });
 
     if (!template) {
-      return NextResponse.json(
+      const templateError = CertificateErrorFactory.templateError(
+        "Certificate template not found",
         {
-          success: false,
-          error: "Certificate template not found",
+          transactionId,
+          userId,
+          templateId,
+          entityId: transaction.entityId,
+          ipAddress: identifier,
+          userAgent: request.headers.get("user-agent") || undefined,
         },
+      );
+      await CertificateErrorLogger.logError(templateError);
+      return NextResponse.json(
+        CertificateErrorResponse.formatError(templateError),
         { status: 404 },
       );
     }
@@ -182,10 +278,21 @@ export async function POST(
     const templateValidation =
       await certificateGenerator.validateTemplate(templateId);
     if (!templateValidation.valid) {
+      const templateError = CertificateErrorFactory.templateError(
+        "Template validation failed",
+        {
+          transactionId,
+          userId,
+          templateId,
+          entityId: transaction.entityId,
+          ipAddress: identifier,
+          userAgent: request.headers.get("user-agent") || undefined,
+        },
+      );
+      await CertificateErrorLogger.logError(templateError);
       return NextResponse.json(
         {
-          success: false,
-          error: "Template validation failed",
+          ...CertificateErrorResponse.formatError(templateError),
           details: templateValidation.errors,
           warnings: templateValidation.warnings,
           completenessScore: templateValidation.completenessScore,
@@ -207,12 +314,20 @@ export async function POST(
         );
 
       if (!numberingResult.success) {
-        return NextResponse.json(
+        const numberingError = CertificateErrorFactory.systemError(
+          numberingResult.error || "Failed to generate certificate number",
           {
-            success: false,
-            error:
-              numberingResult.error || "Failed to generate certificate number",
+            transactionId,
+            userId,
+            entityId: transaction.entityId,
+            templateId,
+            ipAddress: identifier,
+            userAgent: request.headers.get("user-agent") || undefined,
           },
+        );
+        await CertificateErrorLogger.logError(numberingError);
+        return NextResponse.json(
+          CertificateErrorResponse.formatError(numberingError),
           { status: 500 },
         );
       }
@@ -327,32 +442,60 @@ export async function POST(
     return NextResponse.json(response);
   } catch (error) {
     const generationTime = Date.now() - startTime;
-
-    console.error("Certificate generation failed", {
+    const context: ErrorContext = {
       transactionId,
-      error: error instanceof Error ? error.message : "Unknown error",
-      generationTime: `${generationTime}ms`,
-      userId: userId,
-    });
+      userId,
+      ipAddress: identifier,
+      userAgent: request.headers.get("user-agent") || undefined,
+      generationStartTime: startTime,
+    };
 
+    // Handle CertificateGenerationError
+    if (error instanceof CertificateGenerationError) {
+      await CertificateErrorLogger.logError(error, {
+        generationTime: `${generationTime}ms`,
+        method: "POST /api/certificates/[id]/generate",
+      });
+      return NextResponse.json(CertificateErrorResponse.formatError(error), {
+        status: getHttpStatusForError(error),
+      });
+    }
+
+    // Handle timeout errors
     if (
       error instanceof Error &&
       error.message === "Certificate generation timeout"
     ) {
+      const timeoutError = CertificateErrorFactory.timeoutError(
+        "Certificate generation timed out. Please try again.",
+        context,
+        error,
+      );
+      await CertificateErrorLogger.logError(timeoutError, {
+        generationTime: `${generationTime}ms`,
+        method: "POST /api/certificates/[id]/generate",
+      });
       return NextResponse.json(
-        {
-          success: false,
-          error: "Certificate generation timed out. Please try again.",
-        },
+        CertificateErrorResponse.formatError(timeoutError),
         { status: 408 },
       );
     }
 
+    // Handle unknown errors
+    const unknownError = CertificateErrorFactory.unknownError(
+      error instanceof Error
+        ? error.message
+        : "Unknown error in certificate generation",
+      context,
+      error instanceof Error ? error : undefined,
+    );
+    await CertificateErrorLogger.logError(unknownError, {
+      generationTime: `${generationTime}ms`,
+      method: "POST /api/certificates/[id]/generate",
+    });
+
     return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-      },
+      CertificateErrorResponse.formatError(unknownError),
       { status: 500 },
     );
   }

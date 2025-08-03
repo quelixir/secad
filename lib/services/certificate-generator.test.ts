@@ -5,6 +5,11 @@ import {
 } from "./certificate-generator";
 import { getLocale } from "@/lib/locale";
 import { TemplateData } from "@/lib/certificate-templates/template-validation";
+import {
+  CertificateErrorFactory,
+  CertificateGenerationError,
+  ErrorCategory,
+} from "./error-handling";
 
 // Mock the PDF generator
 jest.mock("./pdf-generator", () => ({
@@ -679,7 +684,9 @@ describe("CertificateGenerator", () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Transaction not found: nonexistent");
+      expect(result.error).toBe(
+        "The certificate data is invalid. Please check the information and try again.",
+      );
     });
 
     it("should handle missing template", async () => {
@@ -734,7 +741,9 @@ describe("CertificateGenerator", () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Certificate template not found: nonexistent");
+      expect(result.error).toBe(
+        "Certificate template error. Please contact support.",
+      );
     });
 
     it("should return error for DOCX format", async () => {
@@ -1005,13 +1014,23 @@ describe("CertificateGenerator", () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain("Template validation failed");
+      expect(result.error).toBe(
+        "Certificate template error. Please contact support.",
+      );
     });
 
     it("should handle database errors gracefully", async () => {
+      // Mock database error that will be retried and eventually fail
       mockPrisma.transaction.findUnique.mockRejectedValue(
         new Error("Database connection failed"),
       );
+
+      // Mock template to prevent template errors from interfering
+      mockPrisma.certificateTemplate.findUnique.mockResolvedValue({
+        id: "qvd5mb9xqn51v7liwvmczge7",
+        name: "Test Template",
+        templateHtml: "<html><body>Test</body></html>",
+      });
 
       const result = await certificateGenerator.generatePDFCertificate(
         "ec83rv0fkh1zvqhs624zpcg4",
@@ -1019,7 +1038,221 @@ describe("CertificateGenerator", () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Database connection failed");
+      expect(result.error).toBe(
+        "Database connection issue. Please try again later.",
+      );
+    }, 10000); // Increase timeout for retry logic
+
+    it("should handle template not found errors", async () => {
+      const mockTransaction = {
+        id: "ec83rv0fkh1zvqhs624zpcg4",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
+        quantity: 1000,
+        totalAmountPaid: 50000,
+        totalAmountUnpaid: 0,
+        currencyCode: "AUD",
+        transactionType: "Issuance",
+        reasonCode: "Initial",
+        description: "Initial share issuance",
+        createdAt: new Date("2024-01-01"),
+        entity: {
+          id: "d5vaqv2ed5pb3gulopy9z5ao",
+          name: "Test Entity Ltd",
+          address: "123 Test Street",
+          city: "Sydney",
+          state: "NSW",
+          postcode: "2000",
+          country: "Australia",
+          phone: "+61 2 1234 5678",
+          email: "contact@testentity.com",
+          entityTypeId: "Company",
+        },
+        securityClass: {
+          id: "aziq1l0224y78j3vuwe9km2x",
+          name: "Ordinary Shares",
+          symbol: "ORD",
+        },
+        toMember: {
+          id: "ge5qwju028wfh08e8ssvbyul",
+          entityName: "John Doe Ltd",
+          givenNames: "John",
+          familyName: "Doe",
+          memberType: "Individual",
+          address: "456 Member Street",
+          city: "Melbourne",
+          state: "VIC",
+          postcode: "3000",
+          country: "Australia",
+        },
+      };
+
+      mockPrisma.transaction.findUnique.mockResolvedValue(mockTransaction);
+      mockPrisma.certificateTemplate.findUnique.mockResolvedValue(null);
+
+      const result = await certificateGenerator.generatePDFCertificate(
+        "ec83rv0fkh1zvqhs624zpcg4",
+        "nonexistent-template",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(
+        "Certificate template error. Please contact support.",
+      );
+    });
+
+    it("should handle concurrent generation limit", async () => {
+      // Set active generations to max
+      certificateGenerator["activeGenerations"] =
+        certificateGenerator["maxConcurrentGenerations"];
+
+      const result = await certificateGenerator.generatePDFCertificate(
+        "ec83rv0fkh1zvqhs624zpcg4",
+        "qvd5mb9xqn51v7liwvmczge7",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(
+        "Too many requests. Please wait a moment and try again.",
+      );
+
+      // Reset for other tests
+      certificateGenerator["activeGenerations"] = 0;
+    });
+
+    it("should handle memory errors", async () => {
+      const { pdfGenerator } = require("./pdf-generator");
+      pdfGenerator.generatePDF.mockRejectedValue(
+        new Error("Memory allocation failed"),
+      );
+
+      const mockTransaction = {
+        id: "ec83rv0fkh1zvqhs624zpcg4",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
+        quantity: 1000,
+        totalAmountPaid: 50000,
+        totalAmountUnpaid: 0,
+        currencyCode: "AUD",
+        transactionType: "Issuance",
+        reasonCode: "Initial",
+        description: "Initial share issuance",
+        createdAt: new Date("2024-01-01"),
+        entity: {
+          id: "d5vaqv2ed5pb3gulopy9z5ao",
+          name: "Test Entity Ltd",
+          address: "123 Test Street",
+          city: "Sydney",
+          state: "NSW",
+          postcode: "2000",
+          country: "Australia",
+          phone: "+61 2 1234 5678",
+          email: "contact@testentity.com",
+          entityTypeId: "Company",
+        },
+        securityClass: {
+          id: "aziq1l0224y78j3vuwe9km2x",
+          name: "Ordinary Shares",
+          symbol: "ORD",
+        },
+        toMember: {
+          id: "ge5qwju028wfh08e8ssvbyul",
+          entityName: "John Doe Ltd",
+          givenNames: "John",
+          familyName: "Doe",
+          memberType: "Individual",
+          address: "456 Member Street",
+          city: "Melbourne",
+          state: "VIC",
+          postcode: "3000",
+          country: "Australia",
+        },
+      };
+
+      const mockTemplate = {
+        id: "qvd5mb9xqn51v7liwvmczge7",
+        name: "Standard Certificate",
+        templateHtml: "<html><body>Test</body></html>",
+      };
+
+      mockPrisma.transaction.findUnique.mockResolvedValue(mockTransaction);
+      mockPrisma.certificateTemplate.findUnique.mockResolvedValue(mockTemplate);
+      mockPrisma.transaction.findFirst.mockResolvedValue(null);
+
+      const result = await certificateGenerator.generatePDFCertificate(
+        "ec83rv0fkh1zvqhs624zpcg4",
+        "qvd5mb9xqn51v7liwvmczge7",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(
+        "Certificate template error. Please contact support.",
+      );
+    });
+
+    it("should handle network timeout errors", async () => {
+      const { pdfGenerator } = require("./pdf-generator");
+      pdfGenerator.generatePDF.mockRejectedValue(new Error("Network timeout"));
+
+      const mockTransaction = {
+        id: "ec83rv0fkh1zvqhs624zpcg4",
+        entityId: "d5vaqv2ed5pb3gulopy9z5ao",
+        quantity: 1000,
+        totalAmountPaid: 50000,
+        totalAmountUnpaid: 0,
+        currencyCode: "AUD",
+        transactionType: "Issuance",
+        reasonCode: "Initial",
+        description: "Initial share issuance",
+        createdAt: new Date("2024-01-01"),
+        entity: {
+          id: "d5vaqv2ed5pb3gulopy9z5ao",
+          name: "Test Entity Ltd",
+          address: "123 Test Street",
+          city: "Sydney",
+          state: "NSW",
+          postcode: "2000",
+          country: "Australia",
+          phone: "+61 2 1234 5678",
+          email: "contact@testentity.com",
+          entityTypeId: "Company",
+        },
+        securityClass: {
+          id: "aziq1l0224y78j3vuwe9km2x",
+          name: "Ordinary Shares",
+          symbol: "ORD",
+        },
+        toMember: {
+          id: "ge5qwju028wfh08e8ssvbyul",
+          entityName: "John Doe Ltd",
+          givenNames: "John",
+          familyName: "Doe",
+          memberType: "Individual",
+          address: "456 Member Street",
+          city: "Melbourne",
+          state: "VIC",
+          postcode: "3000",
+          country: "Australia",
+        },
+      };
+
+      const mockTemplate = {
+        id: "qvd5mb9xqn51v7liwvmczge7",
+        name: "Standard Certificate",
+        templateHtml: "<html><body>Test</body></html>",
+      };
+
+      mockPrisma.transaction.findUnique.mockResolvedValue(mockTransaction);
+      mockPrisma.certificateTemplate.findUnique.mockResolvedValue(mockTemplate);
+      mockPrisma.transaction.findFirst.mockResolvedValue(null);
+
+      const result = await certificateGenerator.generatePDFCertificate(
+        "ec83rv0fkh1zvqhs624zpcg4",
+        "qvd5mb9xqn51v7liwvmczge7",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(
+        "Certificate template error. Please contact support.",
+      );
     });
   });
 

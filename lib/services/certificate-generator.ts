@@ -8,6 +8,14 @@ import {
   TemplateData,
 } from "@/lib/certificate-templates/template-validation";
 import { AuditLogger } from "@/lib/audit";
+import {
+  CertificateErrorFactory,
+  CertificateErrorLogger,
+  CertificateErrorRecovery,
+  CertificateErrorResponse,
+  ErrorContext,
+  CertificateGenerationError,
+} from "./error-handling";
 
 export interface CertificateData {
   entityId: string;
@@ -190,155 +198,197 @@ export class CertificateGenerator {
     transactionId: string,
     entityId: string,
   ): Promise<CertificateData> {
-    const transaction = await prisma.transaction.findUnique({
-      where: { id: transactionId },
-      include: {
-        entity: {
-          include: {
-            identifiers: true,
-          },
-        },
-        securityClass: true,
-        toMember: {
-          include: {
-            contacts: true,
-          },
-        },
-        fromMember: true,
-      },
-    });
+    const context: ErrorContext = {
+      transactionId,
+      entityId,
+    };
 
-    if (!transaction) {
-      throw new Error(`Transaction not found: ${transactionId}`);
-    }
-
-    if (!transaction.entity) {
-      throw new Error(`Entity not found for transaction: ${transactionId}`);
-    }
-
-    if (!transaction.securityClass) {
-      throw new Error(
-        `Security class not found for transaction: ${transactionId}`,
+    try {
+      const transaction = await CertificateErrorRecovery.withRetry(
+        () =>
+          prisma.transaction.findUnique({
+            where: { id: transactionId },
+            include: {
+              entity: {
+                include: {
+                  identifiers: true,
+                },
+              },
+              securityClass: true,
+              toMember: {
+                include: {
+                  contacts: true,
+                },
+              },
+              fromMember: true,
+            },
+          }),
+        context,
       );
-    }
 
-    if (!transaction.toMember) {
-      throw new Error(`Member not found for transaction: ${transactionId}`);
-    }
+      if (!transaction) {
+        throw CertificateErrorFactory.validationError(
+          `Transaction not found: ${transactionId}`,
+          context,
+        );
+      }
 
-    // Get locale and currency
-    const locale = await getLocale();
-    const currencyCode = getDefaultCurrencyCode();
+      if (!transaction.entity) {
+        throw CertificateErrorFactory.validationError(
+          `Entity not found for transaction: ${transactionId}`,
+          context,
+        );
+      }
 
-    // Format currency values
-    const formatCurrency = (amount: number) => {
-      return new Intl.NumberFormat(locale, {
-        style: "currency",
+      if (!transaction.securityClass) {
+        throw CertificateErrorFactory.validationError(
+          `Security class not found for transaction: ${transactionId}`,
+          context,
+        );
+      }
+
+      if (!transaction.toMember) {
+        throw CertificateErrorFactory.validationError(
+          `Member not found for transaction: ${transactionId}`,
+          context,
+        );
+      }
+
+      // Get locale and currency
+      const locale = await getLocale();
+      const currencyCode = getDefaultCurrencyCode();
+
+      // Format currency values
+      const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat(locale, {
+          style: "currency",
+          currency: currencyCode,
+        }).format(amount);
+      };
+
+      // Get member contact information
+      const primaryContact = transaction.toMember.contacts?.[0];
+      const memberAddress = transaction.toMember.address || "Not specified";
+      const memberPhone =
+        primaryContact?.phone || transaction.toMember.phone || "Not specified";
+      const memberEmail =
+        primaryContact?.email || transaction.toMember.email || "Not specified";
+
+      // Get entity contact information
+      const entityContact = transaction.entity.name || "Not specified";
+      const entityEmail = transaction.entity.email || "Not specified";
+      const entityPhone = transaction.entity.phone || "Not specified";
+
+      // Format entity address
+      const entityAddress = [
+        transaction.entity.address,
+        transaction.entity.city,
+        transaction.entity.state,
+        transaction.entity.postcode,
+        transaction.entity.country,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      // Format member address
+      const memberFormattedAddress = [
+        memberAddress,
+        transaction.toMember.city,
+        transaction.toMember.state,
+        transaction.toMember.postcode,
+        transaction.toMember.country,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      // Calculate amounts from transaction data
+      const totalAmountPaid = transaction.totalAmountPaid
+        ? Number(transaction.totalAmountPaid)
+        : 0;
+      const totalAmountUnpaid = transaction.totalAmountUnpaid
+        ? Number(transaction.totalAmountUnpaid)
+        : 0;
+      const totalAmount = totalAmountPaid + totalAmountUnpaid;
+
+      const amountPaidPerSecurity = transaction.amountPaidPerSecurity
+        ? Number(transaction.amountPaidPerSecurity)
+        : 0;
+      const amountUnpaidPerSecurity = transaction.amountUnpaidPerSecurity
+        ? Number(transaction.amountUnpaidPerSecurity)
+        : 0;
+      const unitPrice = amountPaidPerSecurity + amountUnpaidPerSecurity;
+
+      const certificateData: CertificateData = {
+        entityId: transaction.entityId,
+        entityName: transaction.entity.name,
+        entityAddress,
+        entityPhone,
+        entityType: transaction.entity.entityTypeId,
+        entityContact,
+        entityEmail,
+        transactionId: transaction.id,
+        transactionDate: transaction.createdAt,
+        transactionType: transaction.transactionType,
+        transactionReason: transaction.reasonCode,
+        transactionDescription: transaction.description || "",
+        securityClass: transaction.securityClass.name,
+        securityName: transaction.securityClass.name,
+        securitySymbol: transaction.securityClass.symbol || "",
+        quantity: transaction.quantity,
+        totalAmount,
+        unitPrice,
+        totalValue: totalAmount,
         currency: currencyCode,
-      }).format(amount);
-    };
+        memberName:
+          transaction.toMember.entityName ||
+          transaction.toMember.givenNames ||
+          "Unknown Member",
+        memberId: transaction.toMember.id,
+        memberType: transaction.toMember.memberType,
+        memberAddress: memberFormattedAddress,
+        certificateNumber: "", // Will be set later
+        issueDate: new Date(),
+      };
 
-    // Get member contact information
-    const primaryContact = transaction.toMember.contacts?.[0];
-    const memberAddress = transaction.toMember.address || "Not specified";
-    const memberPhone =
-      primaryContact?.phone || transaction.toMember.phone || "Not specified";
-    const memberEmail =
-      primaryContact?.email || transaction.toMember.email || "Not specified";
+      // Add entity identifiers as dynamic properties
+      if (transaction.entity.identifiers) {
+        transaction.entity.identifiers.forEach((identifier) => {
+          certificateData[`entity${identifier.type}`] = identifier.value;
+        });
+      }
 
-    // Get entity contact information
-    const entityContact = transaction.entity.name || "Not specified";
-    const entityEmail = transaction.entity.email || "Not specified";
-    const entityPhone = transaction.entity.phone || "Not specified";
+      // Add member contact information as dynamic properties
+      if (primaryContact) {
+        certificateData.memberPhone = memberPhone;
+        certificateData.memberEmail = memberEmail;
+      }
 
-    // Format entity address
-    const entityAddress = [
-      transaction.entity.address,
-      transaction.entity.city,
-      transaction.entity.state,
-      transaction.entity.postcode,
-      transaction.entity.country,
-    ]
-      .filter(Boolean)
-      .join(", ");
+      // Validate the data
+      this.validateCertificateData(certificateData);
 
-    // Format member address
-    const memberFormattedAddress = [
-      memberAddress,
-      transaction.toMember.city,
-      transaction.toMember.state,
-      transaction.toMember.postcode,
-      transaction.toMember.country,
-    ]
-      .filter(Boolean)
-      .join(", ");
+      return certificateData;
+    } catch (error) {
+      // Log and rethrow the error
+      if (error instanceof CertificateGenerationError) {
+        await CertificateErrorLogger.logError(error, {
+          method: "populateCertificateData",
+        });
+        throw error;
+      }
 
-    // Calculate amounts from transaction data
-    const totalAmountPaid = transaction.totalAmountPaid
-      ? Number(transaction.totalAmountPaid)
-      : 0;
-    const totalAmountUnpaid = transaction.totalAmountUnpaid
-      ? Number(transaction.totalAmountUnpaid)
-      : 0;
-    const totalAmount = totalAmountPaid + totalAmountUnpaid;
-
-    const amountPaidPerSecurity = transaction.amountPaidPerSecurity
-      ? Number(transaction.amountPaidPerSecurity)
-      : 0;
-    const amountUnpaidPerSecurity = transaction.amountUnpaidPerSecurity
-      ? Number(transaction.amountUnpaidPerSecurity)
-      : 0;
-    const unitPrice = amountPaidPerSecurity + amountUnpaidPerSecurity;
-
-    const certificateData: CertificateData = {
-      entityId: transaction.entityId,
-      entityName: transaction.entity.name,
-      entityAddress,
-      entityPhone,
-      entityType: transaction.entity.entityTypeId,
-      entityContact,
-      entityEmail,
-      transactionId: transaction.id,
-      transactionDate: transaction.createdAt,
-      transactionType: transaction.transactionType,
-      transactionReason: transaction.reasonCode,
-      transactionDescription: transaction.description || "",
-      securityClass: transaction.securityClass.name,
-      securityName: transaction.securityClass.name,
-      securitySymbol: transaction.securityClass.symbol || "",
-      quantity: transaction.quantity,
-      totalAmount,
-      unitPrice,
-      totalValue: totalAmount,
-      currency: currencyCode,
-      memberName:
-        transaction.toMember.entityName ||
-        transaction.toMember.givenNames ||
-        "Unknown Member",
-      memberId: transaction.toMember.id,
-      memberType: transaction.toMember.memberType,
-      memberAddress: memberFormattedAddress,
-      certificateNumber: "", // Will be set later
-      issueDate: new Date(),
-    };
-
-    // Add entity identifiers as dynamic properties
-    if (transaction.entity.identifiers) {
-      transaction.entity.identifiers.forEach((identifier) => {
-        certificateData[`entity${identifier.type}`] = identifier.value;
+      // Convert unknown errors to CertificateGenerationError
+      const certError = CertificateErrorFactory.databaseError(
+        error instanceof Error
+          ? error.message
+          : "Unknown error in populateCertificateData",
+        context,
+        error instanceof Error ? error : undefined,
+      );
+      await CertificateErrorLogger.logError(certError, {
+        method: "populateCertificateData",
       });
+      throw certError;
     }
-
-    // Add member contact information as dynamic properties
-    if (primaryContact) {
-      certificateData.memberPhone = memberPhone;
-      certificateData.memberEmail = memberEmail;
-    }
-
-    // Validate the data
-    this.validateCertificateData(certificateData);
-
-    return certificateData;
   }
 
   /**
@@ -360,8 +410,14 @@ export class CertificateGenerator {
     );
 
     if (missingFields.length > 0) {
-      throw new Error(
+      const context: ErrorContext = {
+        transactionId: data.transactionId,
+        entityId: data.entityId,
+      };
+
+      throw CertificateErrorFactory.validationError(
         `Missing required certificate data: ${missingFields.join(", ")}`,
+        context,
       );
     }
   }
@@ -485,6 +541,15 @@ export class CertificateGenerator {
     options?: Partial<PDFOptions>,
     generatedBy: string = "system",
   ): Promise<CertificateGenerationResult> {
+    const generationStartTime = Date.now();
+    const context: ErrorContext = {
+      transactionId,
+      templateId,
+      userId: generatedBy,
+      format: "PDF",
+      generationStartTime,
+    };
+
     this.logger.log(
       `Starting PDF certificate generation for transaction: ${transactionId}`,
     );
@@ -532,22 +597,33 @@ export class CertificateGenerator {
     try {
       // Check concurrent generation limit
       if (this.activeGenerations >= this.maxConcurrentGenerations) {
+        const rateLimitError = CertificateErrorFactory.rateLimitError(
+          "Too many concurrent certificate generations. Please try again later.",
+          context,
+        );
+        await CertificateErrorLogger.logError(rateLimitError);
         return {
           success: false,
-          error:
-            "Too many concurrent certificate generations. Please try again later.",
+          error: rateLimitError.userMessage,
         };
       }
 
       this.activeGenerations++;
 
-      // Get template
-      const template = await prisma.certificateTemplate.findUnique({
-        where: { id: templateId },
-      });
+      // Get template with retry
+      const template = await CertificateErrorRecovery.withRetry(
+        () =>
+          prisma.certificateTemplate.findUnique({
+            where: { id: templateId },
+          }),
+        context,
+      );
 
       if (!template) {
-        throw new Error(`Certificate template not found: ${templateId}`);
+        throw CertificateErrorFactory.templateError(
+          `Certificate template not found: ${templateId}`,
+          context,
+        );
       }
 
       // Populate certificate data
@@ -556,6 +632,9 @@ export class CertificateGenerator {
         templateId,
       );
 
+      // Update context with entity information
+      context.entityId = certificateData.entityId;
+
       // Validate template with actual data
       const templateData = this.convertToTemplateData(certificateData);
       const templateValidation = await this.validateTemplate(
@@ -563,8 +642,9 @@ export class CertificateGenerator {
         templateData,
       );
       if (!templateValidation.valid) {
-        throw new Error(
+        throw CertificateErrorFactory.templateError(
           `Template validation failed: ${templateValidation.errors.join(", ")}`,
+          context,
         );
       }
 
@@ -574,12 +654,16 @@ export class CertificateGenerator {
         certificateData,
       );
 
-      // Generate PDF
-      const pdfResult = await pdfGenerator.generatePDF(processedHtml, options);
+      // Generate PDF with retry
+      const pdfResult = await CertificateErrorRecovery.withRetry(
+        () => pdfGenerator.generatePDF(processedHtml, options),
+        context,
+      );
 
       if (!pdfResult.success || !pdfResult.data) {
-        throw new Error(
+        throw CertificateErrorFactory.pdfGenerationError(
           pdfResult.error || "Failed to generate PDF certificate",
+          context,
         );
       }
 
@@ -616,9 +700,7 @@ export class CertificateGenerator {
           {
             templateScope: template.scope,
             templateName: template.name,
-            generationDuration:
-              Date.now() -
-              (this.activeGenerations > 0 ? Date.now() : Date.now()), // Placeholder for actual duration tracking
+            generationDuration: Date.now() - generationStartTime,
             templateVariables: Object.keys(templateData),
             validationScore: templateValidation.completenessScore,
             validationWarnings: templateValidation.warnings,
@@ -643,17 +725,32 @@ export class CertificateGenerator {
         },
       };
     } catch (error) {
-      this.logger.error(
-        `Error generating PDF certificate: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+      // Log and handle the error
+      if (error instanceof CertificateGenerationError) {
+        await CertificateErrorLogger.logError(error, {
+          method: "generatePDFCertificate",
+        });
+        return {
+          success: false,
+          error: error.userMessage,
+        };
+      }
+
+      // Convert unknown errors
+      const certError = CertificateErrorFactory.unknownError(
+        error instanceof Error
+          ? error.message
+          : "Unknown error in generatePDFCertificate",
+        context,
+        error instanceof Error ? error : undefined,
       );
+      await CertificateErrorLogger.logError(certError, {
+        method: "generatePDFCertificate",
+      });
+
       return {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to generate PDF certificate",
+        error: certError.userMessage,
       };
     } finally {
       this.activeGenerations--;
