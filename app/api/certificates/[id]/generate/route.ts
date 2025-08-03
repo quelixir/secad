@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { certificateGenerator } from "@/lib/services/certificate-generator";
 import { certificateNumberingService } from "@/lib/services/certificate-numbering";
+import { certificateProgressTracker } from "@/lib/services/certificate-progress-tracker";
 import { rateLimit } from "@/lib/utils/rate-limit";
 import { AuditLogger } from "@/lib/audit";
 import {
@@ -39,6 +40,7 @@ export interface GenerateResponse {
     fileSize: number;
     generatedAt: string;
     downloadUrl?: string;
+    progressId?: string;
   };
   error?: string;
 }
@@ -82,6 +84,7 @@ export async function POST(
   const startTime = Date.now();
   const { id: transactionId } = await params;
   let userId: string | undefined;
+  let progressId: string | undefined;
   const identifier =
     request.headers.get("x-forwarded-for") ||
     request.headers.get("x-real-ip") ||
@@ -124,6 +127,17 @@ export async function POST(
         { status: 401 },
       );
     }
+
+    // Initialize progress tracking
+    progressId = certificateProgressTracker.initializeProgress(
+      transactionId,
+      userId,
+      {
+        timeout: 5 * 60 * 1000, // 5 minutes
+        enableCancellation: true,
+        enablePersistence: false, // Don't persist to database
+      },
+    );
 
     const body: GenerateRequest = await request.json();
     const {
@@ -364,6 +378,7 @@ export async function POST(
       format,
       undefined,
       userId,
+      progressId,
     );
 
     // Set 30-second timeout
@@ -436,6 +451,7 @@ export async function POST(
         fileSize: result.data.metadata.fileSize,
         generatedAt: result.data.metadata.generatedAt.toISOString(),
         downloadUrl: `/api/certificates/${transactionId}/download?certificateId=${result.data.metadata.certificateId}`,
+        progressId, // Include progress ID for client tracking
       },
     };
 

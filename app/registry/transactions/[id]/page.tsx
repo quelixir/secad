@@ -214,17 +214,20 @@ export default function ViewTransactionPage() {
 
   const handleGenerateCertificate = async (
     options: CertificateGenerationOptions,
-  ) => {
+  ): Promise<{ progressId?: string; success: boolean; error?: string }> => {
     if (!transaction || !user) {
-      throw new Error("You must be logged in to generate certificates");
+      return {
+        success: false,
+        error: "You must be logged in to generate certificates",
+      };
     }
 
     try {
       setIsGeneratingCertificate(true);
 
-      // Generate and download the certificate
+      // Use the new generation endpoint with progress tracking
       const response = await fetch(
-        `/api/certificates/${transaction.id}/download`,
+        `/api/certificates/${transaction.id}/generate`,
         {
           method: "POST",
           headers: {
@@ -244,28 +247,29 @@ export default function ViewTransactionPage() {
         },
       );
 
+      const result = await response.json();
+
       if (!response.ok) {
-        const errorResult = await response.json();
-        throw new Error(errorResult.error || "Failed to generate certificate");
+        return {
+          success: false,
+          error: result.error || "Failed to generate certificate",
+        };
       }
 
-      // Get the blob from the response
-      const blob = await response.blob();
-
-      // Create a download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `certificate-${
-        transaction.id
-      }.${options.format.toLowerCase()}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Return success with progress ID if available
+      return {
+        success: true,
+        progressId: result.data?.progressId,
+      };
     } catch (error) {
       console.error("Error generating certificate:", error);
-      throw error;
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to generate certificate",
+      };
     } finally {
       setIsGeneratingCertificate(false);
     }

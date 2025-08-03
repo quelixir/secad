@@ -43,6 +43,7 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
+import { CertificateProgressIndicator } from "@/components/ui/certificate-progress-indicator";
 
 export interface CertificateTemplate {
   id: string;
@@ -74,7 +75,9 @@ export interface CertificateGenerationDialogProps {
   existingCertificateNumber?: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onGenerate: (options: CertificateGenerationOptions) => Promise<void>;
+  onGenerate: (
+    options: CertificateGenerationOptions,
+  ) => Promise<{ progressId?: string; success: boolean; error?: string }>;
   trigger?: React.ReactNode;
 }
 
@@ -113,6 +116,8 @@ export function CertificateGenerationDialog({
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
+  const [progressId, setProgressId] = useState<string | null>(null);
+  const [showProgress, setShowProgress] = useState<boolean>(false);
 
   // Load available templates
   useEffect(() => {
@@ -226,6 +231,8 @@ export function CertificateGenerationDialog({
       setLoading(true);
       setError(null);
       setSuccess(false);
+      setShowProgress(false);
+      setProgressId(null);
 
       const options: CertificateGenerationOptions = {
         templateId: selectedTemplate,
@@ -238,14 +245,23 @@ export function CertificateGenerationDialog({
           Object.keys(customFields).length > 0 ? customFields : undefined,
       };
 
-      await onGenerate(options);
-      setSuccess(true);
+      const result = await onGenerate(options);
 
-      // Close dialog after a short delay
-      setTimeout(() => {
-        onOpenChange(false);
-        setSuccess(false);
-      }, 2000);
+      if (result.success && result.progressId) {
+        // Show progress tracking
+        setProgressId(result.progressId);
+        setShowProgress(true);
+      } else if (result.success) {
+        // Traditional success flow
+        setSuccess(true);
+        setTimeout(() => {
+          onOpenChange(false);
+          setSuccess(false);
+        }, 2000);
+      } else {
+        // Error flow
+        setError(result.error || "Failed to generate certificate");
+      }
     } catch (error) {
       console.error("Error generating certificate:", error);
       setError(
@@ -731,6 +747,42 @@ export function CertificateGenerationDialog({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Progress Tracking Dialog */}
+      {showProgress && progressId && (
+        <Dialog open={showProgress} onOpenChange={setShowProgress}>
+          <DialogContent className="!max-w-[80vw] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Certificate Generation Progress</DialogTitle>
+              <DialogDescription>
+                Track the progress of your certificate generation in real-time.
+              </DialogDescription>
+            </DialogHeader>
+            <CertificateProgressIndicator
+              progressId={progressId}
+              onComplete={(result) => {
+                if (result.success) {
+                  setShowProgress(false);
+                  setSuccess(true);
+                  setTimeout(() => {
+                    onOpenChange(false);
+                    setSuccess(false);
+                  }, 2000);
+                }
+              }}
+              onCancel={() => {
+                setShowProgress(false);
+                setProgressId(null);
+              }}
+              onError={(error) => {
+                setShowProgress(false);
+                setProgressId(null);
+                setError(error);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 }
