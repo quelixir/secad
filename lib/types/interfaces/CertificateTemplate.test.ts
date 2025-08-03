@@ -20,7 +20,7 @@ describe("CertificateTemplate Interface", () => {
         scopeId: null,
         isDefault: true,
         isActive: true,
-        createdBy: "user-123",
+        createdBy: "uqyyk4cgkd26vmyca2kw8bhq",
         createdAt: new Date("2020-01-01"),
         updatedAt: new Date("2020-01-01"),
       };
@@ -44,7 +44,7 @@ describe("CertificateTemplate Interface", () => {
         scopeId: null,
         isDefault: true,
         isActive: true,
-        createdBy: "user-123",
+        createdBy: "uqyyk4cgkd26vmyca2kw8bhq",
         createdAt: new Date("2020-01-01"),
         updatedAt: new Date("2020-01-01"),
       };
@@ -66,7 +66,7 @@ describe("CertificateTemplate Interface", () => {
         scopeId: null,
         isDefault: true,
         isActive: true,
-        createdBy: "user-123",
+        createdBy: "uqyyk4cgkd26vmyca2kw8bhq",
         createdAt: new Date("2020-01-01"),
         updatedAt: new Date("2020-01-01"),
       };
@@ -74,7 +74,7 @@ describe("CertificateTemplate Interface", () => {
       expect(template.description).toBeUndefined();
       expect(template.templateCss).toBeUndefined();
       expect(template.scopeId).toBeNull();
-      expect(template.createdBy).toBe("user-123"); // createdBy is required, not optional
+      expect(template.createdBy).toBe("uqyyk4cgkd26vmyca2kw8bhq"); // createdBy is required, not optional
     });
   });
 
@@ -86,14 +86,14 @@ describe("CertificateTemplate Interface", () => {
         templateHtml: "<html><body><h1>{{entityName}}</h1></body></html>",
         templateCss: "body { font-family: Arial; }",
         scope: "USER",
-        scopeId: "user-123",
+        scopeId: "uqyyk4cgkd26vmyca2kw8bhq",
         isDefault: false,
         isActive: true,
       };
 
       expect(templateInput.name).toBe("Custom Certificate Template");
       expect(templateInput.scope).toBe("USER");
-      expect(templateInput.scopeId).toBe("user-123");
+      expect(templateInput.scopeId).toBe("uqyyk4cgkd26vmyca2kw8bhq");
       expect(templateInput.isDefault).toBe(false);
     });
 
@@ -175,7 +175,7 @@ describe("CertificateTemplate Interface", () => {
           scopeId: null,
           isDefault: true,
           isActive: true,
-          createdBy: "user-123",
+          createdBy: "uqyyk4cgkd26vmyca2kw8bhq",
           createdAt: new Date("2020-01-01"),
           updatedAt: new Date("2020-01-01"),
         },
@@ -221,7 +221,7 @@ describe("CertificateTemplate Interface", () => {
             scopeId: null,
             isDefault: true,
             isActive: true,
-            createdBy: "user-123",
+            createdBy: "uqyyk4cgkd26vmyca2kw8bhq",
             createdAt: new Date("2020-01-01"),
             updatedAt: new Date("2020-01-01"),
           },
@@ -233,10 +233,10 @@ describe("CertificateTemplate Interface", () => {
               "<html><body><h1>{{entityName}}</h1><p>{{memberName}}</p></body></html>",
             templateCss: "body { font-family: Arial; color: black; }",
             scope: "USER",
-            scopeId: "user-123",
+            scopeId: "uqyyk4cgkd26vmyca2kw8bhq",
             isDefault: false,
             isActive: true,
-            createdBy: "user-123",
+            createdBy: "uqyyk4cgkd26vmyca2kw8bhq",
             createdAt: new Date("2020-02-01"),
             updatedAt: new Date("2020-02-01"),
           },
@@ -303,7 +303,7 @@ describe("CertificateTemplate Interface", () => {
         name: "User Template",
         templateHtml: "<html><body><h1>{{entityName}}</h1></body></html>",
         scope: "USER",
-        scopeId: "user-123",
+        scopeId: "uqyyk4cgkd26vmyca2kw8bhq",
         isDefault: false,
         isActive: true,
         createdAt: new Date("2020-01-01"),
@@ -311,7 +311,7 @@ describe("CertificateTemplate Interface", () => {
       };
 
       expect(template.scope).toBe("USER");
-      expect(template.scopeId).toBe("user-123");
+      expect(template.scopeId).toBe("uqyyk4cgkd26vmyca2kw8bhq");
     });
 
     it("should validate ENTITY scope with entity scopeId", () => {
@@ -493,7 +493,7 @@ describe("CertificateTemplate Interface", () => {
         scopeId: null,
         isDefault: true,
         isActive: templateUpdate.isActive ?? true, // Use nullish coalescing
-        createdBy: "user-123",
+        createdBy: "uqyyk4cgkd26vmyca2kw8bhq",
         createdAt: new Date("2020-01-01"),
         updatedAt: new Date("2020-01-01"),
       };

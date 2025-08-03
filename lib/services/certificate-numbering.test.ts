@@ -40,7 +40,7 @@ describe("CertificateNumberingService", () => {
 
       const result = await service.generateCertificateNumber(
         config,
-        "user-123",
+        "uqyyk4cgkd26vmyca2kw8bhq",
       );
 
       expect(result.success).toBe(true);
@@ -48,7 +48,7 @@ describe("CertificateNumberingService", () => {
       expect(result.data?.year).toBe(2024);
       expect(result.data?.sequence).toBe(1);
       expect(result.data?.entityId).toBe("d5vaqv2ed5pb3gulopy9z5ao");
-      expect(result.data?.generatedBy).toBe("user-123");
+      expect(result.data?.generatedBy).toBe("uqyyk4cgkd26vmyca2kw8bhq");
     });
 
     it("should generate certificate number with custom format", async () => {
@@ -239,7 +239,7 @@ describe("CertificateNumberingService", () => {
         "d5vaqv2ed5pb3gulopy9z5ao",
         2024,
         "2024-0001",
-        "user-123",
+        "uqyyk4cgkd26vmyca2kw8bhq",
       );
 
       expect(result.success).toBe(true);
@@ -261,7 +261,7 @@ describe("CertificateNumberingService", () => {
         "d5vaqv2ed5pb3gulopy9z5ao",
         2024,
         "2024-0001",
-        "user-123",
+        "uqyyk4cgkd26vmyca2kw8bhq",
       );
 
       expect(result.success).toBe(false);
