@@ -12,7 +12,7 @@ describe("TemplateValidationService", () => {
       const validData: TemplateData = {
         entityName: "Acme Corporation Ltd",
         memberName: "Jane Doe",
-        transactionId: "TXN-2025-001234",
+        transactionId: "zxfw8v2vholjwpu7m7rdzmbd",
         transactionDate: "2025-01-15",
         securityName: "Acme Corporation Ordinary Shares",
         quantity: "1000",
@@ -45,7 +45,7 @@ describe("TemplateValidationService", () => {
       const invalidData: TemplateData = {
         entityName: "Acme Corporation Ltd",
         memberName: "Jane Doe",
-        transactionId: "invalid-id", // Invalid format
+        transactionId: "INVALID-ID", // Invalid format
         transactionDate: "15/01/2025", // Invalid format
         securityName: "Acme Corporation Ordinary Shares",
         quantity: "1000",
@@ -65,7 +65,7 @@ describe("TemplateValidationService", () => {
       const partialData: TemplateData = {
         entityName: "Acme Corporation Ltd",
         memberName: "Jane Doe",
-        transactionId: "TXN-2025-001234",
+        transactionId: "tcus0nscjo4sq6ay8qkvl07c",
         transactionDate: "2025-01-15",
         securityName: "Acme Corporation Ordinary Shares",
         quantity: "1000",
@@ -87,7 +87,7 @@ describe("TemplateValidationService", () => {
       const invalidData: TemplateData = {
         entityName: "A", // Too short
         memberName: "Jane Doe",
-        transactionId: "TXN-2025-001234",
+        transactionId: "sf68xoud2m3za7hddk93l3yl",
         transactionDate: "2025-01-15",
         securityName: "Acme Corporation Ordinary Shares",
         quantity: "1000",
@@ -107,7 +107,7 @@ describe("TemplateValidationService", () => {
       const partialData: TemplateData = {
         entityName: "Acme Corporation Ltd",
         memberName: "Jane Doe",
-        transactionId: "TXN-2025-001234",
+        transactionId: "sblc463fqq2gmf9d9buw62bn",
         transactionDate: "2025-01-15",
         securityName: "Acme Corporation Ordinary Shares",
         quantity: "1000",
@@ -396,7 +396,7 @@ describe("TemplateValidationService", () => {
       const data: TemplateData = {
         entityName: "Acme Corporation Ltd",
         memberName: "Jane Doe",
-        transactionId: "TXN-2025-001234",
+        transactionId: "lx61xf1kiy792340fso1qirc",
         transactionDate: "2025-01-15",
         securityName: "Acme Corporation Ordinary Shares",
         quantity: "1000",
@@ -548,7 +548,7 @@ describe("TemplateValidationService", () => {
       const largeData: TemplateData = {
         entityName: "A".repeat(200), // Max length
         memberName: "B".repeat(200),
-        transactionId: "TXN-2025-001234",
+        transactionId: "lek5v2nhdr3lwwd1ea2ungiz",
         transactionDate: "2025-01-15",
         securityName: "C".repeat(200),
         quantity: "1000",
