@@ -634,6 +634,92 @@ export class CertificateGenerator {
   }
 
   /**
+   * Generate preview HTML for a template
+   */
+  async generatePreviewHtml(
+    templateId: string,
+    previewData: {
+      transactionId: string;
+      entityId: string;
+      memberName: string;
+      securityClass: string;
+      quantity: number;
+      certificateNumber?: string;
+      issueDate: string;
+      customFields?: Record<string, string>;
+    },
+  ): Promise<{ success: boolean; data?: { html: string }; error?: string }> {
+    try {
+      // Get template
+      const template = await prisma.certificateTemplate.findUnique({
+        where: { id: templateId },
+      });
+
+      if (!template) {
+        return {
+          success: false,
+          error: `Template not found: ${templateId}`,
+        };
+      }
+
+      // Create sample certificate data for preview
+      const sampleData: CertificateData = {
+        entityId: previewData.entityId,
+        entityName: "Sample Entity Ltd",
+        entityAddress: "123 Business St, Sydney, NSW, 2000, Australia",
+        entityPhone: "+61 2 1234 5678",
+        entityType: "Company",
+        entityContact: "Sample Entity Ltd",
+        entityEmail: "contact@sample.com",
+        transactionId: previewData.transactionId,
+        transactionDate: new Date(),
+        transactionType: "Issuance",
+        transactionReason: "Initial",
+        transactionDescription: "Initial share issuance",
+        securityClass: previewData.securityClass,
+        securityName: previewData.securityClass,
+        securitySymbol: "SAMPLE",
+        quantity: previewData.quantity,
+        totalAmount: previewData.quantity * 50, // Sample price
+        unitPrice: 50,
+        totalValue: previewData.quantity * 50,
+        currency: "AUD",
+        memberName: previewData.memberName,
+        memberId: "member123",
+        memberType: "Individual",
+        memberAddress: "456 Member St, Melbourne, VIC, 3000, Australia",
+        certificateNumber: previewData.certificateNumber || "CERT-2024-0001",
+        issueDate: new Date(previewData.issueDate),
+        currentDate: new Date(),
+        currentYear: new Date().getFullYear().toString(),
+        generationDate: new Date().toLocaleDateString(),
+        generationTimestamp: new Date().toISOString(),
+        // Add custom fields
+        ...previewData.customFields,
+      };
+
+      // Replace template variables
+      const previewHtml = this.replaceTemplateVariables(
+        template.templateHtml,
+        sampleData,
+      );
+
+      return {
+        success: true,
+        data: { html: previewHtml },
+      };
+    } catch (error) {
+      this.logger.error("Error generating preview HTML:", error);
+      return {
+        success: false,
+        error: `Failed to generate preview: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      };
+    }
+  }
+
+  /**
    * Validate certificate template
    */
   async validateTemplate(

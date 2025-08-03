@@ -50,6 +50,8 @@ export interface CertificateTemplate {
   description?: string;
   isDefault: boolean;
   isActive: boolean;
+  scope: "GLOBAL" | "USER" | "ENTITY";
+  scopeId?: string | null;
 }
 
 export interface CertificateGenerationOptions {
@@ -98,6 +100,13 @@ export function CertificateGenerationDialog({
   const [includeQRCode, setIncludeQRCode] = useState<boolean>(true);
   const [customFields, setCustomFields] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<boolean>(false);
+  const [scopeFilter, setScopeFilter] = useState<
+    "ALL" | "GLOBAL" | "USER" | "ENTITY"
+  >("ALL");
+  const [showPreview, setShowPreview] = useState<boolean>(false);
+  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
+  const [previewHtml, setPreviewHtml] = useState<string>("");
+  const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
@@ -142,6 +151,60 @@ export function CertificateGenerationDialog({
     } finally {
       setLoading(false);
     }
+  };
+
+  const generatePreview = async () => {
+    if (!selectedTemplate) return;
+
+    try {
+      setPreviewLoading(true);
+      setError(null);
+
+      const response = await fetch(
+        `/api/registry/certificate-templates/${selectedTemplate}/preview`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            transactionId,
+            entityId,
+            memberName,
+            securityClass,
+            quantity,
+            certificateNumber: certificateNumber || "CERT-2024-0001",
+            issueDate,
+            customFields,
+          }),
+        },
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setPreviewHtml(result.data.html);
+          setShowPreview(true);
+        } else {
+          setError("Failed to generate preview");
+        }
+      } else {
+        setError("Failed to generate preview");
+      }
+    } catch (error) {
+      console.error("Error generating preview:", error);
+      setError("Failed to generate preview");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleGenerateClick = () => {
+    if (!selectedTemplate) {
+      setError("Please select a certificate template");
+      return;
+    }
+    setShowConfirmation(true);
   };
 
   const handleGenerate = async () => {
@@ -205,10 +268,33 @@ export function CertificateGenerationDialog({
 
   const selectedTemplateData = templates.find((t) => t.id === selectedTemplate);
 
+  // Filter templates based on scope
+  const filteredTemplates = templates.filter((template) => {
+    if (scopeFilter === "ALL") return true;
+    return template.scope === scopeFilter;
+  });
+
+  const getScopeBadge = (scope: string) => {
+    const variants = {
+      GLOBAL: "default",
+      USER: "secondary",
+      ENTITY: "outline",
+    } as const;
+
+    return (
+      <Badge
+        variant={variants[scope as keyof typeof variants] || "default"}
+        className="text-xs"
+      >
+        {scope}
+      </Badge>
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="!max-w-[80vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -265,17 +351,38 @@ export function CertificateGenerationDialog({
                 Select a template for the certificate
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* Scope Filter */}
+              <div className="space-y-2">
+                <Label htmlFor="scopeFilter">Filter by Scope</Label>
+                <Select
+                  value={scopeFilter}
+                  onValueChange={(
+                    value: "ALL" | "GLOBAL" | "USER" | "ENTITY",
+                  ) => setScopeFilter(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Templates</SelectItem>
+                    <SelectItem value="GLOBAL">Global Templates</SelectItem>
+                    <SelectItem value="USER">User Templates</SelectItem>
+                    <SelectItem value="ENTITY">Entity Templates</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {loading ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Loading templates...
                 </div>
-              ) : templates.length === 0 ? (
+              ) : filteredTemplates.length === 0 ? (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    No certificate templates available for this entity.
+                    No certificate templates available for the selected scope.
                   </AlertDescription>
                 </Alert>
               ) : (
@@ -287,7 +394,7 @@ export function CertificateGenerationDialog({
                     <SelectValue placeholder="Select a template" />
                   </SelectTrigger>
                   <SelectContent>
-                    {templates.map((template) => (
+                    {filteredTemplates.map((template) => (
                       <SelectItem key={template.id} value={template.id}>
                         <div className="flex items-center gap-2">
                           <span>{template.name}</span>
@@ -296,6 +403,7 @@ export function CertificateGenerationDialog({
                               Default
                             </Badge>
                           )}
+                          {getScopeBadge(template.scope)}
                         </div>
                       </SelectItem>
                     ))}
@@ -304,11 +412,34 @@ export function CertificateGenerationDialog({
               )}
 
               {selectedTemplateData && (
-                <div className="mt-3 p-3 bg-muted rounded-md">
-                  <p className="text-sm text-muted-foreground">
-                    {selectedTemplateData.description ||
-                      "No description available"}
-                  </p>
+                <div className="space-y-3">
+                  <div className="p-3 bg-muted rounded-md">
+                    <p className="text-sm text-muted-foreground">
+                      {selectedTemplateData.description ||
+                        "No description available"}
+                    </p>
+                  </div>
+
+                  {/* Template Preview Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generatePreview}
+                    disabled={previewLoading}
+                  >
+                    {previewLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating Preview...
+                      </>
+                    ) : (
+                      <>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Preview Template
+                      </>
+                    )}
+                  </Button>
                 </div>
               )}
             </CardContent>
@@ -481,7 +612,7 @@ export function CertificateGenerationDialog({
             Cancel
           </Button>
           <Button
-            onClick={handleGenerate}
+            onClick={handleGenerateClick}
             disabled={loading || !selectedTemplate}
           >
             {loading ? (
@@ -498,6 +629,86 @@ export function CertificateGenerationDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Template Preview Modal */}
+      {showPreview && (
+        <Dialog open={showPreview} onOpenChange={setShowPreview}>
+          <DialogContent className="!max-w-[80vw] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Template Preview</DialogTitle>
+              <DialogDescription>
+                Preview of how the certificate will look with current settings
+              </DialogDescription>
+            </DialogHeader>
+            <div className="border rounded-md p-4 bg-white">
+              <div
+                className="certificate-preview"
+                dangerouslySetInnerHTML={{ __html: previewHtml }}
+                style={{
+                  transform: "scale(0.7)",
+                  transformOrigin: "top left",
+                  width: "142.86%", // 1/0.7 = 142.86%
+                  height: "auto",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                }}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowPreview(false)}>
+                Close Preview
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Certificate Generation</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to generate a certificate with the current
+              settings? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-sm">
+              <p>
+                <strong>Template:</strong> {selectedTemplateData?.name}
+              </p>
+              <p>
+                <strong>Format:</strong> {format}
+              </p>
+              <p>
+                <strong>Certificate Number:</strong>{" "}
+                {certificateNumber || "Auto-generated"}
+              </p>
+              <p>
+                <strong>Issue Date:</strong> {issueDate}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmation(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                setShowConfirmation(false);
+                await handleGenerate();
+              }}
+            >
+              Generate Certificate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

@@ -938,4 +938,111 @@ describe("CertificateGenerator", () => {
       expect(result.error).toBe("Database connection failed");
     });
   });
+
+  describe("generatePreviewHtml", () => {
+    it("should generate preview HTML successfully", async () => {
+      const mockTemplate = {
+        id: "template123",
+        name: "Test Template",
+        description: "Test template",
+        templateHtml: `
+          <html>
+            <body>
+              <h1>{{entityName}}</h1>
+              <p>Certificate: {{certificateNumber}}</p>
+              <p>Member: {{memberName}}</p>
+              <p>Quantity: {{quantity}}</p>
+              <p>Security: {{securityClass}}</p>
+              <p>Custom: {{customField1}}</p>
+            </body>
+          </html>
+        `,
+        templateCss: "",
+        scope: "GLOBAL" as const,
+        scopeId: null,
+        isDefault: false,
+        isActive: true,
+        createdBy: "test",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      (
+        mockPrisma.certificateTemplate.findUnique as jest.Mock
+      ).mockResolvedValue(mockTemplate);
+
+      const previewData = {
+        transactionId: "txn123",
+        entityId: "entity123",
+        memberName: "John Doe",
+        securityClass: "Ordinary Shares",
+        quantity: 1000,
+        certificateNumber: "CERT-2024-0001",
+        issueDate: "2024-01-15",
+        customFields: { customField1: "value1" },
+      };
+
+      const result = await certificateGenerator.generatePreviewHtml(
+        "template123",
+        previewData,
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBeDefined();
+      expect(result.data!.html).toContain("Sample Entity Ltd");
+      expect(result.data!.html).toContain("CERT-2024-0001");
+      expect(result.data!.html).toContain("John Doe");
+      expect(result.data!.html).toContain("1,000");
+      expect(result.data!.html).toContain("Ordinary Shares");
+      expect(result.data!.html).toContain("value1");
+    });
+
+    it("should handle template not found", async () => {
+      (
+        mockPrisma.certificateTemplate.findUnique as jest.Mock
+      ).mockResolvedValue(null);
+
+      const previewData = {
+        transactionId: "txn123",
+        entityId: "entity123",
+        memberName: "John Doe",
+        securityClass: "Ordinary Shares",
+        quantity: 1000,
+        certificateNumber: "CERT-2024-0001",
+        issueDate: "2024-01-15",
+      };
+
+      const result = await certificateGenerator.generatePreviewHtml(
+        "nonexistent",
+        previewData,
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Template not found");
+    });
+
+    it("should handle errors gracefully", async () => {
+      (
+        mockPrisma.certificateTemplate.findUnique as jest.Mock
+      ).mockRejectedValue(new Error("Database error"));
+
+      const previewData = {
+        transactionId: "txn123",
+        entityId: "entity123",
+        memberName: "John Doe",
+        securityClass: "Ordinary Shares",
+        quantity: 1000,
+        certificateNumber: "CERT-2024-0001",
+        issueDate: "2024-01-15",
+      };
+
+      const result = await certificateGenerator.generatePreviewHtml(
+        "template123",
+        previewData,
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Failed to generate preview");
+    });
+  });
 });
