@@ -1,0 +1,1 @@
+export { ourFileRouter, type OurFileRouter } from "@/lib/uploadthing";

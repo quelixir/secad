@@ -106,6 +106,8 @@ model Entity {
   userEntityAccess     UserEntityAccess[]
   invitations          Invitation[]
   eventLogs            EventLog[]
+  documents            Document[]
+  documentFolders      DocumentFolder[]
 
   @@map("entities")
 }
@@ -368,6 +370,69 @@ model CertificateTemplate {
   @@unique([scope, scopeId, isDefault])
   @@index([scope, scopeId])
   @@map("certificate_templates")
+}
+
+model DocumentFolder {
+  id          String   @id @default(cuid(2))
+  entityId    String
+  name        String
+  description String?
+  
+  // Nested structure
+  parentId    String?  // NULL for root level
+  parent      DocumentFolder? @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    DocumentFolder[] @relation("FolderHierarchy")
+  
+  // Contents
+  documents   Document[]
+  
+  // Audit fields  
+  createdBy   String   // User ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  entity      Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  
+  @@unique([entityId, parentId, name]) // Prevent duplicate folder names in same parent
+  @@index([entityId])
+  @@index([parentId])
+  @@map("document_folders")
+}
+
+model Document {
+  id          String   @id @default(cuid(2))
+  entityId    String   
+  fileName    String
+  originalName String
+  fileSize    Int      // in bytes
+  mimeType    String
+  fileUrl     String   // Provider-specific URL
+  uploadKey   String   // Provider-specific key for deletion
+  
+  // Organization
+  folderId    String?  // NULL for root level
+  folder      DocumentFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  
+  // Metadata
+  description String?
+  tags        String[] // Searchable tags
+  
+  // Future: Relationships (polymorphic via type + recordId) - Phase 2
+  // linkedType  String?  // 'transaction', 'member', 'resolution', etc.
+  // linkedId    String?  // ID of the linked record
+  
+  // Audit fields
+  uploadedBy  String   // User ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  entity      Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  
+  @@index([entityId])
+  @@index([folderId])
+  @@index([uploadedBy])
+  @@index([entityId, fileName]) // For search optimization
+  @@map("documents")
 }
 
 

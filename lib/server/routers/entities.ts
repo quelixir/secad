@@ -330,4 +330,43 @@ export const entitiesRouter = createTRPCRouter({
         });
       }
     }),
+
+  // Get user access for entity
+  getUserAccess: protectedProcedure
+    .input(z.object({ entityId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      try {
+        const access = await prisma.userEntityAccess.findFirst({
+          where: {
+            userId: ctx.session.user.id,
+            entityId: input.entityId,
+          },
+        });
+
+        if (!access) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "No access to this entity",
+          });
+        }
+
+        return {
+          id: access.id,
+          role: access.role,
+          entityId: access.entityId,
+          userId: access.userId,
+          createdAt: access.createdAt,
+          updatedAt: access.updatedAt,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch user access",
+          cause: error,
+        });
+      }
+    }),
 });

@@ -4,6 +4,7 @@ import { EntityProvider } from "@/lib/entity-context";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { TRPCProvider } from "@/lib/trpc/provider";
 import { AuthProvider } from "@/lib/auth-context";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -32,6 +33,7 @@ export default function RootLayout({
               <EntityProvider>{children}</EntityProvider>
             </AuthProvider>
           </TRPCProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

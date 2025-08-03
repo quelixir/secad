@@ -38,6 +38,7 @@ import {
   SunMoon,
   FileSearch,
   Info,
+  FolderOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -80,6 +81,12 @@ const navigation = [
     ],
   },
   {
+    name: "Documents",
+    href: "/documents",
+    icon: FolderOpen,
+    description: "Manage entity documents and files",
+  },
+  {
     name: "Audit",
     href: "/audit",
     icon: FileSearch,
@@ -109,6 +116,7 @@ export function Navbar() {
             (item.href.startsWith("/registry") &&
               pathname.startsWith("/registry")) ||
             (item.href === "/entities" && pathname.startsWith("/entities")) ||
+            (item.href === "/documents" && pathname.startsWith("/documents")) ||
             (item.href === "/audit" && pathname.startsWith("/audit")));
         const Icon = item.icon;
 
