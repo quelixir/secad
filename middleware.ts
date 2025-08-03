@@ -17,7 +17,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!isLoggedIn) {
-    return NextResponse.redirect(new URL("/auth/signin", request.url));
+    // Store the original URL as a callback parameter
+    const callbackUrl = encodeURIComponent(nextUrl.pathname + nextUrl.search);
+    const signinUrl = new URL("/auth/signin", request.url);
+    signinUrl.searchParams.set("callbackUrl", callbackUrl);
+
+    return NextResponse.redirect(signinUrl);
   }
 
   if (isLoggedIn && nextUrl.pathname === "/auth/signin") {

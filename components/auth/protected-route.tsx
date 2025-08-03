@@ -42,7 +42,9 @@ export function ProtectedRoute({
   useEffect(() => {
     if (!authLoading && !entityLoading && entityLoaded) {
       if (!user) {
-        router.push("/auth/signin");
+        // Include the current path as a callback URL
+        const callbackUrl = encodeURIComponent(pathname || "/");
+        router.push(`/auth/signin?callbackUrl=${callbackUrl}`);
         return;
       }
 

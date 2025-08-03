@@ -7,22 +7,29 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { LogIn } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useAuth } from "@/lib/auth-context";
+import { validateCallbackUrl } from "@/lib/utils";
 
 export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading: authLoading, refreshSession } = useAuth();
+
+  // Get the callback URL from search params
+  const callbackUrl = searchParams?.get("callbackUrl");
 
   // Redirect if already authenticated
   useEffect(() => {
     if (!authLoading && user) {
-      router.push("/");
+      const validatedCallbackUrl = validateCallbackUrl(callbackUrl);
+      const redirectUrl = validatedCallbackUrl || "/entities";
+      router.push(redirectUrl);
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, callbackUrl]);
 
   if (authLoading) {
     return (
@@ -64,7 +71,10 @@ export default function SignInPage() {
         setError(result.error.message || "Invalid credentials");
       } else {
         await refreshSession();
-        router.push("/");
+        // Redirect to callback URL or default to entities page
+        const validatedCallbackUrl = validateCallbackUrl(callbackUrl);
+        const redirectUrl = validatedCallbackUrl || "/entities";
+        router.push(redirectUrl);
       }
     } catch (err: any) {
       setError(err.message || "An error occurred");
