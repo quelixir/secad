@@ -162,7 +162,7 @@ export async function POST(
       );
     }
 
-    // Check if template exists
+    // Check if template exists and validate it
     const template = await prisma.certificateTemplate.findUnique({
       where: { id: templateId },
     });
@@ -174,6 +174,22 @@ export async function POST(
           error: "Certificate template not found",
         },
         { status: 404 },
+      );
+    }
+
+    // Validate template before generation
+    const templateValidation =
+      await certificateGenerator.validateTemplate(templateId);
+    if (!templateValidation.valid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Template validation failed",
+          details: templateValidation.errors,
+          warnings: templateValidation.warnings,
+          completenessScore: templateValidation.completenessScore,
+        },
+        { status: 400 },
       );
     }
 

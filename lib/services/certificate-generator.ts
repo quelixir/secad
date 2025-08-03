@@ -3,6 +3,10 @@ import { prisma } from "@/lib/db";
 import { getLocale } from "@/lib/locale";
 import { getDefaultCurrencyCode } from "@/lib/config";
 import { Readable } from "stream";
+import {
+  TemplateValidationService,
+  TemplateData,
+} from "@/lib/certificate-templates/template-validation";
 
 export interface CertificateData {
   entityId: string;
@@ -97,6 +101,7 @@ export class CertificateGenerator {
   private readonly maxConcurrentGenerations = 10;
   private activeGenerations = 0;
   private downloadAnalytics: Map<string, DownloadAnalytics> = new Map();
+  private readonly templateValidationService = new TemplateValidationService();
 
   /**
    * Generate certificate number for entity per year
@@ -402,6 +407,38 @@ export class CertificateGenerator {
   }
 
   /**
+   * Convert CertificateData to TemplateData for validation
+   */
+  private convertToTemplateData(data: CertificateData): TemplateData {
+    return {
+      entityName: data.entityName,
+      entityType: data.entityType,
+      entityAddress: data.entityAddress,
+      entityContact: data.entityContact,
+      entityPhone: data.entityPhone,
+      entityEmail: data.entityEmail,
+      memberName: data.memberName,
+      memberType: data.memberType,
+      memberAddress: data.memberAddress,
+      transactionId: data.transactionId,
+      transactionDate: data.transactionDate.toISOString().split("T")[0],
+      transactionType: data.transactionType,
+      transactionReason: data.transactionReason,
+      securityName: data.securityName,
+      securitySymbol: data.securitySymbol,
+      securityClass: data.securityClass,
+      quantity: data.quantity.toString(),
+      unitPrice: data.unitPrice.toString(),
+      totalValue: data.totalValue.toString(),
+      transactionAmount: `${data.currency} ${data.totalAmount.toFixed(2)}`,
+      currency: data.currency,
+      certificateNumber: data.certificateNumber,
+      generationDate: data.issueDate.toLocaleDateString(),
+      generationTimestamp: data.issueDate.toISOString(),
+    };
+  }
+
+  /**
    * Get cached certificate
    */
   private getCachedCertificate(
@@ -493,6 +530,18 @@ export class CertificateGenerator {
         transactionId,
         templateId,
       );
+
+      // Validate template with actual data
+      const templateData = this.convertToTemplateData(certificateData);
+      const templateValidation = await this.validateTemplate(
+        templateId,
+        templateData,
+      );
+      if (!templateValidation.valid) {
+        throw new Error(
+          `Template validation failed: ${templateValidation.errors.join(", ")}`,
+        );
+      }
 
       // Replace template variables
       const processedHtml = this.replaceTemplateVariables(
@@ -741,6 +790,17 @@ export class CertificateGenerator {
         };
       }
 
+      // Validate template structure
+      const templateValidation = await this.validateTemplate(templateId);
+      if (!templateValidation.valid) {
+        return {
+          success: false,
+          error: `Template validation failed: ${templateValidation.errors.join(
+            ", ",
+          )}`,
+        };
+      }
+
       // Create sample data for preview
       const sampleData: CertificateData = {
         entityId: previewData.entityId,
@@ -794,49 +854,68 @@ export class CertificateGenerator {
   }
 
   /**
-   * Validate template
+   * Validate template with comprehensive checks
    */
   async validateTemplate(
     templateId: string,
-  ): Promise<{ valid: boolean; errors: string[] }> {
-    const errors: string[] = [];
-
+    data?: TemplateData,
+  ): Promise<{
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+    completenessScore: number;
+    missingVariables: string[];
+    invalidFormats: string[];
+    fallbackValues: Record<string, string>;
+  }> {
     try {
       const template = await prisma.certificateTemplate.findUnique({
         where: { id: templateId },
       });
 
       if (!template) {
-        errors.push("Template not found");
-        return { valid: false, errors };
+        return {
+          valid: false,
+          errors: ["Template not found"],
+          warnings: [],
+          completenessScore: 0,
+          missingVariables: [],
+          invalidFormats: [],
+          fallbackValues: {},
+        };
       }
 
-      if (!template.templateHtml) {
-        errors.push("Template HTML is required");
-      }
-
-      if (!template.name) {
-        errors.push("Template name is required");
-      }
-
-      // Check for basic template structure
-      if (template.templateHtml && !template.templateHtml.includes("{{")) {
-        errors.push(
-          "Template should contain at least one variable placeholder",
-        );
-      }
+      // Use comprehensive template validation service
+      const validationResult = this.templateValidationService.validateTemplate(
+        template,
+        data,
+      );
 
       return {
-        valid: errors.length === 0,
-        errors,
+        valid: validationResult.isValid,
+        errors: validationResult.errors.map((e) => `${e.field}: ${e.message}`),
+        warnings: validationResult.warnings.map(
+          (w) => `${w.field}: ${w.message}`,
+        ),
+        completenessScore: validationResult.completenessScore,
+        missingVariables: validationResult.missingVariables,
+        invalidFormats: validationResult.invalidFormats,
+        fallbackValues: validationResult.fallbackValues,
       };
     } catch (error) {
-      errors.push(
-        `Validation error: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-      );
-      return { valid: false, errors };
+      return {
+        valid: false,
+        errors: [
+          `Validation error: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`,
+        ],
+        warnings: [],
+        completenessScore: 0,
+        missingVariables: [],
+        invalidFormats: [],
+        fallbackValues: {},
+      };
     }
   }
 }

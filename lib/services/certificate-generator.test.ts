@@ -4,6 +4,7 @@ import {
   CertificateNumberingConfig,
 } from "./certificate-generator";
 import { getLocale } from "@/lib/locale";
+import { TemplateData } from "@/lib/certificate-templates/template-validation";
 
 // Mock the PDF generator
 jest.mock("./pdf-generator", () => ({
@@ -479,9 +480,12 @@ describe("CertificateGenerator", () => {
               <h1>Certificate for {{entityName}}</h1>
               <p>Certificate Number: {{certificateNumber}}</p>
               <p>Member: {{memberName}}</p>
+              <p>Transaction ID: {{transactionId}}</p>
+              <p>Transaction Date: {{transactionDate}}</p>
+              <p>Security: {{securityName}}</p>
               <p>Quantity: {{quantity}}</p>
-              <p>Amount: {{totalAmount}}</p>
-              <p>Date: {{issueDate}}</p>
+              <p>Amount: {{transactionAmount}}</p>
+              <p>Currency: {{currency}}</p>
             </body>
           </html>
         `,
@@ -514,8 +518,12 @@ describe("CertificateGenerator", () => {
 
       const result = await certificateGenerator.validateTemplate("template123");
 
-      expect(result.valid).toBe(true); // Validation simplified - only checks for basic structure
-      expect(result.errors).toHaveLength(0);
+      expect(result.valid).toBe(false); // Now uses comprehensive validation
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.missingVariables).toContain("memberName");
+      expect(result.missingVariables).toContain("quantity");
+      expect(result.missingVariables).toContain("transactionAmount");
+      expect(result.missingVariables).toContain("currency");
     });
 
     it("should handle missing template", async () => {
@@ -526,12 +534,56 @@ describe("CertificateGenerator", () => {
       expect(result.valid).toBe(false);
       expect(result.errors).toContain("Template not found");
     });
+
+    it("should validate template with data and provide completeness score", async () => {
+      const mockTemplate = {
+        id: "template123",
+        name: "Complete Template",
+        templateHtml: `
+          <html>
+            <body>
+              <h1>{{entityName}}</h1>
+              <p>{{memberName}}</p>
+              <p>{{transactionId}}</p>
+              <p>{{transactionDate}}</p>
+              <p>{{securityName}}</p>
+              <p>{{quantity}}</p>
+              <p>{{transactionAmount}}</p>
+              <p>{{currency}}</p>
+            </body>
+          </html>
+        `,
+      };
+
+      mockPrisma.certificateTemplate.findUnique.mockResolvedValue(mockTemplate);
+
+      const templateData: TemplateData = {
+        entityName: "Test Entity Ltd",
+        memberName: "John Doe",
+        transactionId: "TXN-2024-001",
+        transactionDate: "2024-01-15",
+        securityName: "Ordinary Shares",
+        quantity: "1000",
+        transactionAmount: "AUD 50000.00",
+        currency: "AUD",
+      };
+
+      const result = await certificateGenerator.validateTemplate(
+        "template123",
+        templateData,
+      );
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+      expect(result.completenessScore).toBeGreaterThan(0);
+      expect(result.missingVariables).toHaveLength(0);
+    });
   });
 
   describe("Certificate Generation", () => {
     it("should generate PDF certificate successfully", async () => {
       const mockTransaction = {
-        id: "txn123",
+        id: "TXN-2024-001",
         entityId: "entity123",
         quantity: 1000,
         totalAmountPaid: 50000,
@@ -580,6 +632,13 @@ describe("CertificateGenerator", () => {
             <body>
               <h1>Certificate for {{entityName}}</h1>
               <p>Certificate Number: {{certificateNumber}}</p>
+              <p>Member: {{memberName}}</p>
+              <p>Transaction ID: {{transactionId}}</p>
+              <p>Transaction Date: {{transactionDate}}</p>
+              <p>Security: {{securityName}}</p>
+              <p>Quantity: {{quantity}}</p>
+              <p>Amount: {{transactionAmount}}</p>
+              <p>Currency: {{currency}}</p>
             </body>
           </html>
         `,
@@ -590,7 +649,7 @@ describe("CertificateGenerator", () => {
       mockPrisma.transaction.findFirst.mockResolvedValue(null);
 
       const result = await certificateGenerator.generatePDFCertificate(
-        "txn123",
+        "TXN-2024-001",
         "template123",
       );
 
@@ -599,7 +658,7 @@ describe("CertificateGenerator", () => {
       expect(result.data?.certificateBuffer).toBeInstanceOf(Buffer);
       expect(result.data?.metadata).toBeDefined();
       expect(result.data?.metadata.certificateId).toMatch(
-        /cert_entity123_txn123_\d+/,
+        /cert_entity123_TXN-2024-001_\d+/,
       );
       expect(result.data?.metadata.format).toBe("PDF");
     });
@@ -687,7 +746,7 @@ describe("CertificateGenerator", () => {
   describe("Caching", () => {
     it("should cache generated certificates", async () => {
       const mockTransaction = {
-        id: "txn123",
+        id: "TXN-2024-001",
         entityId: "entity123",
         quantity: 1000,
         totalAmountPaid: 50000,
@@ -731,7 +790,21 @@ describe("CertificateGenerator", () => {
       const mockTemplate = {
         id: "template123",
         name: "Standard Certificate",
-        templateHtml: "<html><body>Test</body></html>",
+        templateHtml: `
+          <html>
+            <body>
+              <h1>Certificate for {{entityName}}</h1>
+              <p>Certificate Number: {{certificateNumber}}</p>
+              <p>Member: {{memberName}}</p>
+              <p>Transaction ID: {{transactionId}}</p>
+              <p>Transaction Date: {{transactionDate}}</p>
+              <p>Security: {{securityName}}</p>
+              <p>Quantity: {{quantity}}</p>
+              <p>Amount: {{transactionAmount}}</p>
+              <p>Currency: {{currency}}</p>
+            </body>
+          </html>
+        `,
       };
 
       mockPrisma.transaction.findUnique.mockResolvedValue(mockTransaction);
@@ -740,14 +813,14 @@ describe("CertificateGenerator", () => {
 
       // First generation
       const result1 = await certificateGenerator.generatePDFCertificate(
-        "txn123",
+        "TXN-2024-001",
         "template123",
       );
       expect(result1.success).toBe(true);
 
       // Second generation should use cache
       const result2 = await certificateGenerator.generatePDFCertificate(
-        "txn123",
+        "TXN-2024-001",
         "template123",
       );
       expect(result2.success).toBe(true);
@@ -767,7 +840,7 @@ describe("CertificateGenerator", () => {
   describe("Performance Testing", () => {
     it("should handle multiple certificate generations", async () => {
       const mockTransaction = {
-        id: "txn123",
+        id: "TXN-2024-001",
         entityId: "entity123",
         quantity: 1000,
         totalAmountPaid: 50000,
@@ -811,7 +884,21 @@ describe("CertificateGenerator", () => {
       const mockTemplate = {
         id: "template123",
         name: "Standard Certificate",
-        templateHtml: "<html><body>Test</body></html>",
+        templateHtml: `
+          <html>
+            <body>
+              <h1>Certificate for {{entityName}}</h1>
+              <p>Certificate Number: {{certificateNumber}}</p>
+              <p>Member: {{memberName}}</p>
+              <p>Transaction ID: {{transactionId}}</p>
+              <p>Transaction Date: {{transactionDate}}</p>
+              <p>Security: {{securityName}}</p>
+              <p>Quantity: {{quantity}}</p>
+              <p>Amount: {{transactionAmount}}</p>
+              <p>Currency: {{currency}}</p>
+            </body>
+          </html>
+        `,
       };
 
       mockPrisma.transaction.findUnique.mockImplementation((args: any) => {
@@ -826,7 +913,10 @@ describe("CertificateGenerator", () => {
 
       const startTime = Date.now();
       const promises = Array.from({ length: 5 }, (_, i) =>
-        certificateGenerator.generatePDFCertificate(`txn${i}`, "template123"),
+        certificateGenerator.generatePDFCertificate(
+          `TXN-2024-00${i}`,
+          "template123",
+        ),
       );
 
       const results = await Promise.all(promises);
@@ -908,7 +998,7 @@ describe("CertificateGenerator", () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("PDF generation failed");
+      expect(result.error).toContain("Template validation failed");
     });
 
     it("should handle database errors gracefully", async () => {
@@ -938,8 +1028,12 @@ describe("CertificateGenerator", () => {
               <h1>{{entityName}}</h1>
               <p>Certificate: {{certificateNumber}}</p>
               <p>Member: {{memberName}}</p>
+              <p>Transaction ID: {{transactionId}}</p>
+              <p>Transaction Date: {{transactionDate}}</p>
+              <p>Security: {{securityName}}</p>
               <p>Quantity: {{quantity}}</p>
-              <p>Security: {{securityClass}}</p>
+              <p>Amount: {{transactionAmount}}</p>
+              <p>Currency: {{currency}}</p>
               <p>Custom: {{customField1}}</p>
             </body>
           </html>
