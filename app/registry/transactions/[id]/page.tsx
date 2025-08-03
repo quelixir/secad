@@ -836,6 +836,9 @@ export default function ViewTransactionPage() {
               transaction.securityClass?.name || "Unknown Security Class"
             }
             quantity={transaction.quantity}
+            existingCertificateNumber={
+              transaction.certificateData?.certificateNumber || ""
+            }
             isOpen={isCertificateDialogOpen}
             onOpenChange={setIsCertificateDialogOpen}
             onGenerate={handleGenerateCertificate}

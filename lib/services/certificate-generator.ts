@@ -2,6 +2,7 @@ import { pdfGenerator, PDFOptions } from "./pdf-generator";
 import { prisma } from "@/lib/db";
 import { getLocale } from "@/lib/locale";
 import { getDefaultCurrencyCode } from "@/lib/config";
+import { Readable } from "stream";
 
 export interface CertificateData {
   entityId: string;
@@ -56,12 +57,34 @@ export interface CertificateGenerationResult {
   error?: string;
 }
 
+export interface CertificateStreamingResult {
+  success: boolean;
+  stream?: Readable;
+  metadata?: CertificateMetadata;
+  error?: string;
+}
+
 export interface CertificateNumberingConfig {
   entityId: string;
   year: number;
   prefix?: string;
   suffix?: string;
   startNumber?: number;
+}
+
+export interface DownloadAnalytics {
+  downloadId: string;
+  transactionId: string;
+  certificateNumber: string;
+  format: string;
+  fileSize: number;
+  downloadStartedAt: Date;
+  downloadCompletedAt?: Date;
+  downloadDuration?: number;
+  userAgent?: string;
+  ipAddress?: string;
+  success: boolean;
+  errorMessage?: string;
 }
 
 export class CertificateGenerator {
@@ -71,6 +94,9 @@ export class CertificateGenerator {
   >();
   private readonly cacheTimeout = 3600000; // 1 hour in milliseconds
   private readonly logger = console; // Replace with proper logging service
+  private readonly maxConcurrentGenerations = 10;
+  private activeGenerations = 0;
+  private downloadAnalytics: Map<string, DownloadAnalytics> = new Map();
 
   /**
    * Generate certificate number for entity per year
@@ -127,62 +153,23 @@ export class CertificateGenerator {
   ): string {
     let processedHtml = templateHtml;
 
-    // Replace standard variables
-    const variables = {
-      "{{entityName}}": data.entityName,
-      "{{entityId}}": data.entityId,
-      "{{entityAddress}}": data.entityAddress,
-      "{{entityPhone}}": data.entityPhone,
-      "{{entityType}}": data.entityType,
-      "{{entityContact}}": data.entityContact,
-      "{{entityEmail}}": data.entityEmail,
-      "{{transactionId}}": data.transactionId,
-      "{{transactionDate}}":
-        data.transactionDate.toLocaleDateString(getLocale()),
-      "{{transactionType}}": data.transactionType,
-      "{{transactionReason}}": data.transactionReason,
-      "{{transactionDescription}}": data.transactionDescription,
-      "{{securityClass}}": data.securityClass,
-      "{{securityName}}": data.securityName,
-      "{{securitySymbol}}": data.securitySymbol,
-      "{{quantity}}": data.quantity.toLocaleString(),
-      "{{totalAmount}}": data.totalAmount.toLocaleString(getLocale(), {
-        style: "currency",
-        currency: data.currency,
-      }),
-      "{{unitPrice}}": data.unitPrice.toLocaleString(getLocale(), {
-        style: "currency",
-        currency: data.currency,
-      }),
-      "{{totalValue}}": data.totalValue.toLocaleString(getLocale(), {
-        style: "currency",
-        currency: data.currency,
-      }),
-      "{{memberName}}": data.memberName,
-      "{{memberId}}": data.memberId,
-      "{{memberType}}": data.memberType,
-      "{{memberAddress}}": data.memberAddress,
-      "{{certificateNumber}}": data.certificateNumber,
-      "{{issueDate}}": data.issueDate.toLocaleDateString(getLocale()),
-      "{{currentDate}}": new Date().toLocaleDateString(getLocale()),
-      "{{currentYear}}": new Date().getFullYear().toString(),
-    };
-
-    // Replace all variables
-    Object.entries(variables).forEach(([placeholder, value]) => {
-      processedHtml = processedHtml.replace(
-        new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
-        value,
-      );
-    });
-
-    // Replace any additional dynamic properties
+    // Replace all template variables
     Object.entries(data).forEach(([key, value]) => {
       const placeholder = `{{${key}}}`;
-      if (typeof value === "string" || typeof value === "number") {
+      if (typeof value === "string") {
         processedHtml = processedHtml.replace(
-          new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
+          new RegExp(placeholder, "g"),
+          value,
+        );
+      } else if (typeof value === "number") {
+        processedHtml = processedHtml.replace(
+          new RegExp(placeholder, "g"),
           value.toString(),
+        );
+      } else if (value instanceof Date) {
+        processedHtml = processedHtml.replace(
+          new RegExp(placeholder, "g"),
+          value.toLocaleDateString(),
         );
       }
     });
@@ -191,7 +178,7 @@ export class CertificateGenerator {
   }
 
   /**
-   * Populate certificate data from transaction records
+   * Populate certificate data from transaction
    */
   async populateCertificateData(
     transactionId: string,
@@ -200,9 +187,18 @@ export class CertificateGenerator {
     const transaction = await prisma.transaction.findUnique({
       where: { id: transactionId },
       include: {
-        entity: true,
+        entity: {
+          include: {
+            identifiers: true,
+          },
+        },
         securityClass: true,
-        toMember: true,
+        toMember: {
+          include: {
+            contacts: true,
+          },
+        },
+        fromMember: true,
       },
     });
 
@@ -224,24 +220,54 @@ export class CertificateGenerator {
       throw new Error(`Member not found for transaction: ${transactionId}`);
     }
 
-    // Get certificate number from transaction data or generate new one
-    let certificateNumber: string;
-    if (transaction.certificateData) {
-      const certData = transaction.certificateData as any;
-      certificateNumber =
-        certData.certificateNumber ||
-        (await this.generateCertificateNumber({
-          entityId,
-          year: new Date().getFullYear(),
-        }));
-    } else {
-      certificateNumber = await this.generateCertificateNumber({
-        entityId,
-        year: new Date().getFullYear(),
-      });
-    }
+    // Get locale and currency
+    const locale = await getLocale();
+    const currencyCode = getDefaultCurrencyCode();
 
-    // Calculate total amount safely
+    // Format currency values
+    const formatCurrency = (amount: number) => {
+      return new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: currencyCode,
+      }).format(amount);
+    };
+
+    // Get member contact information
+    const primaryContact = transaction.toMember.contacts?.[0];
+    const memberAddress = transaction.toMember.address || "Not specified";
+    const memberPhone =
+      primaryContact?.phone || transaction.toMember.phone || "Not specified";
+    const memberEmail =
+      primaryContact?.email || transaction.toMember.email || "Not specified";
+
+    // Get entity contact information
+    const entityContact = transaction.entity.name || "Not specified";
+    const entityEmail = transaction.entity.email || "Not specified";
+    const entityPhone = transaction.entity.phone || "Not specified";
+
+    // Format entity address
+    const entityAddress = [
+      transaction.entity.address,
+      transaction.entity.city,
+      transaction.entity.state,
+      transaction.entity.postcode,
+      transaction.entity.country,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    // Format member address
+    const memberFormattedAddress = [
+      memberAddress,
+      transaction.toMember.city,
+      transaction.toMember.state,
+      transaction.toMember.postcode,
+      transaction.toMember.country,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    // Calculate amounts from transaction data
     const totalAmountPaid = transaction.totalAmountPaid
       ? Number(transaction.totalAmountPaid)
       : 0;
@@ -250,7 +276,6 @@ export class CertificateGenerator {
       : 0;
     const totalAmount = totalAmountPaid + totalAmountUnpaid;
 
-    // Calculate unit price and total value
     const amountPaidPerSecurity = transaction.amountPaidPerSecurity
       ? Number(transaction.amountPaidPerSecurity)
       : 0;
@@ -258,117 +283,85 @@ export class CertificateGenerator {
       ? Number(transaction.amountUnpaidPerSecurity)
       : 0;
     const unitPrice = amountPaidPerSecurity + amountUnpaidPerSecurity;
-    const totalValue = unitPrice * transaction.quantity;
 
-    // Build entity address
-    const entityAddressParts = [
-      transaction.entity.address,
-      transaction.entity.city,
-      transaction.entity.state,
-      transaction.entity.postcode,
-      transaction.entity.country,
-    ].filter(Boolean);
-    const entityAddress = entityAddressParts.join(", ");
-
-    // Build member address
-    const memberAddressParts = [
-      transaction.toMember.address,
-      transaction.toMember.city,
-      transaction.toMember.state,
-      transaction.toMember.postcode,
-      transaction.toMember.country,
-    ].filter(Boolean);
-    const memberAddress = memberAddressParts.join(", ");
-
-    return {
-      entityId: transaction.entity.id,
+    const certificateData: CertificateData = {
+      entityId: transaction.entityId,
       entityName: transaction.entity.name,
-      entityAddress: entityAddress || "Not specified",
-      entityPhone: transaction.entity.phone || "Not specified",
-      entityType: transaction.entity.entityTypeId || "Not specified",
-      entityContact: transaction.entity.name, // Use entity name as contact
-      entityEmail: transaction.entity.email || "Not specified",
+      entityAddress,
+      entityPhone,
+      entityType: transaction.entity.entityTypeId,
+      entityContact,
+      entityEmail,
       transactionId: transaction.id,
-      transactionDate: transaction.createdAt, // Use createdAt as transaction date
+      transactionDate: transaction.createdAt,
       transactionType: transaction.transactionType,
       transactionReason: transaction.reasonCode,
-      transactionDescription: transaction.description || "Not specified",
+      transactionDescription: transaction.description || "",
       securityClass: transaction.securityClass.name,
       securityName: transaction.securityClass.name,
-      securitySymbol: transaction.securityClass.symbol || "Not specified",
+      securitySymbol: transaction.securityClass.symbol || "",
       quantity: transaction.quantity,
       totalAmount,
       unitPrice,
-      totalValue,
-      currency: transaction.currencyCode || getDefaultCurrencyCode(),
+      totalValue: totalAmount,
+      currency: currencyCode,
       memberName:
         transaction.toMember.entityName ||
-        `${transaction.toMember.givenNames || ""} ${
-          transaction.toMember.familyName || ""
-        }`.trim(),
+        transaction.toMember.givenNames ||
+        "Unknown Member",
       memberId: transaction.toMember.id,
       memberType: transaction.toMember.memberType,
-      memberAddress: memberAddress || "Not specified",
-      certificateNumber,
-      issueDate: transaction.certificateData
-        ? new Date((transaction.certificateData as any).issueDate || new Date())
-        : new Date(),
+      memberAddress: memberFormattedAddress,
+      certificateNumber: "", // Will be set later
+      issueDate: new Date(),
     };
+
+    // Add entity identifiers as dynamic properties
+    if (transaction.entity.identifiers) {
+      transaction.entity.identifiers.forEach((identifier) => {
+        certificateData[`entity${identifier.type}`] = identifier.value;
+      });
+    }
+
+    // Add member contact information as dynamic properties
+    if (primaryContact) {
+      certificateData.memberPhone = memberPhone;
+      certificateData.memberEmail = memberEmail;
+    }
+
+    // Validate the data
+    this.validateCertificateData(certificateData);
+
+    return certificateData;
   }
 
   /**
-   * Validate certificate data before generation
+   * Validate certificate data
    */
   private validateCertificateData(data: CertificateData): void {
     const requiredFields = [
       "entityId",
       "entityName",
-      "entityAddress",
-      "entityPhone",
-      "entityType",
-      "entityContact",
-      "entityEmail",
       "transactionId",
-      "transactionDate",
-      "transactionType",
-      "transactionReason",
-      "transactionDescription",
       "securityClass",
-      "securityName",
-      "securitySymbol",
+      "memberName",
       "quantity",
       "totalAmount",
-      "unitPrice",
-      "totalValue",
-      "memberName",
-      "memberId",
-      "memberType",
-      "memberAddress",
-      "certificateNumber",
-      "issueDate",
     ];
 
-    for (const field of requiredFields) {
-      if (
-        data[field] === null ||
-        data[field] === undefined ||
-        data[field] === ""
-      ) {
-        throw new Error(`Missing required certificate data: ${field}`);
-      }
-    }
+    const missingFields = requiredFields.filter(
+      (field) => !data[field as keyof CertificateData],
+    );
 
-    if (data.quantity <= 0) {
-      throw new Error("Certificate quantity must be greater than 0");
-    }
-
-    if (data.totalAmount <= 0) {
-      throw new Error("Certificate total amount must be greater than 0");
+    if (missingFields.length > 0) {
+      throw new Error(
+        `Missing required certificate data: ${missingFields.join(", ")}`,
+      );
     }
   }
 
   /**
-   * Generate certificate metadata
+   * Generate metadata for certificate
    */
   private generateMetadata(
     data: CertificateData,
@@ -380,16 +373,10 @@ export class CertificateGenerator {
     const certificateId = `cert_${data.entityId}_${
       data.transactionId
     }_${Date.now()}`;
-
-    // Convert to Buffer for checksum calculation
-    const buffer = Buffer.isBuffer(certificateBuffer)
+    const bufferData = Buffer.isBuffer(certificateBuffer)
       ? certificateBuffer
       : Buffer.from(certificateBuffer);
-
-    // Generate simple checksum (in production, use proper cryptographic hash)
-    const checksum = Buffer.from(buffer.toString("base64"))
-      .toString("hex")
-      .substring(0, 32);
+    const checksum = this.generateChecksum(bufferData);
 
     return {
       certificateId,
@@ -401,27 +388,42 @@ export class CertificateGenerator {
       format,
       generatedAt: new Date(),
       generatedBy,
-      fileSize: buffer.length,
+      fileSize: certificateBuffer.length,
       checksum,
     };
   }
 
   /**
-   * Get cached certificate if available and not expired
+   * Generate checksum for certificate buffer
+   */
+  private generateChecksum(buffer: Buffer): string {
+    const crypto = require("crypto");
+    return crypto.createHash("sha256").update(buffer).digest("hex");
+  }
+
+  /**
+   * Get cached certificate
    */
   private getCachedCertificate(
     cacheKey: string,
   ): { data: Buffer; metadata: CertificateMetadata } | null {
     const cached = this.cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
-      this.logger.log(`Certificate cache hit: ${cacheKey}`);
-      return { data: cached.data, metadata: cached.metadata };
+    if (!cached) {
+      return null;
     }
-    return null;
+
+    const now = Date.now();
+    if (now - cached.timestamp > this.cacheTimeout) {
+      this.cache.delete(cacheKey);
+      return null;
+    }
+
+    this.logger.log(`Certificate cache hit: ${cacheKey}`);
+    return cached;
   }
 
   /**
-   * Cache certificate data
+   * Cache certificate
    */
   private cacheCertificate(
     cacheKey: string,
@@ -437,7 +439,7 @@ export class CertificateGenerator {
   }
 
   /**
-   * Generate certificate in PDF format
+   * Generate PDF certificate with streaming support
    */
   async generatePDFCertificate(
     transactionId: string,
@@ -445,48 +447,39 @@ export class CertificateGenerator {
     options?: Partial<PDFOptions>,
     generatedBy: string = "system",
   ): Promise<CertificateGenerationResult> {
+    this.logger.log(
+      `Starting PDF certificate generation for transaction: ${transactionId}`,
+    );
+
+    const cacheKey = `pdf_${transactionId}_${templateId}_${JSON.stringify(
+      options || {},
+    )}`;
+
+    // Check cache first
+    const cached = this.getCachedCertificate(cacheKey);
+    if (cached) {
+      return {
+        success: true,
+        data: {
+          certificateBuffer: cached.data,
+          metadata: cached.metadata,
+        },
+      };
+    }
+
     try {
-      this.logger.log(
-        `Starting PDF certificate generation for transaction: ${transactionId}`,
-      );
-
-      // Get transaction data
-      const transaction = await prisma.transaction.findUnique({
-        where: { id: transactionId },
-        include: { entity: true },
-      });
-
-      if (!transaction) {
-        throw new Error(`Transaction not found: ${transactionId}`);
-      }
-
-      // Create cache key
-      const cacheKey = `pdf_${transactionId}_${templateId}_${JSON.stringify(
-        options,
-      )}`;
-
-      // Check cache first
-      const cached = this.getCachedCertificate(cacheKey);
-      if (cached) {
+      // Check concurrent generation limit
+      if (this.activeGenerations >= this.maxConcurrentGenerations) {
         return {
-          success: true,
-          data: {
-            certificateBuffer: cached.data,
-            metadata: cached.metadata,
-          },
+          success: false,
+          error:
+            "Too many concurrent certificate generations. Please try again later.",
         };
       }
 
-      // Populate certificate data
-      const certificateData = await this.populateCertificateData(
-        transactionId,
-        transaction.entityId,
-      );
+      this.activeGenerations++;
 
-      // Validate data
-      this.validateCertificateData(certificateData);
-
-      // Get certificate template
+      // Get template
       const template = await prisma.certificateTemplate.findUnique({
         where: { id: templateId },
       });
@@ -494,6 +487,12 @@ export class CertificateGenerator {
       if (!template) {
         throw new Error(`Certificate template not found: ${templateId}`);
       }
+
+      // Populate certificate data
+      const certificateData = await this.populateCertificateData(
+        transactionId,
+        templateId,
+      );
 
       // Replace template variables
       const processedHtml = this.replaceTemplateVariables(
@@ -505,7 +504,9 @@ export class CertificateGenerator {
       const pdfResult = await pdfGenerator.generatePDF(processedHtml, options);
 
       if (!pdfResult.success || !pdfResult.data) {
-        throw new Error(pdfResult.error || "PDF generation failed");
+        throw new Error(
+          pdfResult.error || "Failed to generate PDF certificate",
+        );
       }
 
       // Generate metadata
@@ -518,12 +519,11 @@ export class CertificateGenerator {
       );
 
       // Cache the result
-      const buffer = Buffer.isBuffer(pdfResult.data)
+      const bufferData = Buffer.isBuffer(pdfResult.data)
         ? pdfResult.data
         : Buffer.from(pdfResult.data);
-      this.cacheCertificate(cacheKey, buffer, metadata);
+      this.cacheCertificate(cacheKey, bufferData, metadata);
 
-      // Log successful generation
       this.logger.log(
         `PDF certificate generated successfully: ${metadata.certificateId}`,
       );
@@ -536,51 +536,86 @@ export class CertificateGenerator {
         },
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown certificate generation error";
-      this.logger.error(`Certificate generation failed: ${errorMessage}`);
-
+      this.logger.error(
+        `Error generating PDF certificate: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      );
       return {
         success: false,
-        error: errorMessage,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to generate PDF certificate",
+      };
+    } finally {
+      this.activeGenerations--;
+    }
+  }
+
+  /**
+   * Generate PDF certificate with streaming
+   */
+  async generatePDFCertificateStream(
+    transactionId: string,
+    templateId: string,
+    options?: Partial<PDFOptions>,
+    generatedBy: string = "system",
+  ): Promise<CertificateStreamingResult> {
+    try {
+      // Generate certificate first
+      const result = await this.generatePDFCertificate(
+        transactionId,
+        templateId,
+        options,
+        generatedBy,
+      );
+
+      if (!result.success || !result.data) {
+        return {
+          success: false,
+          error: result.error || "Failed to generate certificate",
+        };
+      }
+
+      // Create readable stream from buffer
+      const stream = new Readable();
+      stream.push(result.data.certificateBuffer);
+      stream.push(null); // End of stream
+
+      return {
+        success: true,
+        stream,
+        metadata: result.data.metadata,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create certificate stream",
       };
     }
   }
 
   /**
-   * Generate certificate in DOCX format (placeholder for future implementation)
+   * Generate DOCX certificate
    */
   async generateDOCXCertificate(
     transactionId: string,
     templateId: string,
     generatedBy: string = "system",
   ): Promise<CertificateGenerationResult> {
-    try {
-      this.logger.log(
-        `Starting DOCX certificate generation for transaction: ${transactionId}`,
-      );
+    this.logger.log(
+      `Starting DOCX certificate generation for transaction: ${transactionId}`,
+    );
 
-      // For now, return error as DOCX generation is not implemented
-      // This can be extended with a DOCX generation library like docx or mammoth
-
-      return {
-        success: false,
-        error: "DOCX certificate generation not yet implemented",
-      };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Unknown certificate generation error";
-      this.logger.error(`DOCX certificate generation failed: ${errorMessage}`);
-
-      return {
-        success: false,
-        error: errorMessage,
-      };
-    }
+    // For now, return a placeholder since DOCX generation is not implemented
+    return {
+      success: false,
+      error: "DOCX certificate generation is not yet implemented",
+    };
   }
 
   /**
@@ -593,25 +628,19 @@ export class CertificateGenerator {
     options?: Partial<PDFOptions>,
     generatedBy: string = "system",
   ): Promise<CertificateGenerationResult> {
-    switch (format) {
-      case "PDF":
-        return this.generatePDFCertificate(
-          transactionId,
-          templateId,
-          options,
-          generatedBy,
-        );
-      case "DOCX":
-        return this.generateDOCXCertificate(
-          transactionId,
-          templateId,
-          generatedBy,
-        );
-      default:
-        return {
-          success: false,
-          error: `Unsupported format: ${format}`,
-        };
+    if (format === "PDF") {
+      return this.generatePDFCertificate(
+        transactionId,
+        templateId,
+        options,
+        generatedBy,
+      );
+    } else {
+      return this.generateDOCXCertificate(
+        transactionId,
+        templateId,
+        generatedBy,
+      );
     }
   }
 
@@ -634,7 +663,57 @@ export class CertificateGenerator {
   }
 
   /**
-   * Generate preview HTML for a template
+   * Get memory usage statistics
+   */
+  getMemoryUsage(): { activeGenerations: number; maxConcurrent: number } {
+    return {
+      activeGenerations: this.activeGenerations,
+      maxConcurrent: this.maxConcurrentGenerations,
+    };
+  }
+
+  /**
+   * Track download analytics
+   */
+  trackDownload(
+    downloadId: string,
+    analytics: Omit<DownloadAnalytics, "downloadId">,
+  ): void {
+    this.downloadAnalytics.set(downloadId, {
+      downloadId,
+      ...analytics,
+    });
+  }
+
+  /**
+   * Complete download tracking
+   */
+  completeDownload(
+    downloadId: string,
+    success: boolean,
+    errorMessage?: string,
+  ): void {
+    const analytics = this.downloadAnalytics.get(downloadId);
+    if (analytics) {
+      analytics.downloadCompletedAt = new Date();
+      analytics.downloadDuration =
+        analytics.downloadCompletedAt.getTime() -
+        analytics.downloadStartedAt.getTime();
+      analytics.success = success;
+      if (errorMessage) {
+        analytics.errorMessage = errorMessage;
+      }
+
+      // Log analytics
+      this.logger.log("Download analytics", analytics);
+
+      // Clean up
+      this.downloadAnalytics.delete(downloadId);
+    }
+  }
+
+  /**
+   * Generate preview HTML for template
    */
   async generatePreviewHtml(
     templateId: string,
@@ -658,43 +737,38 @@ export class CertificateGenerator {
       if (!template) {
         return {
           success: false,
-          error: `Template not found: ${templateId}`,
+          error: "Certificate template not found",
         };
       }
 
-      // Create sample certificate data for preview
+      // Create sample data for preview
       const sampleData: CertificateData = {
         entityId: previewData.entityId,
-        entityName: "Sample Entity Ltd",
-        entityAddress: "123 Business St, Sydney, NSW, 2000, Australia",
-        entityPhone: "+61 2 1234 5678",
-        entityType: "Company",
-        entityContact: "Sample Entity Ltd",
+        entityName: "Sample Entity",
+        entityAddress: "123 Sample Street, Sample City, ST 12345",
+        entityPhone: "+1 (555) 123-4567",
+        entityType: "Corporation",
+        entityContact: "John Doe",
         entityEmail: "contact@sample.com",
         transactionId: previewData.transactionId,
         transactionDate: new Date(),
-        transactionType: "Issuance",
-        transactionReason: "Initial",
-        transactionDescription: "Initial share issuance",
+        transactionType: "Purchase",
+        transactionReason: "Investment",
+        transactionDescription: "Sample transaction for preview",
         securityClass: previewData.securityClass,
         securityName: previewData.securityClass,
         securitySymbol: "SAMPLE",
         quantity: previewData.quantity,
-        totalAmount: previewData.quantity * 50, // Sample price
-        unitPrice: 50,
-        totalValue: previewData.quantity * 50,
-        currency: "AUD",
+        totalAmount: previewData.quantity * 10,
+        unitPrice: 10,
+        totalValue: previewData.quantity * 10,
+        currency: "USD",
         memberName: previewData.memberName,
-        memberId: "member123",
+        memberId: "member-123",
         memberType: "Individual",
-        memberAddress: "456 Member St, Melbourne, VIC, 3000, Australia",
+        memberAddress: "456 Member Ave, Member City, ST 67890",
         certificateNumber: previewData.certificateNumber || "CERT-2024-0001",
         issueDate: new Date(previewData.issueDate),
-        currentDate: new Date(),
-        currentYear: new Date().getFullYear().toString(),
-        generationDate: new Date().toLocaleDateString(),
-        generationTimestamp: new Date().toISOString(),
-        // Add custom fields
         ...previewData.customFields,
       };
 
@@ -720,7 +794,7 @@ export class CertificateGenerator {
   }
 
   /**
-   * Validate certificate template
+   * Validate template
    */
   async validateTemplate(
     templateId: string,
@@ -733,32 +807,23 @@ export class CertificateGenerator {
       });
 
       if (!template) {
-        errors.push(`Template not found: ${templateId}`);
+        errors.push("Template not found");
         return { valid: false, errors };
       }
 
       if (!template.templateHtml) {
-        errors.push("Template HTML is missing");
+        errors.push("Template HTML is required");
       }
 
       if (!template.name) {
-        errors.push("Template name is missing");
+        errors.push("Template name is required");
       }
 
-      // Check for required template variables
-      const requiredVariables = [
-        "{{entityName}}",
-        "{{certificateNumber}}",
-        "{{memberName}}",
-        "{{quantity}}",
-        "{{totalAmount}}",
-        "{{issueDate}}",
-      ];
-
-      for (const variable of requiredVariables) {
-        if (!template.templateHtml.includes(variable)) {
-          errors.push(`Missing required template variable: ${variable}`);
-        }
+      // Check for basic template structure
+      if (template.templateHtml && !template.templateHtml.includes("{{")) {
+        errors.push(
+          "Template should contain at least one variable placeholder",
+        );
       }
 
       return {
@@ -767,7 +832,7 @@ export class CertificateGenerator {
       };
     } catch (error) {
       errors.push(
-        `Template validation failed: ${
+        `Validation error: ${
           error instanceof Error ? error.message : "Unknown error"
         }`,
       );
@@ -776,5 +841,4 @@ export class CertificateGenerator {
   }
 }
 
-// Export a singleton instance
 export const certificateGenerator = new CertificateGenerator();

@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import { certificateGenerator } from "@/lib/services/certificate-generator";
 import { certificateNumberingService } from "@/lib/services/certificate-numbering";
-import { prisma } from "@/lib/db";
 import { rateLimit } from "@/lib/utils/rate-limit";
-import { AuditLogger, AuditAction, AuditTableName } from "@/lib/audit";
+import { AuditLogger } from "@/lib/audit";
+import { Readable } from "stream";
 
-// Rate limiting configuration
+// Rate limiter: 5 downloads per minute per user
 const limiter = rateLimit({
   interval: 60 * 1000, // 1 minute
   uniqueTokenPerInterval: 500,
@@ -25,19 +27,25 @@ export interface DownloadRequest {
 
 /**
  * POST /api/certificates/[id]/download
- * Generate and download a certificate on-the-fly
+ * Generate and download a certificate on-the-fly with streaming support
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const startTime = Date.now();
+  const downloadId = `download_${Date.now()}_${Math.random()
+    .toString(36)
+    .substr(2, 9)}`;
+  let userId: string | undefined;
+
   try {
     // Rate limiting
     const identifier =
       request.headers.get("x-forwarded-for") ||
       request.headers.get("x-real-ip") ||
       "anonymous";
-    const { success } = await limiter.check(identifier, 5); // 5 generations per minute
+    const { success } = await limiter.check(identifier, 5); // 5 downloads per minute
     if (!success) {
       return NextResponse.json(
         { error: "Rate limit exceeded. Please try again later." },
@@ -50,13 +58,15 @@ export async function POST(
       transactionId,
       templateId,
       format,
-      userId,
+      userId: requestUserId,
       certificateNumber,
       issueDate,
       includeWatermark = true,
       includeQRCode = true,
       customFields,
     } = body;
+
+    userId = requestUserId;
 
     // Validate required fields
     if (!transactionId || !templateId || !format || !userId) {
@@ -153,16 +163,39 @@ export async function POST(
       },
     });
 
-    // Generate certificate on-the-fly
-    const result = await certificateGenerator.generateCertificate(
+    // Track download start
+    certificateGenerator.trackDownload(downloadId, {
+      transactionId,
+      certificateNumber: finalCertificateNumber,
+      format,
+      fileSize: 0, // Will be updated after generation
+      downloadStartedAt: new Date(),
+      userAgent: request.headers.get("user-agent") || undefined,
+      ipAddress: identifier,
+      success: false,
+    });
+
+    // Generate certificate with streaming support
+    const result = await certificateGenerator.generatePDFCertificateStream(
       transactionId,
       templateId,
-      format,
-      undefined,
+      {
+        format: "A4",
+        orientation: "portrait",
+        margin: {
+          top: "20mm",
+          right: "20mm",
+          bottom: "20mm",
+          left: "20mm",
+        },
+        printBackground: true,
+        preferCSSPageSize: true,
+      },
       userId,
     );
 
-    if (!result.success || !result.data) {
+    if (!result.success || !result.stream || !result.metadata) {
+      certificateGenerator.completeDownload(downloadId, false, result.error);
       return NextResponse.json(
         { error: result.error || "Certificate generation failed" },
         { status: 500 },
@@ -175,12 +208,12 @@ export async function POST(
         ? "application/pdf"
         : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-    // Set security headers
+    // Set comprehensive security headers
     const headers = new Headers({
       "Content-Type": contentType,
-      "Content-Length": result.data.metadata.fileSize.toString(),
+      "Content-Length": result.metadata.fileSize.toString(),
       "Content-Disposition": `attachment; filename="certificate-${
-        result.data.metadata.certificateNumber
+        result.metadata.certificateNumber
       }.${format.toLowerCase()}"`,
       "X-Content-Type-Options": "nosniff",
       "X-Frame-Options": "DENY",
@@ -189,6 +222,9 @@ export async function POST(
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",
+      "X-Download-ID": downloadId,
+      "X-Certificate-ID": result.metadata.certificateId,
+      "X-Generated-At": result.metadata.generatedAt.toISOString(),
     });
 
     // Log certificate generation event
@@ -198,13 +234,14 @@ export async function POST(
       transactionId,
       templateId,
       format,
-      result.data.metadata.certificateNumber,
-      result.data.metadata.fileSize,
-      result.data.metadata.checksum,
+      result.metadata.certificateNumber,
+      result.metadata.fileSize,
+      result.metadata.checksum,
       {
         ip: identifier,
         userAgent: request.headers.get("user-agent"),
         templateName: template.name,
+        downloadId,
       },
     );
 
@@ -213,26 +250,67 @@ export async function POST(
       transaction.entityId,
       userId,
       transactionId,
-      result.data.metadata.certificateNumber,
+      result.metadata.certificateNumber,
       format,
       {
         ip: identifier,
         userAgent: request.headers.get("user-agent"),
         templateName: template.name,
+        downloadId,
       },
     );
 
-    // Log successful generation
+    // Update download tracking with file size
+    certificateGenerator.trackDownload(downloadId, {
+      transactionId,
+      certificateNumber: finalCertificateNumber,
+      format,
+      fileSize: result.metadata.fileSize,
+      downloadStartedAt: new Date(startTime),
+      userAgent: request.headers.get("user-agent") || undefined,
+      ipAddress: identifier,
+      success: true,
+    });
+
+    // Log successful generation with performance metrics
+    const generationTime = Date.now() - startTime;
     console.log(
-      `Certificate generated and downloaded: ${result.data.metadata.certificateNumber} by ${identifier}`,
+      `Certificate generated and downloaded: ${result.metadata.certificateNumber} by ${identifier} in ${generationTime}ms`,
+      {
+        downloadId,
+        certificateId: result.metadata.certificateId,
+        fileSize: result.metadata.fileSize,
+        generationTime: `${generationTime}ms`,
+        format,
+        templateName: template.name,
+      },
     );
 
-    return new NextResponse(new Uint8Array(result.data.certificateBuffer), {
+    // Complete download tracking
+    certificateGenerator.completeDownload(downloadId, true);
+
+    // Return streaming response
+    return new NextResponse(result.stream as any, {
       status: 200,
       headers,
     });
   } catch (error) {
-    console.error("Certificate generation error:", error);
+    const generationTime = Date.now() - startTime;
+
+    console.error("Certificate generation error:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      generationTime: `${generationTime}ms`,
+      downloadId,
+      userId,
+    });
+
+    // Complete download tracking with error
+    certificateGenerator.completeDownload(
+      downloadId,
+      false,
+      error instanceof Error ? error.message : "Unknown error",
+    );
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

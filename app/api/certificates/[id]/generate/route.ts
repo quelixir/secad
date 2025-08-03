@@ -36,15 +36,15 @@ export interface GenerateResponse {
 }
 
 /**
- * POST /api/certificates/[transactionId]/generate
+ * POST /api/certificates/[id]/generate
  * Generate a certificate for a transaction and return metadata
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ transactionId: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const startTime = Date.now();
-  const { transactionId } = await params;
+  const { id: transactionId } = await params;
   let userId: string | undefined;
 
   try {
@@ -60,7 +60,7 @@ export async function POST(
           success: false,
           error: "Rate limit exceeded. Please try again later.",
         },
-        { status: 429 }
+        { status: 429 },
       );
     }
 
@@ -73,7 +73,7 @@ export async function POST(
           success: false,
           error: "Unauthorized",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -96,7 +96,7 @@ export async function POST(
           success: false,
           error: "Missing required fields: templateId, format, userId",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -107,7 +107,7 @@ export async function POST(
           success: false,
           error: "Invalid format. Must be PDF or DOCX",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -118,7 +118,7 @@ export async function POST(
           success: false,
           error: "User ID mismatch",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -138,7 +138,7 @@ export async function POST(
           success: false,
           error: "Transaction not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -158,7 +158,7 @@ export async function POST(
           success: false,
           error: "Access denied to transaction entity",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -173,7 +173,7 @@ export async function POST(
           success: false,
           error: "Certificate template not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -186,7 +186,7 @@ export async function POST(
             entityId: transaction.entityId,
             year: new Date().getFullYear(),
           },
-          userId
+          userId,
         );
 
       if (!numberingResult.success) {
@@ -196,7 +196,7 @@ export async function POST(
             error:
               numberingResult.error || "Failed to generate certificate number",
           },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -231,7 +231,7 @@ export async function POST(
       templateId,
       format,
       undefined,
-      userId
+      userId,
     );
 
     // Set 30-second timeout
@@ -249,7 +249,7 @@ export async function POST(
           success: false,
           error: result.error || "Certificate generation failed",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -300,7 +300,7 @@ export async function POST(
           success: false,
           error: "Certificate generation timed out. Please try again.",
         },
-        { status: 408 }
+        { status: 408 },
       );
     }
 
@@ -309,7 +309,7 @@ export async function POST(
         success: false,
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

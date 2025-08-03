@@ -71,6 +71,7 @@ export interface CertificateGenerationDialogProps {
   memberName: string;
   securityClass: string;
   quantity: number;
+  existingCertificateNumber?: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onGenerate: (options: CertificateGenerationOptions) => Promise<void>;
@@ -84,6 +85,7 @@ export function CertificateGenerationDialog({
   memberName,
   securityClass,
   quantity,
+  existingCertificateNumber = "",
   isOpen,
   onOpenChange,
   onGenerate,
@@ -92,7 +94,9 @@ export function CertificateGenerationDialog({
   const [templates, setTemplates] = useState<CertificateTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [format, setFormat] = useState<"PDF" | "DOCX">("PDF");
-  const [certificateNumber, setCertificateNumber] = useState<string>("");
+  const [certificateNumber, setCertificateNumber] = useState<string>(
+    existingCertificateNumber,
+  );
   const [issueDate, setIssueDate] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
@@ -116,6 +120,11 @@ export function CertificateGenerationDialog({
       loadTemplates();
     }
   }, [isOpen, entityId]);
+
+  // Update certificate number when existing certificate number changes
+  useEffect(() => {
+    setCertificateNumber(existingCertificateNumber);
+  }, [existingCertificateNumber]);
 
   const loadTemplates = async () => {
     try {
@@ -485,18 +494,31 @@ export function CertificateGenerationDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="certificateNumber">
+                <Label
+                  htmlFor="certificateNumber"
+                  className="flex items-center gap-2"
+                >
                   Certificate Number (Optional)
+                  {existingCertificateNumber && (
+                    <Badge variant="secondary" className="text-xs">
+                      Existing: {existingCertificateNumber}
+                    </Badge>
+                  )}
                 </Label>
                 <Input
                   id="certificateNumber"
-                  placeholder="Leave blank for auto-generation"
+                  placeholder={
+                    existingCertificateNumber
+                      ? `Current: ${existingCertificateNumber}`
+                      : "Leave blank for auto-generation"
+                  }
                   value={certificateNumber}
                   onChange={(e) => setCertificateNumber(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  If left blank, a certificate number will be automatically
-                  generated
+                  {existingCertificateNumber
+                    ? "Certificate number is pre-filled from existing data. You can modify it if needed."
+                    : "If left blank, a certificate number will be automatically generated"}
                 </p>
               </div>
 
