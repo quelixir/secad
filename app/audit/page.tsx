@@ -26,7 +26,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Download, Filter, Activity, Copy } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { FileText, Download, Filter, Activity, Copy, Eye } from "lucide-react";
 import { useEntity } from "@/lib/entity-context";
 import { useEffect, useState } from "react";
 import {
@@ -43,6 +50,8 @@ export default function AuditPage() {
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [offset, setOffset] = useState(0);
+  const [selectedEvent, setSelectedEvent] = useState<EventLog | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filters, setFilters] = useState({
     startDate: "",
     endDate: "",
@@ -190,6 +199,16 @@ export default function AuditPage() {
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
     }
+  };
+
+  const handleViewEvent = (event: EventLog) => {
+    setSelectedEvent(event);
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    setSelectedEvent(null);
   };
 
   if (!selectedEntity) {
@@ -389,128 +408,128 @@ export default function AuditPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                <Table>
+                <Table className="w-full">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Timestamp</TableHead>
-                      <TableHead>User</TableHead>
-                      <TableHead>Action</TableHead>
-                      <TableHead>Table</TableHead>
-                      <TableHead>Record ID</TableHead>
-                      <TableHead>Field</TableHead>
-                      <TableHead>Changes</TableHead>
+                      <TableHead className="w-[140px] text-xs">
+                        Timestamp
+                      </TableHead>
+                      <TableHead className="w-[120px] text-xs">User</TableHead>
+                      <TableHead className="w-[100px] text-xs">
+                        Action
+                      </TableHead>
+                      <TableHead className="w-[100px] text-xs hidden lg:table-cell">
+                        Table
+                      </TableHead>
+                      <TableHead className="w-[120px] text-xs hidden md:table-cell">
+                        Record ID
+                      </TableHead>
+                      <TableHead className="w-[80px] text-xs hidden xl:table-cell">
+                        Field
+                      </TableHead>
+                      <TableHead className="w-[120px] text-xs hidden lg:table-cell">
+                        Changes
+                      </TableHead>
+                      <TableHead className="w-[60px] text-xs">View</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {events.map((event) => (
                       <TableRow key={event.id}>
-                        <TableCell className="font-mono text-sm">
-                          {new Date(event.timestamp).toLocaleString()}
+                        <TableCell className="text-xs font-mono">
+                          {new Date(event.timestamp).toLocaleDateString()}
+                          <br />
+                          <span className="text-muted-foreground">
+                            {new Date(event.timestamp).toLocaleTimeString()}
+                          </span>
                         </TableCell>
-                        <TableCell className="text-sm">
+                        <TableCell className="text-xs">
                           {event.user ? (
                             <div>
-                              <div className="font-medium">
+                              <div className="font-medium truncate">
                                 {event.user.name}
                               </div>
-                              <div className="text-muted-foreground">
+                              <div className="text-muted-foreground truncate hidden sm:block">
                                 {event.user.email}
                               </div>
                             </div>
                           ) : (
-                            <span className="font-mono text-muted-foreground">
+                            <span className="font-mono text-muted-foreground truncate">
                               {event.userId}
                             </span>
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge className={getActionColor(event.action)}>
+                          <Badge
+                            className={`text-xs ${getActionColor(
+                              event.action,
+                            )}`}
+                          >
                             {event.action}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-xs hidden lg:table-cell">
                           {getTableNameLabel(event.tableName)}
                         </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          <div className="flex items-center gap-2">
-                            <code className="text-xs bg-muted px-2 rounded">
+                        <TableCell className="text-xs hidden md:table-cell">
+                          <div className="flex items-center gap-1">
+                            <code className="text-xs bg-muted px-1 rounded truncate">
                               {event.recordId}
                             </code>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => copyToClipboard(event.recordId)}
-                              className="h-6 w-6 p-0"
+                              className="h-5 w-5 p-0"
                             >
                               <Copy className="h-3 w-3 text-muted-foreground" />
                             </Button>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <code className="text-xs bg-muted px-2 rounded">
+                        <TableCell className="text-xs hidden xl:table-cell">
+                          <code className="text-xs bg-muted px-1 rounded truncate">
                             {event.fieldName || "-"}
                           </code>
                         </TableCell>
-                        <TableCell className="max-w-xs">
+                        <TableCell className="text-xs hidden lg:table-cell">
                           {event.action === AuditAction.CREATE && (
-                            <div className="text-sm">
-                              <span className="text-green-600">Created</span>
-                            </div>
+                            <span className="text-green-600">Created</span>
                           )}
                           {event.action === AuditAction.DELETE && (
-                            <div className="text-sm">
-                              <span className="text-red-600">Deleted</span>
-                            </div>
+                            <span className="text-red-600">Deleted</span>
                           )}
                           {event.action === AuditAction.UPDATE &&
                             event.fieldName && (
-                              <div className="text-sm space-y-1">
-                                <div>
-                                  <span className="text-red-600">From:</span>{" "}
-                                  {formatValue(event.oldValue)}
-                                </div>
-                                <div>
-                                  <span className="text-green-600">To:</span>{" "}
-                                  {formatValue(event.newValue)}
-                                </div>
-                              </div>
+                              <span className="text-blue-600">Updated</span>
                             )}
                           {event.action === AuditAction.ARCHIVE && (
-                            <div className="text-sm">
-                              <span className="text-yellow-600">Archived</span>
-                            </div>
+                            <span className="text-yellow-600">Archived</span>
                           )}
                           {event.action === AuditAction.UNARCHIVE && (
-                            <div className="text-sm">
-                              <span className="text-purple-600">
-                                Unarchived
-                              </span>
-                            </div>
+                            <span className="text-purple-600">Unarchived</span>
                           )}
                           {event.action ===
                             AuditAction.CERTIFICATE_GENERATED && (
-                            <div className="text-sm">
-                              <span className="text-indigo-600">
-                                Certificate Generated
-                              </span>
-                            </div>
+                            <span className="text-indigo-600">Generated</span>
                           )}
                           {event.action ===
                             AuditAction.CERTIFICATE_DOWNLOADED && (
-                            <div className="text-sm">
-                              <span className="text-blue-600">
-                                Certificate Downloaded
-                              </span>
-                            </div>
+                            <span className="text-blue-600">Downloaded</span>
                           )}
                           {event.action ===
                             AuditAction.CERTIFICATE_ACCESSED && (
-                            <div className="text-sm">
-                              <span className="text-purple-600">
-                                Certificate Accessed
-                              </span>
-                            </div>
+                            <span className="text-purple-600">Accessed</span>
                           )}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewEvent(event)}
+                            className="h-7 w-7 p-0"
+                          >
+                            <Eye className="h-3 w-3 text-muted-foreground" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -533,6 +552,174 @@ export default function AuditPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
+        <DialogContent className="!max-w-[80vw] !max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Event Details</DialogTitle>
+            <DialogDescription>
+              Detailed information about the selected audit event
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="overflow-y-auto max-h-[calc(80vh-120px)]">
+            {selectedEvent && (
+              <div className="space-y-6">
+                {/* Basic Event Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Event ID
+                    </label>
+                    <div className="font-mono text-sm bg-muted p-2 rounded">
+                      {selectedEvent.id}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Timestamp
+                    </label>
+                    <div className="text-sm">
+                      {new Date(selectedEvent.timestamp).toLocaleString()}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      User
+                    </label>
+                    <div className="text-sm">
+                      {selectedEvent.user ? (
+                        <div>
+                          <div className="font-medium">
+                            {selectedEvent.user.name}
+                          </div>
+                          <div className="text-muted-foreground">
+                            {selectedEvent.user.email}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="font-mono text-muted-foreground">
+                          {selectedEvent.userId}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Action
+                    </label>
+                    <div>
+                      <Badge className={getActionColor(selectedEvent.action)}>
+                        {selectedEvent.action}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Table
+                    </label>
+                    <div className="text-sm">
+                      {getTableNameLabel(selectedEvent.tableName)}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Record ID
+                    </label>
+                    <div className="font-mono text-sm bg-muted p-2 rounded">
+                      {selectedEvent.recordId}
+                    </div>
+                  </div>
+
+                  {selectedEvent.fieldName && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Field
+                      </label>
+                      <div className="font-mono text-sm bg-muted p-2 rounded">
+                        {selectedEvent.fieldName}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Changes Section */}
+                {(selectedEvent.action === AuditAction.UPDATE ||
+                  selectedEvent.action === AuditAction.CREATE ||
+                  selectedEvent.action === AuditAction.DELETE) && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Changes</h3>
+
+                    {selectedEvent.action === AuditAction.CREATE && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          New Value
+                        </label>
+                        <pre className="text-sm bg-muted p-3 rounded overflow-x-auto">
+                          {formatValue(selectedEvent.newValue)}
+                        </pre>
+                      </div>
+                    )}
+
+                    {selectedEvent.action === AuditAction.DELETE && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Deleted Value
+                        </label>
+                        <pre className="text-sm bg-muted p-3 rounded overflow-x-auto">
+                          {formatValue(selectedEvent.oldValue)}
+                        </pre>
+                      </div>
+                    )}
+
+                    {selectedEvent.action === AuditAction.UPDATE &&
+                      selectedEvent.fieldName && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-muted-foreground">
+                              Old Value
+                            </label>
+                            <pre className="text-sm bg-muted p-3 rounded overflow-x-auto">
+                              {formatValue(selectedEvent.oldValue)}
+                            </pre>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium text-muted-foreground">
+                              New Value
+                            </label>
+                            <pre className="text-sm bg-muted p-3 rounded overflow-x-auto">
+                              {formatValue(selectedEvent.newValue)}
+                            </pre>
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                )}
+
+                {/* Metadata Section */}
+                {selectedEvent.metadata && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Metadata</h3>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Additional Context
+                      </label>
+                      <pre className="text-sm bg-muted p-4 rounded overflow-x-auto max-h-96">
+                        {JSON.stringify(selectedEvent.metadata, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }
