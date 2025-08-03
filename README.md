@@ -1,5 +1,8 @@
 # secad
 
+[![Test and coverage](https://github.com/quelixir/secad/actions/workflows/test-and-coverage.yml/badge.svg)](https://github.com/quelixir/secad/actions/workflows/test-and-coverage.yml)
+[![codecov](https://codecov.io/gh/quelixir/secad/graph/badge.svg?token=IAT35Eiu8B)](https://codecov.io/gh/quelixir/secad)
+
 secad (a corporate **sec**reterial and **ad**ministrative helper) is designed to be a comprehensive web application for managing backend corporate compliance.
 
 It is designed to help manage the following across multiple entities:
