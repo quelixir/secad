@@ -1,14 +1,17 @@
-import { createUploadthing, type FileRouter } from "uploadthing/next";
-import { UploadThingError } from "uploadthing/server";
-import { auth } from "@/lib/auth";
-import { getDocumentsAllowedFileTypes, getDocumentsMaxFileSizeMB } from "@/lib/config";
-import { 
-  validateFilename, 
-  isFileTypeAllowed, 
-  isFileSizeValid, 
+import { createUploadthing, type FileRouter } from 'uploadthing/next';
+import { UploadThingError } from 'uploadthing/server';
+import { auth } from '@/lib/auth';
+import {
+  getDocumentsAllowedFileTypes,
+  getDocumentsMaxFileSizeMB,
+} from '@/lib/config';
+import {
+  validateFilename,
+  isFileTypeAllowed,
+  isFileSizeValid,
   isMimeTypeValid,
-  getFileExtension 
-} from "@/lib/validation/file-validation";
+  getFileExtension,
+} from '@/lib/validation/file-validation';
 
 const f = createUploadthing();
 
@@ -28,13 +31,17 @@ const f = createUploadthing();
 // }
 
 // Enhanced file validation using our validation utility
-function validateUploadedFile(fileName: string, fileSize: number, mimeType?: string): { isValid: boolean; error?: string } {
+function validateUploadedFile(
+  fileName: string,
+  fileSize: number,
+  mimeType?: string
+): { isValid: boolean; error?: string } {
   // Validate filename
   const filenameValidation = validateFilename(fileName);
   if (!filenameValidation.isValid) {
     return {
       isValid: false,
-      error: `Invalid filename: ${filenameValidation.errors.join(', ')}`
+      error: `Invalid filename: ${filenameValidation.errors.join(', ')}`,
     };
   }
 
@@ -44,9 +51,13 @@ function validateUploadedFile(fileName: string, fileSize: number, mimeType?: str
     const allowedTypes = getDocumentsAllowedFileTypes();
     return {
       isValid: false,
-      error: extension 
-        ? `File type '${extension}' is not allowed. Allowed types: ${allowedTypes.join(', ')}`
-        : `Files without extensions are not allowed. Allowed types: ${allowedTypes.join(', ')}`
+      error: extension
+        ? `File type '${extension}' is not allowed. Allowed types: ${allowedTypes.join(
+            ', '
+          )}`
+        : `Files without extensions are not allowed. Allowed types: ${allowedTypes.join(
+            ', '
+          )}`,
     };
   }
 
@@ -56,7 +67,7 @@ function validateUploadedFile(fileName: string, fileSize: number, mimeType?: str
     const fileSizeMB = (fileSize / (1024 * 1024)).toFixed(2);
     return {
       isValid: false,
-      error: `File size (${fileSizeMB}MB) exceeds maximum allowed size (${maxSizeMB}MB)`
+      error: `File size (${fileSizeMB}MB) exceeds maximum allowed size (${maxSizeMB}MB)`,
     };
   }
 
@@ -64,7 +75,9 @@ function validateUploadedFile(fileName: string, fileSize: number, mimeType?: str
   if (mimeType && !isMimeTypeValid(fileName, mimeType)) {
     return {
       isValid: false,
-      error: `File MIME type '${mimeType}' does not match extension '${getFileExtension(fileName)}'`
+      error: `File MIME type '${mimeType}' does not match extension '${getFileExtension(
+        fileName
+      )}'`,
     };
   }
 
@@ -75,33 +88,37 @@ function validateUploadedFile(fileName: string, fileSize: number, mimeType?: str
 function getMaxFileSize() {
   const sizeMB = getDocumentsMaxFileSizeMB();
   // UploadThing expects specific size strings, so we'll use "32MB" as the max supported
-  if (sizeMB <= 1) return "1MB";
-  if (sizeMB <= 2) return "2MB";
-  if (sizeMB <= 4) return "4MB";
-  if (sizeMB <= 8) return "8MB";
-  if (sizeMB <= 16) return "16MB";
-  if (sizeMB <= 32) return "32MB";
-  if (sizeMB <= 64) return "64MB";
-  return "64MB"; // Max fallback
+  if (sizeMB <= 1) return '1MB';
+  if (sizeMB <= 2) return '2MB';
+  if (sizeMB <= 4) return '4MB';
+  if (sizeMB <= 8) return '8MB';
+  if (sizeMB <= 16) return '16MB';
+  if (sizeMB <= 32) return '32MB';
+  if (sizeMB <= 64) return '64MB';
+  return '64MB'; // Max fallback
 }
 
 export const ourFileRouter = {
   // Document uploader for the Documents module
   documentUploader: f({
-    "application/pdf": { maxFileSize: getMaxFileSize() },
-    "application/msword": { maxFileSize: getMaxFileSize() },
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": { maxFileSize: getMaxFileSize() },
-    "text/plain": { maxFileSize: getMaxFileSize() },
-    "application/rtf": { maxFileSize: getMaxFileSize() },
-    "image/jpeg": { maxFileSize: getMaxFileSize() },
-    "image/png": { maxFileSize: getMaxFileSize() },
-    "image/gif": { maxFileSize: getMaxFileSize() },
-    "image/webp": { maxFileSize: getMaxFileSize() },
-    "application/vnd.ms-excel": { maxFileSize: getMaxFileSize() },
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": { maxFileSize: getMaxFileSize() },
-    "text/csv": { maxFileSize: getMaxFileSize() },
-    "application/zip": { maxFileSize: getMaxFileSize() },
-    "application/x-rar-compressed": { maxFileSize: getMaxFileSize() },
+    'application/pdf': { maxFileSize: getMaxFileSize() },
+    'application/msword': { maxFileSize: getMaxFileSize() },
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
+      maxFileSize: getMaxFileSize(),
+    },
+    'text/plain': { maxFileSize: getMaxFileSize() },
+    'application/rtf': { maxFileSize: getMaxFileSize() },
+    'image/jpeg': { maxFileSize: getMaxFileSize() },
+    'image/png': { maxFileSize: getMaxFileSize() },
+    'image/gif': { maxFileSize: getMaxFileSize() },
+    'image/webp': { maxFileSize: getMaxFileSize() },
+    'application/vnd.ms-excel': { maxFileSize: getMaxFileSize() },
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
+      maxFileSize: getMaxFileSize(),
+    },
+    'text/csv': { maxFileSize: getMaxFileSize() },
+    'application/zip': { maxFileSize: getMaxFileSize() },
+    'application/x-rar-compressed': { maxFileSize: getMaxFileSize() },
   })
     .middleware(async ({ req }) => {
       // Get the current user session
@@ -110,7 +127,7 @@ export const ourFileRouter = {
       });
 
       if (!session?.user) {
-        throw new UploadThingError("Unauthorized");
+        throw new UploadThingError('Unauthorized');
       }
 
       // For now, just return the user ID - we'll handle entity validation in the UI
@@ -119,20 +136,17 @@ export const ourFileRouter = {
       };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      // Enhanced validation using our validation utility
-      const validation = validateUploadedFile(file.name, file.size, file.type);
-      
-      if (!validation.isValid) {
-        console.error("File validation failed:", validation.error);
-        throw new UploadThingError(validation.error || "File validation failed");
-      }
+      // file.name will be the CUID2 (no extension) since we renamed it in onBeforeUploadBegin
+      // We need to validate using the original filename, but we don't have access to it here
+      // So we'll do validation in the client before upload
 
-      console.log("File upload completed:", file.name);
+      console.log('File upload completed with CUID2 key:', file.name);
 
       // Return basic file info - we'll create the database record via tRPC
+      // The client will provide the original filename when creating the document record
       return {
-        fileName: file.name,
-        fileKey: file.key,
+        fileName: file.name, // This is the CUID2
+        fileKey: file.key, // This is also the CUID2
         fileSize: file.size,
         fileType: file.type,
         uploadedBy: metadata.userId,

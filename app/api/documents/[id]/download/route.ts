@@ -1,43 +1,30 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { DocumentService } from "@/lib/services/document-service";
-import { prisma } from "@/lib/db";
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { DocumentService } from '@/lib/services/document-service';
+import { prisma } from '@/lib/db';
 
 const documentService = new DocumentService();
 
-// GET /api/documents/[id]/download - Generate download URL for a document
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
+    // Get the current user session
     const session = await auth.api.getSession({
       headers: request.headers,
     });
 
     if (!session?.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const resolvedParams = await params;
-    const documentId = resolvedParams.id;
-
-    if (!documentId) {
-      return NextResponse.json(
-        { error: "Document ID is required" },
-        { status: 400 }
-      );
-    }
-
-    // Get document and check access
-    const document = await documentService.getDocumentById(documentId);
+    // Get the document
+    const document = await documentService.getDocumentById(params.id);
 
     if (!document) {
       return NextResponse.json(
-        { error: "Document not found" },
+        { error: 'Document not found' },
         { status: 404 }
       );
     }
@@ -51,36 +38,36 @@ export async function GET(
     });
 
     if (!access) {
-      return NextResponse.json(
-        { error: "Insufficient permissions for this entity" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Generate download URL
-    const downloadUrl = await documentService.generateDownloadUrl(document);
+    // Generate the direct download URL from the file provider
+    const downloadUrl = await documentService.generateDirectDownloadUrl(
+      document
+    );
 
-    // For direct download, redirect to the file URL
-    const redirect = request.nextUrl.searchParams.get("redirect");
-    if (redirect === "true") {
-      return NextResponse.redirect(downloadUrl);
+    // Fetch the file from UploadThing
+    const fileResponse = await fetch(downloadUrl);
+
+    if (!fileResponse.ok) {
+      return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
 
-    // Otherwise return the URL as JSON
-    return NextResponse.json({
-      success: true,
-      data: {
-        url: downloadUrl,
-        fileName: document.fileName,
-        fileSize: document.fileSize,
-        mimeType: document.mimeType,
+    // Get the file content
+    const fileBuffer = await fileResponse.arrayBuffer();
+
+    // Return the file with the correct filename in Content-Disposition header
+    return new NextResponse(fileBuffer, {
+      headers: {
+        'Content-Type': document.mimeType,
+        'Content-Disposition': `attachment; filename="${document.originalName}"`,
+        'Content-Length': document.fileSize.toString(),
       },
     });
-
   } catch (error) {
-    console.error("Document download error:", error);
+    console.error('Download error:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

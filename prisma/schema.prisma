@@ -402,12 +402,12 @@ model DocumentFolder {
 model Document {
   id          String   @id @default(cuid(2))
   entityId    String   
-  fileName    String
-  originalName String
+  fileName    String   // Display name (original filename)
+  originalName String  // Original filename for downloads
   fileSize    Int      // in bytes
   mimeType    String
-  fileUrl     String   // Provider-specific URL
-  uploadKey   String   // Provider-specific key for deletion
+  fileUrl     String   // Provider-specific URL (not used for downloads)
+  uploadKey   String   // CUID2 without extension - used as filename in storage
   
   // Organization
   folderId    String?  // NULL for root level

@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/db";
-import { getFileProvider } from "@/lib/file-providers";
-import { getDocumentsAllowedFileTypes } from "@/lib/config";
-import type { Document, DocumentFolder } from "@/lib/generated/prisma";
+import { prisma } from '@/lib/db';
+import { getFileProvider } from '@/lib/file-providers';
+import { getDocumentsAllowedFileTypes } from '@/lib/config';
+import type { Document, DocumentFolder } from '@/lib/generated/prisma';
 
 export interface CreateDocumentData {
   entityId: string;
@@ -54,7 +54,7 @@ export class DocumentService {
         folderId: folderId || null,
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
     });
   }
@@ -66,8 +66,10 @@ export class DocumentService {
   }
 
   async updateDocument(
-    id: string, 
-    data: Partial<Pick<Document, "fileName" | "description" | "tags" | "folderId">>
+    id: string,
+    data: Partial<
+      Pick<Document, 'fileName' | 'description' | 'tags' | 'folderId'>
+    >
   ): Promise<Document> {
     return await prisma.document.update({
       where: { id },
@@ -81,7 +83,7 @@ export class DocumentService {
   async deleteDocument(id: string): Promise<void> {
     const document = await this.getDocumentById(id);
     if (!document) {
-      throw new Error("Document not found");
+      throw new Error('Document not found');
     }
 
     // Delete from file provider
@@ -103,7 +105,7 @@ export class DocumentService {
   }
 
   async searchDocuments(
-    entityId: string, 
+    entityId: string,
     query: string,
     folderId?: string
   ): Promise<Document[]> {
@@ -112,14 +114,14 @@ export class DocumentService {
         entityId,
         folderId: folderId || null,
         OR: [
-          { fileName: { contains: query, mode: "insensitive" } },
-          { originalName: { contains: query, mode: "insensitive" } },
-          { description: { contains: query, mode: "insensitive" } },
+          { fileName: { contains: query, mode: 'insensitive' } },
+          { originalName: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
           { tags: { has: query } },
         ],
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
     });
   }
@@ -136,7 +138,9 @@ export class DocumentService {
     });
 
     if (existing) {
-      throw new Error("A folder with this name already exists in this location");
+      throw new Error(
+        'A folder with this name already exists in this location'
+      );
     }
 
     return await prisma.documentFolder.create({
@@ -150,14 +154,17 @@ export class DocumentService {
     });
   }
 
-  async getFolders(entityId: string, parentId?: string): Promise<DocumentFolder[]> {
+  async getFolders(
+    entityId: string,
+    parentId?: string
+  ): Promise<DocumentFolder[]> {
     return await prisma.documentFolder.findMany({
       where: {
         entityId,
         parentId: parentId || null,
       },
       orderBy: {
-        name: "asc",
+        name: 'asc',
       },
     });
   }
@@ -169,8 +176,8 @@ export class DocumentService {
   }
 
   async updateFolder(
-    id: string, 
-    data: Partial<Pick<DocumentFolder, "name" | "description">>
+    id: string,
+    data: Partial<Pick<DocumentFolder, 'name' | 'description'>>
   ): Promise<DocumentFolder> {
     return await prisma.documentFolder.update({
       where: { id },
@@ -189,7 +196,9 @@ export class DocumentService {
     ]);
 
     if (documents.length > 0 || subfolders.length > 0) {
-      throw new Error("Cannot delete folder that contains documents or subfolders");
+      throw new Error(
+        'Cannot delete folder that contains documents or subfolders'
+      );
     }
 
     await prisma.documentFolder.delete({
@@ -197,15 +206,18 @@ export class DocumentService {
     });
   }
 
-  async moveFolder(id: string, targetParentId?: string): Promise<DocumentFolder> {
+  async moveFolder(
+    id: string,
+    targetParentId?: string
+  ): Promise<DocumentFolder> {
     const folder = await this.getFolderById(id);
     if (!folder) {
-      throw new Error("Folder not found");
+      throw new Error('Folder not found');
     }
 
     // Prevent moving folder into itself or its descendants
-    if (targetParentId && await this.isDescendantFolder(id, targetParentId)) {
-      throw new Error("Cannot move folder into itself or its descendants");
+    if (targetParentId && (await this.isDescendantFolder(id, targetParentId))) {
+      throw new Error('Cannot move folder into itself or its descendants');
     }
 
     return await prisma.documentFolder.update({
@@ -220,36 +232,42 @@ export class DocumentService {
   async getFolderHierarchy(entityId: string): Promise<DocumentFolder[]> {
     return await prisma.documentFolder.findMany({
       where: { entityId },
-      orderBy: [
-        { parentId: "asc" },
-        { name: "asc" },
-      ],
+      orderBy: [{ parentId: 'asc' }, { name: 'asc' }],
     });
   }
 
   // Utility methods
-  async isDescendantFolder(ancestorId: string, descendantId: string): Promise<boolean> {
+  async isDescendantFolder(
+    ancestorId: string,
+    descendantId: string
+  ): Promise<boolean> {
     const descendant = await this.getFolderById(descendantId);
     if (!descendant) return false;
-    
+
     if (descendant.parentId === ancestorId) return true;
     if (!descendant.parentId) return false;
-    
+
     return await this.isDescendantFolder(ancestorId, descendant.parentId);
   }
 
   async validateFileType(fileName: string): Promise<boolean> {
     const allowedTypes = getDocumentsAllowedFileTypes();
     const fileExtension = fileName.split('.').pop()?.toLowerCase();
-    
+
     if (!fileExtension) {
       return false;
     }
-    
+
     return allowedTypes.includes(fileExtension);
   }
 
   async generateDownloadUrl(document: Document): Promise<string> {
+    // Return our custom download endpoint that will serve the file with the correct filename
+    return `/api/documents/${document.id}/download`;
+  }
+
+  async generateDirectDownloadUrl(document: Document): Promise<string> {
+    // This method is used internally by the download endpoint to get the actual file URL
     return await this.fileProvider.generateDownloadUrl(document.uploadKey);
   }
 

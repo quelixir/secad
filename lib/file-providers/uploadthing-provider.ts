@@ -1,10 +1,10 @@
-import { UTApi } from "uploadthing/server";
-import { 
-  FileProvider, 
-  FileMetadata, 
-  PresignedUrlResponse, 
-  FileProviderType 
-} from "./types";
+import { UTApi } from 'uploadthing/server';
+import {
+  FileProvider,
+  FileMetadata,
+  PresignedUrlResponse,
+  FileProviderType,
+} from './types';
 
 export class UploadThingProvider implements FileProvider {
   private utapi: UTApi;
@@ -16,21 +16,23 @@ export class UploadThingProvider implements FileProvider {
   }
 
   async generatePresignedUrl(
-    key: string, 
-    contentType: string, 
+    key: string,
+    contentType: string,
     metadata?: Record<string, string>
   ): Promise<PresignedUrlResponse> {
     // Note: UploadThing doesn't use traditional presigned URLs
     // This is a placeholder for interface compatibility
     // In practice, we'll use the UploadThing React components for uploads
-    throw new Error("UploadThing uses component-based uploads, not presigned URLs");
+    throw new Error(
+      'UploadThing uses component-based uploads, not presigned URLs'
+    );
   }
 
   async confirmUpload(key: string): Promise<FileMetadata> {
     try {
       const fileData = await this.utapi.getFileUrls([key]);
       const fileUrl = fileData.data[0];
-      
+
       if (!fileUrl) {
         throw new Error(`File not found: ${key}`);
       }
@@ -40,7 +42,7 @@ export class UploadThingProvider implements FileProvider {
       return {
         key,
         size: 0, // Will be populated from upload response
-        contentType: "application/octet-stream", // Will be populated from upload response
+        contentType: 'application/octet-stream', // Will be populated from upload response
         url: fileUrl.url,
       };
     } catch (error) {
@@ -52,12 +54,14 @@ export class UploadThingProvider implements FileProvider {
     try {
       const fileData = await this.utapi.getFileUrls([key]);
       const fileUrl = fileData.data[0];
-      
+
       if (!fileUrl) {
         throw new Error(`File not found: ${key}`);
       }
 
       // UploadThing URLs are already public and long-lived
+      // Note: The actual filename will be set by the download endpoint
+      // which will use the document's originalName for Content-Disposition
       return fileUrl.url;
     } catch (error) {
       throw new Error(`Failed to generate download URL: ${error}`);
@@ -76,7 +80,7 @@ export class UploadThingProvider implements FileProvider {
     try {
       const fileData = await this.utapi.getFileUrls([key]);
       const fileUrl = fileData.data[0];
-      
+
       if (!fileUrl) {
         throw new Error(`File not found: ${key}`);
       }
@@ -85,7 +89,7 @@ export class UploadThingProvider implements FileProvider {
       return {
         key,
         size: 0, // Not available from UploadThing API
-        contentType: "application/octet-stream", // Not available from UploadThing API
+        contentType: 'application/octet-stream', // Not available from UploadThing API
         url: fileUrl.url,
       };
     } catch (error) {

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { UploadDropzone } from "@uploadthing/react";
+import { createId } from "@paralleldrive/cuid2";
 import {
   Card,
   CardContent,
@@ -39,13 +40,14 @@ export function FileUpload({ open, onOpenChange, selectedFolder }: FileUploadPro
   const createDocument = useCreateDocument();
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
-  const { 
-    validationResults, 
-    globalErrors, 
-    validateMultipleFiles, 
+  const [fileMapping, setFileMapping] = useState<Map<string, string>>(new Map()); // CUID2 -> original filename
+  const {
+    validationResults,
+    globalErrors,
+    validateMultipleFiles,
     clearValidationResults,
     getValidFiles,
-    hasValidationErrors 
+    hasValidationErrors
   } = useFileValidation();
 
   const handleUploadComplete = async (res: any) => {
@@ -56,22 +58,27 @@ export function FileUpload({ open, onOpenChange, selectedFolder }: FileUploadPro
 
     try {
       setUploading(true);
-      
+
       // Create document records for each uploaded file
       for (const file of res) {
+        const originalName = fileMapping.get(file.fileName) || file.fileName;
+
         await createDocument.mutateAsync({
           entityId: selectedEntity.id,
-          fileName: file.name,
-          originalName: file.name,
+          fileName: originalName, // Use the original filename for display
+          originalName: originalName,
           fileSize: file.size,
           mimeType: file.type || "application/octet-stream",
           fileUrl: file.url,
-          uploadKey: file.key,
+          uploadKey: file.key, // This will be the CUID2 without extension
           folderId: selectedFolder || undefined,
         });
       }
 
-      setUploadedFiles(res);
+      setUploadedFiles(res.map((file: unknown) => ({
+        ...file,
+        originalName: fileMapping.get(file.fileName) || file.fileName
+      })));
       toast.success(`${res.length} file(s) uploaded successfully`);
     } catch (error) {
       handleUploadError(
@@ -99,6 +106,7 @@ export function FileUpload({ open, onOpenChange, selectedFolder }: FileUploadPro
 
   const handleClose = () => {
     setUploadedFiles([]);
+    setFileMapping(new Map());
     clearValidationResults();
     onOpenChange(false);
   };
@@ -142,7 +150,19 @@ export function FileUpload({ open, onOpenChange, selectedFolder }: FileUploadPro
                         // Return empty array to prevent upload
                         return [];
                       }
-                      return files;
+
+                      // Generate CUID2 for each file and store mapping
+                      const newMapping = new Map(fileMapping);
+                      const renamedFiles = files.map((file) => {
+                        const documentId = createId();
+                        // Store mapping from CUID2 to original filename
+                        newMapping.set(documentId, file.name);
+                        // Use CUID2 as filename without extension
+                        return new File([file], documentId, { type: file.type });
+                      });
+
+                      setFileMapping(newMapping);
+                      return renamedFiles;
                     } catch (error) {
                       handleValidationError(
                         error instanceof Error ? error : new Error(String(error)),
@@ -168,12 +188,12 @@ export function FileUpload({ open, onOpenChange, selectedFolder }: FileUploadPro
                   <CheckCircle className="h-5 w-5" />
                   <span className="font-medium">Upload Complete!</span>
                 </div>
-                
+
                 <div className="space-y-2">
                   {uploadedFiles.map((file, index) => (
                     <div key={index} className="flex items-center gap-2 text-sm">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span>{file.name}</span>
+                      <span>{file.originalName || file.name}</span>
                       <span className="text-muted-foreground">
                         ({formatFileSize(file.size)})
                       </span>
@@ -185,7 +205,10 @@ export function FileUpload({ open, onOpenChange, selectedFolder }: FileUploadPro
                   <Button variant="outline" onClick={handleClose}>
                     Done
                   </Button>
-                  <Button onClick={() => setUploadedFiles([])}>
+                  <Button onClick={() => {
+                    setUploadedFiles([]);
+                    setFileMapping(new Map());
+                  }}>
                     Upload More Files
                   </Button>
                 </div>
