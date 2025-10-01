@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { DocumentService } from '@/lib/services/document-service';
-import { prisma } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { DocumentService } from "@/lib/services/document-service";
+import { prisma } from "@/lib/db";
 
 const documentService = new DocumentService();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get the current user session
@@ -16,15 +16,17 @@ export async function GET(
     });
 
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const resolvedParams = await params;
+
     // Get the document
-    const document = await documentService.getDocumentById(params.id);
+    const document = await documentService.getDocumentById(resolvedParams.id);
 
     if (!document) {
       return NextResponse.json(
-        { error: 'Document not found' },
+        { error: "Document not found" },
         { status: 404 }
       );
     }
@@ -38,7 +40,7 @@ export async function GET(
     });
 
     if (!access) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     // Generate the direct download URL from the file provider
@@ -50,7 +52,7 @@ export async function GET(
     const fileResponse = await fetch(downloadUrl);
 
     if (!fileResponse.ok) {
-      return NextResponse.json({ error: 'File not found' }, { status: 404 });
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
     // Get the file content
@@ -59,15 +61,15 @@ export async function GET(
     // Return the file with the correct filename in Content-Disposition header
     return new NextResponse(fileBuffer, {
       headers: {
-        'Content-Type': document.mimeType,
-        'Content-Disposition': `attachment; filename="${document.originalName}"`,
-        'Content-Length': document.fileSize.toString(),
+        "Content-Type": document.mimeType,
+        "Content-Disposition": `attachment; filename="${document.originalName}"`,
+        "Content-Length": document.fileSize.toString(),
       },
     });
   } catch (error) {
-    console.error('Download error:', error);
+    console.error("Download error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
