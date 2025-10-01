@@ -11,10 +11,6 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: false, // Keep this false for type safety
   },
-  experimental: {
-    // Enable Node.js runtime support for middleware
-    nodeMiddleware: true,
-  },
 };
 
 export default nextConfig;
