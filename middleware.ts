@@ -34,4 +34,5 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: ["/", "/((?!_next|api|static|favicon.ico).*)"],
+  runtime: "nodejs", // Force Node.js runtime instead of Edge Runtime
 };
