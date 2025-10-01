@@ -28,6 +28,11 @@ describe("CertificateNumberingService", () => {
 
   describe("generateCertificateNumber", () => {
     it("should generate certificate number with default format", async () => {
+      // Suppress expected info messages from certificate number generation
+      const consoleSpy = jest
+        .spyOn(console, "info")
+        .mockImplementation(() => {});
+
       const config: CertificateNumberingConfig = {
         entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
@@ -40,7 +45,7 @@ describe("CertificateNumberingService", () => {
 
       const result = await service.generateCertificateNumber(
         config,
-        "uqyyk4cgkd26vmyca2kw8bhq",
+        "uqyyk4cgkd26vmyca2kw8bhq"
       );
 
       expect(result.success).toBe(true);
@@ -49,6 +54,9 @@ describe("CertificateNumberingService", () => {
       expect(result.data?.sequence).toBe(1);
       expect(result.data?.entityId).toBe("d5vaqv2ed5pb3gulopy9z5ao");
       expect(result.data?.generatedBy).toBe("uqyyk4cgkd26vmyca2kw8bhq");
+
+      // Restore console.info
+      consoleSpy.mockRestore();
     });
 
     it("should generate certificate number with custom format", async () => {
@@ -71,6 +79,11 @@ describe("CertificateNumberingService", () => {
     });
 
     it("should increment sequence number for existing certificates", async () => {
+      // Suppress expected info messages from certificate number generation
+      const consoleSpy = jest
+        .spyOn(console, "info")
+        .mockImplementation(() => {});
+
       const config: CertificateNumberingConfig = {
         entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
@@ -94,6 +107,9 @@ describe("CertificateNumberingService", () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.sequence).toBe(2);
+
+      // Restore console.info
+      consoleSpy.mockRestore();
     });
 
     it("should handle year rollover correctly", async () => {
@@ -147,7 +163,7 @@ describe("CertificateNumberingService", () => {
       };
 
       mockTransaction.mockRejectedValue(
-        new Error("Database connection failed"),
+        new Error("Database connection failed")
       );
 
       const result = await service.generateCertificateNumber(config);
@@ -158,7 +174,7 @@ describe("CertificateNumberingService", () => {
       // Verify that the error was logged
       expect(console.error).toHaveBeenCalledWith(
         "Error generating certificate number:",
-        expect.any(Error),
+        expect.any(Error)
       );
 
       // Restore console.error
@@ -220,6 +236,11 @@ describe("CertificateNumberingService", () => {
 
   describe("resolveConflict", () => {
     it("should resolve conflicts by generating new number", async () => {
+      // Suppress expected warning messages from conflict resolution
+      const consoleSpy = jest
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
+
       const config: CertificateNumberingConfig = {
         entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
@@ -239,14 +260,22 @@ describe("CertificateNumberingService", () => {
         "d5vaqv2ed5pb3gulopy9z5ao",
         2024,
         "2024-0001",
-        "uqyyk4cgkd26vmyca2kw8bhq",
+        "uqyyk4cgkd26vmyca2kw8bhq"
       );
 
       expect(result.success).toBe(true);
       expect(result.data?.certificateNumber).toBe("2024-0002");
+
+      // Restore console.warn
+      consoleSpy.mockRestore();
     });
 
     it("should fail after multiple conflict attempts", async () => {
+      // Suppress expected warning messages from conflict resolution
+      const consoleSpy = jest
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
+
       const config: CertificateNumberingConfig = {
         entityId: "d5vaqv2ed5pb3gulopy9z5ao",
         year: 2024,
@@ -261,13 +290,16 @@ describe("CertificateNumberingService", () => {
         "d5vaqv2ed5pb3gulopy9z5ao",
         2024,
         "2024-0001",
-        "uqyyk4cgkd26vmyca2kw8bhq",
+        "uqyyk4cgkd26vmyca2kw8bhq"
       );
 
       expect(result.success).toBe(false);
       expect(result.error).toBe(
-        "Failed to resolve certificate number conflict after multiple attempts",
+        "Failed to resolve certificate number conflict after multiple attempts"
       );
+
+      // Restore console.warn
+      consoleSpy.mockRestore();
     });
   });
 
@@ -303,10 +335,10 @@ describe("CertificateNumberingService", () => {
       service.clearCache("d5vaqv2ed5pb3gulopy9z5ao");
 
       expect((service as any).cache.has("d5vaqv2ed5pb3gulopy9z5ao-2024")).toBe(
-        false,
+        false
       );
       expect((service as any).cache.has("d5vaqv2ed5pb3gulopy9z5ao-2025")).toBe(
-        false,
+        false
       );
       expect((service as any).cache.has("entity-456-2024")).toBe(true); // Should remain
     });
@@ -344,7 +376,7 @@ describe("CertificateNumberingService", () => {
         2024,
         1,
         "CERT",
-        "",
+        ""
       );
 
       expect(result).toBe("CERT-2024-0001");
@@ -356,7 +388,7 @@ describe("CertificateNumberingService", () => {
         2024,
         1,
         "CUSTOM",
-        "",
+        ""
       );
 
       expect(result).toBe("CERT-2024-0001-CUSTOM");
@@ -368,7 +400,7 @@ describe("CertificateNumberingService", () => {
         2024,
         1,
         "CERT",
-        "SUFFIX",
+        "SUFFIX"
       );
 
       expect(result).toBe("CERT-2024-0001-SUFFIX");
@@ -379,7 +411,7 @@ describe("CertificateNumberingService", () => {
     it("should extract sequence from year-number format", () => {
       const result = (service as any).extractSequenceFromNumber(
         "2024-0001",
-        2024,
+        2024
       );
       expect(result).toBe(1);
     });
@@ -387,7 +419,7 @@ describe("CertificateNumberingService", () => {
     it("should extract sequence from cert-year-number format", () => {
       const result = (service as any).extractSequenceFromNumber(
         "CERT-2024-0001",
-        2024,
+        2024
       );
       expect(result).toBe(1);
     });
@@ -395,7 +427,7 @@ describe("CertificateNumberingService", () => {
     it("should extract sequence from number-year format", () => {
       const result = (service as any).extractSequenceFromNumber(
         "0001-2024",
-        2024,
+        2024
       );
       expect(result).toBe(1);
     });
@@ -403,7 +435,7 @@ describe("CertificateNumberingService", () => {
     it("should fallback to 1 for unrecognized format", () => {
       const result = (service as any).extractSequenceFromNumber(
         "UNKNOWN-FORMAT",
-        2024,
+        2024
       );
       expect(result).toBe(1);
     });
@@ -413,7 +445,7 @@ describe("CertificateNumberingService", () => {
     it("should validate correct certificate number", () => {
       const result = (service as any).validateCertificateNumber(
         "2024-0001",
-        "{YEAR}-{SEQUENTIAL_NUMBER}",
+        "{YEAR}-{SEQUENTIAL_NUMBER}"
       );
       expect(result).toBe(true);
     });
@@ -421,7 +453,7 @@ describe("CertificateNumberingService", () => {
     it("should reject empty certificate number", () => {
       const result = (service as any).validateCertificateNumber(
         "",
-        "{YEAR}-{SEQUENTIAL_NUMBER}",
+        "{YEAR}-{SEQUENTIAL_NUMBER}"
       );
       expect(result).toBe(false);
     });
@@ -429,7 +461,7 @@ describe("CertificateNumberingService", () => {
     it("should reject certificate number without year", () => {
       const result = (service as any).validateCertificateNumber(
         "0001",
-        "{YEAR}-{SEQUENTIAL_NUMBER}",
+        "{YEAR}-{SEQUENTIAL_NUMBER}"
       );
       expect(result).toBe(false); // "0001" doesn't contain a 4-digit year
     });
@@ -437,7 +469,7 @@ describe("CertificateNumberingService", () => {
     it("should reject certificate number without sequence", () => {
       const result = (service as any).validateCertificateNumber(
         "2024",
-        "{YEAR}-{SEQUENTIAL_NUMBER}",
+        "{YEAR}-{SEQUENTIAL_NUMBER}"
       );
       expect(result).toBe(false); // "2024" doesn't contain a separate sequence number
     });
