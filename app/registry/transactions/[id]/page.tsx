@@ -80,7 +80,7 @@ export default function ViewTransactionPage() {
       try {
         setLoading(true);
         const response = await fetch(
-          `/api/registry/transactions/${params?.id}`,
+          `/api/registry/transactions/${params?.id}`
         );
         const result = await response.json();
 
@@ -149,7 +149,7 @@ export default function ViewTransactionPage() {
     if (!amount) return "N/A";
     return `$${parseFloat(amount).toLocaleString(
       getLocale(),
-      getLocaleOptions(),
+      getLocaleOptions()
     )}`;
   };
 
@@ -194,7 +194,7 @@ export default function ViewTransactionPage() {
         `/api/registry/transactions/${transaction.id}`,
         {
           method: "DELETE",
-        },
+        }
       );
 
       const result = await response.json();
@@ -213,7 +213,7 @@ export default function ViewTransactionPage() {
   };
 
   const handleGenerateCertificate = async (
-    options: CertificateGenerationOptions,
+    options: CertificateGenerationOptions
   ): Promise<{ progressId?: string; success: boolean; error?: string }> => {
     if (!transaction || !user) {
       return {
@@ -244,7 +244,7 @@ export default function ViewTransactionPage() {
             customFields: options.customFields,
             userId: user?.id || "anonymous",
           }),
-        },
+        }
       );
 
       const result = await response.json();
@@ -256,11 +256,89 @@ export default function ViewTransactionPage() {
         };
       }
 
-      // Return success with progress ID if available
-      return {
-        success: true,
-        progressId: result.data?.progressId,
-      };
+      // Immediately trigger download/open after successful generation
+      try {
+        const downloadResponse = await fetch(
+          `/api/certificates/${transaction.id}/download`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              transactionId: transaction.id,
+              templateId: options.templateId,
+              format: options.format,
+              certificateNumber: options.certificateNumber,
+              issueDate: options.issueDate.toISOString(),
+              includeWatermark: options.includeWatermark,
+              includeQRCode: options.includeQRCode,
+              customFields: options.customFields,
+              userId: user.id,
+            }),
+          }
+        );
+
+        if (!downloadResponse.ok) {
+          const err = await downloadResponse.json().catch(() => ({} as any));
+          return {
+            success: false,
+            error: err?.error || "Failed to download certificate",
+          };
+        }
+
+        const blob = await downloadResponse.blob();
+        const contentDisposition = downloadResponse.headers.get(
+          "Content-Disposition"
+        );
+        const contentType =
+          downloadResponse.headers.get("Content-Type") || "application/pdf";
+
+        // Try to extract filename from Content-Disposition
+        let filename =
+          (contentDisposition &&
+            /filename="?([^";]+)"?/i.exec(contentDisposition)?.[1]) ||
+          `certificate.${options.format.toLowerCase()}`;
+
+        const objectUrl = window.URL.createObjectURL(blob);
+
+        if (contentType.includes("pdf")) {
+          // Open PDFs in a new tab if possible
+          const newWindow = window.open(objectUrl, "_blank");
+          if (!newWindow) {
+            // Fallback to download if pop-up blocked
+            const linkEl = window.document.createElement("a");
+            linkEl.href = objectUrl;
+            linkEl.download = filename;
+            window.document.body.appendChild(linkEl);
+            linkEl.click();
+            window.document.body.removeChild(linkEl);
+          }
+        } else {
+          // For non-PDF formats, trigger download
+          const linkEl = window.document.createElement("a");
+          linkEl.href = objectUrl;
+          linkEl.download = filename;
+          window.document.body.appendChild(linkEl);
+          linkEl.click();
+          window.document.body.removeChild(linkEl);
+        }
+
+        // Revoke URL after a short delay to free memory
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+      } catch (downloadError) {
+        console.error("Certificate download error:", downloadError);
+        return {
+          success: false,
+          error:
+            downloadError instanceof Error
+              ? downloadError.message
+              : "Failed to initiate certificate download",
+        };
+      }
+
+      // Return success; progressId not currently used by UI
+      return { success: true };
     } catch (error) {
       console.error("Error generating certificate:", error);
       return {
@@ -362,8 +440,8 @@ export default function ViewTransactionPage() {
                 transaction.status === TransactionStatus.COMPLETED
                   ? "bg-green-100"
                   : transaction.status === TransactionStatus.PENDING
-                    ? "bg-yellow-100"
-                    : "bg-red-100"
+                  ? "bg-yellow-100"
+                  : "bg-red-100"
               }
             >
               {transaction.status}
@@ -464,7 +542,7 @@ export default function ViewTransactionPage() {
               <div className="text-2xl font-bold">
                 {transaction.quantity.toLocaleString(
                   getLocale(),
-                  getLocaleOptions(),
+                  getLocaleOptions()
                 )}{" "}
                 {transaction.securityClass?.symbol && (
                   <span className="text-sm text-muted-foreground font-medium">
@@ -485,7 +563,7 @@ export default function ViewTransactionPage() {
             <CardContent className="pt-0">
               {(() => {
                 const pricePerSecurity = Number(
-                  transaction.amountPaidPerSecurity,
+                  transaction.amountPaidPerSecurity
                 );
                 const currencyCode =
                   transaction.currencyCode ||
@@ -506,7 +584,7 @@ export default function ViewTransactionPage() {
                         ${pricePerSecurity.toFixed(2)} ({currencyCode}) &times;{" "}
                         {transaction.quantity.toLocaleString(
                           getLocale(),
-                          getLocaleOptions(),
+                          getLocaleOptions()
                         )}{" "}
                         {securitySymbol}
                       </div>
@@ -634,7 +712,7 @@ export default function ViewTransactionPage() {
                   <p className="text-sm font-mono">
                     {transaction.quantity.toLocaleString(
                       getLocale(),
-                      getLocaleOptions(),
+                      getLocaleOptions()
                     )}
                   </p>
                 </div>
@@ -649,8 +727,8 @@ export default function ViewTransactionPage() {
                         transaction.status === TransactionStatus.COMPLETED
                           ? "bg-green-100"
                           : transaction.status === TransactionStatus.PENDING
-                            ? "bg-yellow-100"
-                            : "bg-red-100"
+                          ? "bg-yellow-100"
+                          : "bg-red-100"
                       }
                     >
                       {transaction.status}
@@ -680,7 +758,7 @@ export default function ViewTransactionPage() {
                         </label>
                         <p className="text-sm font-mono">
                           {formatCurrency(
-                            transaction.amountPaidPerSecurity.toString(),
+                            transaction.amountPaidPerSecurity.toString()
                           )}
                         </p>
                       </div>
@@ -693,7 +771,7 @@ export default function ViewTransactionPage() {
                             (
                               transaction.amountPaidPerSecurity *
                               transaction.quantity
-                            ).toString(),
+                            ).toString()
                           )}
                         </p>
                       </div>
@@ -708,7 +786,7 @@ export default function ViewTransactionPage() {
                         </label>
                         <p className="text-sm font-mono">
                           {formatCurrency(
-                            transaction.amountUnpaidPerSecurity.toString(),
+                            transaction.amountUnpaidPerSecurity.toString()
                           )}
                         </p>
                       </div>
@@ -721,7 +799,7 @@ export default function ViewTransactionPage() {
                             (
                               transaction.amountUnpaidPerSecurity *
                               transaction.quantity
-                            ).toString(),
+                            ).toString()
                           )}
                         </p>
                       </div>
@@ -737,7 +815,7 @@ export default function ViewTransactionPage() {
                       </label>
                       <p className="text-sm font-mono">
                         {formatCurrency(
-                          transaction.amountPaidPerSecurity.toString(),
+                          transaction.amountPaidPerSecurity.toString()
                         )}
                       </p>
                     </div>
@@ -750,7 +828,7 @@ export default function ViewTransactionPage() {
                           (
                             transaction.amountPaidPerSecurity *
                             transaction.quantity
-                          ).toString(),
+                          ).toString()
                         )}
                       </p>
                     </div>
@@ -833,8 +911,8 @@ export default function ViewTransactionPage() {
               transaction.toMember
                 ? formatMemberName(transaction.toMember)
                 : transaction.fromMember
-                  ? formatMemberName(transaction.fromMember)
-                  : "Unknown Member"
+                ? formatMemberName(transaction.fromMember)
+                : "Unknown Member"
             }
             securityClass={
               transaction.securityClass?.name || "Unknown Security Class"
