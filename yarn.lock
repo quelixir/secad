@@ -3239,14 +3239,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trpc/next@npm:^11.4.3":
-  version: 11.4.3
-  resolution: "@trpc/next@npm:11.4.3"
+"@trpc/next@npm:^11.6.0":
+  version: 11.6.0
+  resolution: "@trpc/next@npm:11.6.0"
   peerDependencies:
     "@tanstack/react-query": ^5.59.15
-    "@trpc/client": 11.4.3
-    "@trpc/react-query": 11.4.3
-    "@trpc/server": 11.4.3
+    "@trpc/client": 11.6.0
+    "@trpc/react-query": 11.6.0
+    "@trpc/server": 11.6.0
     next: "*"
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
@@ -3256,7 +3256,7 @@ __metadata:
       optional: true
     "@trpc/react-query":
       optional: true
-  checksum: e70e01ee25cd1c8c4e37c6221cff080e437eeed644131f1ec18dcf484a9ccbd8bc2df2b29a80e50e81588660a4f929a4db6be42e99742d8b77d5a86054ac6f61
+  checksum: 8f6928b8e860296bac8ae4f703152a9ab0146c54f17a3882a621a4addbcfeae8f543f2fb1db6587cc0f63458ece5991189d917512b9fb736599c53e091fa21e5
   languageName: node
   linkType: hard
 
@@ -10013,7 +10013,7 @@ __metadata:
     "@testing-library/react": ^16.3.0
     "@testing-library/user-event": ^14.6.1
     "@trpc/client": ^11.4.3
-    "@trpc/next": ^11.4.3
+    "@trpc/next": ^11.6.0
     "@trpc/react-query": ^11.4.3
     "@trpc/server": ^11.4.3
     "@types/bcrypt": ^6.0.0
