@@ -3274,12 +3274,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trpc/server@npm:^11.4.3":
-  version: 11.4.3
-  resolution: "@trpc/server@npm:11.4.3"
+"@trpc/server@npm:^11.7.0":
+  version: 11.7.0
+  resolution: "@trpc/server@npm:11.7.0"
   peerDependencies:
     typescript: ">=5.7.2"
-  checksum: b04848c20863ec87d16dcbd30d6b0d9ae75381813a07957443d70651432bd9adcc02e0e69e6e8740ad1521ffbd72adb7f5e60151ffb1b074830c881d7e8e6fde
+  checksum: 51fec7f08026cf5838a78ee28878fdebc36e740a19fc53ce3f80c9b9947b53c51d2f764daf4d6cc272c914cda224b8d69e094e08e8ce057396e1dbbfbbfa38a5
   languageName: node
   linkType: hard
 
@@ -10015,7 +10015,7 @@ __metadata:
     "@trpc/client": ^11.4.3
     "@trpc/next": ^11.6.0
     "@trpc/react-query": ^11.4.3
-    "@trpc/server": ^11.4.3
+    "@trpc/server": ^11.7.0
     "@types/bcrypt": ^6.0.0
     "@types/jest": ^30.0.0
     "@types/node": ^20
