@@ -2615,6 +2615,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@radix-ui/react-roving-focus@npm:1.1.11":
+  version: 1.1.11
+  resolution: "@radix-ui/react-roving-focus@npm:1.1.11"
+  dependencies:
+    "@radix-ui/primitive": 1.1.3
+    "@radix-ui/react-collection": 1.1.7
+    "@radix-ui/react-compose-refs": 1.1.2
+    "@radix-ui/react-context": 1.1.2
+    "@radix-ui/react-direction": 1.1.1
+    "@radix-ui/react-id": 1.1.1
+    "@radix-ui/react-primitive": 2.1.3
+    "@radix-ui/react-use-callback-ref": 1.1.1
+    "@radix-ui/react-use-controllable-state": 1.2.2
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 62af05c244803359c36beea278dac89caee37d20c31b84bcba3a20c462df33b7395c2e1b08b3a8ebb471c29cec4b3fb4f97488b6a167b1b275cedf994cf436e6
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-select@npm:^2.2.5":
   version: 2.2.5
   resolution: "@radix-ui/react-select@npm:2.2.5"
@@ -2713,18 +2740,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-tabs@npm:^1.1.12":
-  version: 1.1.12
-  resolution: "@radix-ui/react-tabs@npm:1.1.12"
+"@radix-ui/react-tabs@npm:^1.1.13":
+  version: 1.1.13
+  resolution: "@radix-ui/react-tabs@npm:1.1.13"
   dependencies:
-    "@radix-ui/primitive": "npm:1.1.2"
-    "@radix-ui/react-context": "npm:1.1.2"
-    "@radix-ui/react-direction": "npm:1.1.1"
-    "@radix-ui/react-id": "npm:1.1.1"
-    "@radix-ui/react-presence": "npm:1.1.4"
-    "@radix-ui/react-primitive": "npm:2.1.3"
-    "@radix-ui/react-roving-focus": "npm:1.1.10"
-    "@radix-ui/react-use-controllable-state": "npm:1.2.2"
+    "@radix-ui/primitive": 1.1.3
+    "@radix-ui/react-context": 1.1.2
+    "@radix-ui/react-direction": 1.1.1
+    "@radix-ui/react-id": 1.1.1
+    "@radix-ui/react-presence": 1.1.5
+    "@radix-ui/react-primitive": 2.1.3
+    "@radix-ui/react-roving-focus": 1.1.11
+    "@radix-ui/react-use-controllable-state": 1.2.2
   peerDependencies:
     "@types/react": "*"
     "@types/react-dom": "*"
@@ -2735,7 +2762,7 @@ __metadata:
       optional: true
     "@types/react-dom":
       optional: true
-  checksum: eb5eecb4813b784c6f324a947b1f391b1b890bc3f5bd0eb2d08e73f84a10b25bbf482a8dd9785de8a6fe49ff99860c07cf0a6953c9f9631202e5d9c8ebc06758
+  checksum: 6bb8fa404d65ddb1be12cb03912abff8d924fb9b3435da71b39836585df6b55bd25341bd989324c330724af942c0f0cdf4c51503057b0532359da40c64b08081
   languageName: node
   linkType: hard
 
@@ -10123,7 +10150,7 @@ __metadata:
     "@radix-ui/react-separator": ^1.1.7
     "@radix-ui/react-slot": ^1.2.3
     "@radix-ui/react-switch": ^1.2.5
-    "@radix-ui/react-tabs": ^1.1.12
+    "@radix-ui/react-tabs": ^1.1.13
     "@radix-ui/react-toggle": ^1.1.9
     "@radix-ui/react-toggle-group": ^1.1.10
     "@radix-ui/react-tooltip": ^1.2.7
